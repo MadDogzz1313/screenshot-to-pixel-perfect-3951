@@ -10,33 +10,141 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BeitragRouteImport } from './routes/beitrag'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as EntdeckenRouteImport } from './routes/entdecken'
+import { Route as KarteRouteImport } from './routes/karte'
+import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as FundortIdRouteImport } from './routes/fundort.$id'
+import { Route as UUsernameRouteImport } from './routes/u.$username'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BeitragRoute = BeitragRouteImport.update({
+  id: '/beitrag',
+  path: '/beitrag',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntdeckenRoute = EntdeckenRouteImport.update({
+  id: '/entdecken',
+  path: '/entdecken',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KarteRoute = KarteRouteImport.update({
+  id: '/karte',
+  path: '/karte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfilRoute = ProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FundortIdRoute = FundortIdRouteImport.update({
+  id: '/fundort/$id',
+  path: '/fundort/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/beitrag': typeof BeitragRoute
+  '/community': typeof CommunityRoute
+  '/entdecken': typeof EntdeckenRoute
+  '/karte': typeof KarteRoute
+  '/profil': typeof ProfilRoute
+  '/fundort/$id': typeof FundortIdRoute
+  '/u/$username': typeof UUsernameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/beitrag': typeof BeitragRoute
+  '/community': typeof CommunityRoute
+  '/entdecken': typeof EntdeckenRoute
+  '/karte': typeof KarteRoute
+  '/profil': typeof ProfilRoute
+  '/fundort/$id': typeof FundortIdRoute
+  '/u/$username': typeof UUsernameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/beitrag': typeof BeitragRoute
+  '/community': typeof CommunityRoute
+  '/entdecken': typeof EntdeckenRoute
+  '/karte': typeof KarteRoute
+  '/profil': typeof ProfilRoute
+  '/fundort/$id': typeof FundortIdRoute
+  '/u/$username': typeof UUsernameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/beitrag'
+    | '/community'
+    | '/entdecken'
+    | '/karte'
+    | '/profil'
+    | '/fundort/$id'
+    | '/u/$username'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/beitrag'
+    | '/community'
+    | '/entdecken'
+    | '/karte'
+    | '/profil'
+    | '/fundort/$id'
+    | '/u/$username'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/beitrag'
+    | '/community'
+    | '/entdecken'
+    | '/karte'
+    | '/profil'
+    | '/fundort/$id'
+    | '/u/$username'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  BeitragRoute: typeof BeitragRoute
+  CommunityRoute: typeof CommunityRoute
+  EntdeckenRoute: typeof EntdeckenRoute
+  KarteRoute: typeof KarteRoute
+  ProfilRoute: typeof ProfilRoute
+  FundortIdRoute: typeof FundortIdRoute
+  UUsernameRoute: typeof UUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +156,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/beitrag': {
+      id: '/beitrag'
+      path: '/beitrag'
+      fullPath: '/beitrag'
+      preLoaderRoute: typeof BeitragRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entdecken': {
+      id: '/entdecken'
+      path: '/entdecken'
+      fullPath: '/entdecken'
+      preLoaderRoute: typeof EntdeckenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/karte': {
+      id: '/karte'
+      path: '/karte'
+      fullPath: '/karte'
+      preLoaderRoute: typeof KarteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profil': {
+      id: '/profil'
+      path: '/profil'
+      fullPath: '/profil'
+      preLoaderRoute: typeof ProfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fundort/$id': {
+      id: '/fundort/$id'
+      path: '/fundort/$id'
+      fullPath: '/fundort/$id'
+      preLoaderRoute: typeof FundortIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  BeitragRoute: BeitragRoute,
+  CommunityRoute: CommunityRoute,
+  EntdeckenRoute: EntdeckenRoute,
+  KarteRoute: KarteRoute,
+  ProfilRoute: ProfilRoute,
+  FundortIdRoute: FundortIdRoute,
+  UUsernameRoute: UUsernameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

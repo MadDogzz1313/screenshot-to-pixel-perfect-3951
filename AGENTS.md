@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Data currently comes from a local demo store (`src/lib/store.tsx`); replace with Lovable Cloud without changing page components' props. Why: user asked for demo data until backend is connected.
+- Draft SQL lives in `docs/migrations/`, applied later via Lovable. Why: managed migrations folder must not be hand-edited.
+- Level/XP math lives only in `src/lib/levels.ts` (tested). Why: single source for badge and progress.
