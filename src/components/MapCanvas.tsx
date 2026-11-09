@@ -65,7 +65,7 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
                 onPick({ x: +(((e.clientX - r.left) / r.width) * 100).toFixed(2), y: +(((e.clientY - r.top) / r.height) * 100).toFixed(2) });
               }}>
               <img src={mapImg} alt="Karte von Leonida" width={MAP_W} height={MAP_H} data-testid="map-image"
-                className={`block h-full w-full select-none ${floating ? "shadow-[0_0_28px_oklch(0.7_0.3_345/0.45)]" : ""}`} draggable={false} />
+                className={`map-image-feather block h-full w-full select-none ${floating ? "" : ""}`} draggable={false} />
               {showPins && spots.map((s) => {
                 const c = categoryById(s.category);
                 return (

@@ -1,0 +1,132 @@
+{
+  "project_title": "Leonida Explorer - Seamless Map Feathering & Safari Masking",
+  "design_intent": "Elegante, nahtlose Verschmelzung der Leonida-Karte mit dem pink-violetten Miami-Sonnenuntergang-Hintergrund über 4-seitige CSS-Maskierung (mask-image / -webkit-mask-image) ohne harte Bildkanten, unter vollständiger Erhaltung aller Landmassen (inkl. südwestlicher Insel), interaktiver Pins, Gesten und Safari-Kompatibilität.",
+  "colors": {
+    "surfaces": [
+      {
+        "name": "page",
+        "kind": "solid",
+        "bg": "#230e38",
+        "on_bg": "#fbf2f8",
+        "on_bg_muted": "#cca4cf"
+      },
+      {
+        "name": "panel",
+        "kind": "solid",
+        "bg": "#31124d",
+        "on_bg": "#fbf2f8",
+        "on_bg_muted": "#cca4cf"
+      },
+      {
+        "name": "inverse",
+        "kind": "solid",
+        "bg": "#fbf2f8",
+        "on_bg": "#230e38",
+        "on_bg_muted": "#5c2a78"
+      },
+      {
+        "name": "sunset_hero_bg",
+        "kind": "image",
+        "contrast_against": "#1c0b2b",
+        "guarantee": "scrim: linear-gradient(180deg, rgba(35,14,56,0.7) 0%, rgba(35,14,56,0.25) 50%, rgba(35,14,56,0.6) 100%)",
+        "on_bg": "#fbf2f8",
+        "on_bg_muted": "#cca4cf",
+        "roles": {
+          "link": "#ff388c",
+          "error": "#ff4d4d",
+          "success": "#2fe091"
+        }
+      },
+      {
+        "name": "map_canvas_surface",
+        "kind": "glass",
+        "contrast_against": "#200c32",
+        "guarantee": "backdrop-filter: blur(12px) with bg-background/60 and oklch tint",
+        "on_bg": "#fbf2f8",
+        "on_bg_muted": "#cca4cf",
+        "roles": {
+          "link": "#ff388c",
+          "accent_label": "#ffaa33"
+        }
+      }
+    ],
+    "accent": "#ff2a85",
+    "on_accent": "#ffffff",
+    "palette_tokens": {
+      "neon_pink": "oklch(0.7 0.3 345)",
+      "miami_sunset": "oklch(0.76 0.17 60)",
+      "deep_night": "oklch(0.17 0.07 300)",
+      "glow_cyan": "oklch(0.6 0.17 250)"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "display": "Russo One, system-ui, sans-serif",
+      "sans": "Outfit, system-ui, sans-serif"
+    },
+    "scale_px": {
+      "display": 42,
+      "h1": 32,
+      "h2": 24,
+      "h3": 20,
+      "body": 16,
+      "caption": 14
+    }
+  },
+  "entry_surfaces": {
+    "/karte": "Vivid sunset skyline background with seamless feathered floating map canvas, neon glass controls, and bottom navigation",
+    "/entdecken": "Miami sunset background with feed of approved Leonida spots and filter chips",
+    "/beitrag": "Contribution form with card-style map coordinate picker",
+    "/community": "Community leaderboard and badges with glass neon cards",
+    "/profil": "Player profile with level badge, statistics and submitted spots"
+  },
+  "map_feathering_specification": {
+    "goal": "Nahtlose 4-seitige Ausblendung der Bildkanten der Leonida-Karte in den Sonnenuntergang-Hintergrund, ohne Inselteile zu verdecken und ohne harte Ecken.",
+    "feathering_technique": "Dual CSS Masking with -webkit-mask-image and mask-image utilizing linear/radial gradients or combined directional gradients",
+    "safari_ios_rules": [
+      "Always declare both -webkit-mask-image and mask-image for full WebKit (iOS Safari) compatibility.",
+      "Never apply mask-image directly on the interactive TransformComponent wrapper or spot markers container, which would clip pins or interfere with touch hit-testing. Apply it specifically to the <img> element or a dedicated image-only wrapper.",
+      "Use gradient color stops that preserve 100% opacity over the central 82%-88% of the map, and fade smoothly to transparent (0%) only over the outer 6%-10% ocean border.",
+      "Ensure the southwest island (südwestliche Insel) and southern coastlines stay well within the 100% opacity zone.",
+      "Remove hard rectangular shadow boxes or heavy rectangular drop shadows from the image (replace with ambient radial glow behind the map or soft luminous blend)."
+    ],
+    "css_mask_implementation": {
+      "mask_css_rule": "mask-image: radial-gradient(ellipse 90% 92% at 50% 50%, black 72%, transparent 98%); -webkit-mask-image: radial-gradient(ellipse 90% 92% at 50% 50%, black 72%, transparent 98%);",
+      "alternative_directional_mask": "mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); mask-composite: intersect; -webkit-mask-composite: source-in;",
+      "ambient_glow": "Soft radial gradient behind the map with blur-3xl (oklch(0.6 0.2 240 / 0.35) and oklch(0.7 0.3 345 / 0.25)) to naturally fuse ocean water with Miami sunset."
+    }
+  },
+  "component_guidelines": {
+    "MapCanvas": {
+      "path": "/app/src/components/MapCanvas.tsx",
+      "instructions": [
+        "In variant='floating', remove hard shadow classes like shadow-[0_0_28px_...] from the <img> element that create rectangular edge artifacts.",
+        "Apply soft CSS masking to the map image (<img ... className='... [mask-image:radial-gradient(ellipse_92%_92%_at_50%_50%,black_75%,transparent_98%)] [-webkit-mask-image:radial-gradient(ellipse_92%_92%_at_50%_50%,black_75%,transparent_98%)]' />).",
+        "Keep pins and click handlers outside the masked image element so pins are always 100% opaque and fully clickable at any zoom level.",
+        "Preserve react-zoom-pan-pinch gesture support (pinch, pan, wheel, double click), initial center view, and minScale/maxScale logic.",
+        "Preserve layer toggle (showPins), reset view (Maximize), and zoomIn/zoomOut buttons with high-contrast glassmorphism."
+      ]
+    },
+    "KarteRoute": {
+      "path": "/app/src/routes/karte.tsx",
+      "instructions": [
+        "Keep AppShell vividBg set to true for the rich Miami sunset skyline backdrop.",
+        "Maintain safe area insets (safe-top and safe-bottom) for iPhone notch and home indicator.",
+        "Ensure search input, filter modal, stats bar, and 'Fundort vorschlagen' CTA button remain fully accessible and functional."
+      ]
+    }
+  },
+  "accessibility_and_contrast": {
+    "wcag_compliance": "All text and button labels maintain >= 4.5:1 contrast against their respective tinted glass or solid background.",
+    "touch_targets": "Minimum 44x44px touch targets on all interactive controls (Zoom, Reset, Layers, Profile, Filter, Search clear).",
+    "prefers_reduced_motion": "Support smooth transitions while respecting reduced motion media query.",
+    "testing_attributes": "All key controls and containers must maintain strict data-testid attributes (e.g. data-testid='map-floating', data-testid='map-image', data-testid='map-locate-button', data-testid='map-pin-*')."
+  },
+  "instructions_to_main_agent": [
+    "1. Do NOT alter backend, Supabase, database schema, demo data, badges, user profiles, or routing logic.",
+    "2. Do NOT replace the map image file (src/assets/leonida-map.jpg). Use the existing high-res asset.",
+    "3. Focus solely on polishing MapCanvas.tsx and related map styling in styles.css to achieve the seamless feathered edge blending with the pink-violet sunset.",
+    "4. Test that the full Leonida island, including the southwest island and southern keys/coastlines, remains crisp, sharp and completely visible with zero cutoff.",
+    "5. Ensure iOS Safari and iPhone touch gestures (pinch-to-zoom, pan, tap) work smoothly without any glitch or blocked events."
+  ]
+}

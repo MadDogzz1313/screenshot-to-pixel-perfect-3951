@@ -1,0 +1,74 @@
+{
+  "iteration": 4,
+  "mode": "generate",
+  "summary": "Exercised all 6 acceptance_matrix criteria for the Leonida map edge-feathering change (MapCanvas.tsx / styles.css) via 7 browser checks (6 criteria + 1 duplicate run through the public preview URL ingress). No UI-facing criterion required a new backend artifact (no API surface touched by this change); existing backend suite (2 tests) re-run and still passes. All checks passed, no bugs found.",
+  "passed": 8,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Die Karte verschmilzt auf der mobilen Kartenroute an allen vier Seiten weich mit dem pink-violetten Miami-Sonnenuntergang-Hintergrund",
+      "name": "map-feathered-edges-blend-background",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: after guest login -> /karte, getComputedStyle(map-image).maskImage is a non-'none' multi-stop linear-gradient mask (matches styles.css map-image-feather @utility); screenshot shows the map's outer water edges fading into the pink/violet sunset background on all 4 sides with no hard rectangular edge."
+    },
+    {
+      "criterion": "Die Karte verschmilzt ... (zusätzlich via öffentliche Preview-URL geprüft, wie vom Briefing/Methode gefordert)",
+      "name": "map-feathered-edges-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Same assertions re-run against https://leonida-karte--6tt5kohx.preview.emergentagent.com (the ingress URL from the briefing) at 390x844: mask-image present and non-trivial on map-image; screenshot confirms feathered edges render identically through the public ingress."
+    },
+    {
+      "criterion": "Die vollständige Karte bleibt beim Zurücksetzen sichtbar",
+      "name": "map-reset-view-shows-full-island",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: zoomed in 3x via map-zoom-in-button, then clicked map-locate-button; map-image boundingBox after reset is fully within the 390px-wide viewport (x>=-2, x+width<=392), screenshot confirms north coast, south coast and the small southwest island all fully visible, not cropped."
+    },
+    {
+      "criterion": "Marker bleiben sichtbar und korrekt positioniert",
+      "name": "map-markers-visible-after-reset",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: found 3 map-pin-* elements (matches seed_facts' 3 preview spots), all visible; after zooming in via map-zoom-in-button x2 and resetting via map-locate-button, same count (3) still present and each individually visible (screenshots: markers-while-zoomed, markers-after-reset)."
+    },
+    {
+      "criterion": "Zoomsteuerung bleibt funktionsfähig",
+      "name": "map-zoom-controls-work-no-errors",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: clicked map-zoom-in-button x2, map-zoom-out-button x1, map-locate-button; pin count (3) stable across all steps, pins stayed visible, zero page/React errors captured via page.on('pageerror') listener (asserted errors array == [])."
+    },
+    {
+      "criterion": "Touch-Interaktion wird nicht blockiert",
+      "name": "map-touch-pan-not-blocked-by-mask",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: getComputedStyle(.react-transform-wrapper).touchAction === 'none' confirmed (mask did not remove it); after zooming in and performing a mouse drag (down/move 10 steps/up) over the map, map-pin-* elements (3) remained present with pointer-events !== 'none', confirming the mask does not sit on top of / block the marker layer."
+    },
+    {
+      "criterion": "Bestehende Suche und Filter bleiben unverändert erreichbar",
+      "name": "map-search-and-filter-accessible",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: map-search-input visible, accepted fill('tscheck-such-test') and toHaveValue confirmed it; map-filter-button visible, clicked to open filter panel (screenshot filter-opened) then clicked again to close (screenshot filter-closed) without errors; both controls remained visible throughout."
+    },
+    {
+      "criterion": "(regression) existing backend health suite still passes after this frontend-only change",
+      "name": "test_tscheck_health.py (pre-existing)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 2 passed in 0.33s (GET /api/health -> 200 {status:ok}; GET /api/nope -> 404). No new API surface was introduced by this UI-only change, so no new backend test file was needed."
+    }
+  ],
+  "notes": [
+    "All 6 acceptance_matrix criteria got one browser check each; the first criterion additionally got a second run through the public preview ingress URL per the testing method's requirement ('run ONE of your checks through the public preview URL'), yielding 7 browser artifacts total for 6 criteria plus 1 backend regression check = 8 checks[] entries.",
+    "No new backend test file was written because this briefing's change (src/components/MapCanvas.tsx, src/styles.css) is purely visual/CSS-mask and touch-interaction; there is no API-bearing criterion in this matrix.",
+    "Cleaned up stray .backup files left in /app/.emergent/scripts/checks/ from this iteration's own script edits, per instructions.",
+    "Used the guest flow (auth-guest-button -> /karte) for all map checks since the acceptance_matrix criteria do not depend on any authenticated role and no test credentials were needed; consistent with spec_deviations (no login/DB mutations performed)."
+  ]
+}

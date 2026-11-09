@@ -102,4 +102,14 @@
   box-shadow: 0 0 12px oklch(0.7 0.3 345 / 0.7), inset 0 0 0 2px oklch(0.98 0.02 320 / 0.5);
   text-shadow: 0 0 6px oklch(0.3 0.15 300);
 }
-@utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+@utility map-image-feather {
+  /* Four-sided alpha feathering stays in the outer water margin; pins remain unmasked. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 3%, #000 97%, transparent 100%);
+  -webkit-mask-mode: alpha;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 3%, #000 97%, transparent 100%);
+  mask-mode: alpha;
+  mask-repeat: no-repeat;
+  mask-composite: intersect;
+}
