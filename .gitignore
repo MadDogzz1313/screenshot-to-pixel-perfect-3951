@@ -35,3 +35,10 @@ dist-ssr
 __pycache__/
 frontend/build
 backend/.env
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
