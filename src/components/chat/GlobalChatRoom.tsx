@@ -65,11 +65,23 @@ export function GlobalChatRoom() {
   const restriction = restrictionQuery.data;
   const restricted = restriction && (restriction.kind === "ban" || !restriction.until_at || new Date(restriction.until_at).getTime() > Date.now());
 
+  // Layout: der Chat füllt exakt den sichtbaren Bereich (visualViewport) oberhalb der echten Navigationsleiste.
+  // Bei geöffneter Tastatur liegt die Leiste hinter der Tastatur – dann sitzt das Eingabefeld direkt über der Tastatur.
   useEffect(() => {
-    const viewport = window.visualViewport;
-    const update = () => document.documentElement.style.setProperty("--chat-vh", `${viewport?.height ?? window.innerHeight}px`);
-    update(); viewport?.addEventListener("resize", update); viewport?.addEventListener("scroll", update);
-    return () => { viewport?.removeEventListener("resize", update); viewport?.removeEventListener("scroll", update); };
+    const root = document.documentElement; const viewport = window.visualViewport;
+    const navEl = document.querySelector<HTMLElement>("[data-testid='app-bottom-nav']");
+    const update = () => {
+      const height = viewport?.height ?? window.innerHeight;
+      const keyboardOpen = window.innerHeight - height > 120;
+      root.style.setProperty("--chat-vh", `${height}px`);
+      root.style.setProperty("--chat-top", `${viewport?.offsetTop ?? 0}px`);
+      root.style.setProperty("--chat-nav-h", `${keyboardOpen ? 0 : navEl?.offsetHeight ?? 0}px`);
+      if (stickRef.current && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+    };
+    update();
+    const observer = navEl ? new ResizeObserver(update) : null; if (navEl) observer?.observe(navEl);
+    viewport?.addEventListener("resize", update); viewport?.addEventListener("scroll", update); window.addEventListener("resize", update);
+    return () => { observer?.disconnect(); viewport?.removeEventListener("resize", update); viewport?.removeEventListener("scroll", update); window.removeEventListener("resize", update); ["--chat-vh", "--chat-top", "--chat-nav-h"].forEach((key) => root.style.removeProperty(key)); };
   }, []);
   useEffect(() => { if (stickRef.current && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [messages.length]);
   const lastDate = useRef<string>("");
@@ -82,7 +94,7 @@ export function GlobalChatRoom() {
   };
   const run = async (promise: Promise<unknown>, success: string) => { try { await promise; toast.success(success); } catch (error) { toast.error(chatErrorMessage(error as { code?: string; message?: string })); } };
 
-  return <div className="relative -mb-24 flex h-[calc(var(--chat-vh,100dvh)-4.5rem)] min-h-[34rem] flex-col overflow-hidden px-3 pb-[calc(4.5rem+env(safe-area-inset-bottom))]" data-testid="community-chat-room">
+  return <div className="fixed inset-x-0 top-[var(--chat-top,0px)] z-30 mx-auto flex h-[var(--chat-vh,100dvh)] w-full max-w-3xl flex-col overflow-hidden px-3 pb-[calc(var(--chat-nav-h,0px)+0.5rem)]" data-testid="community-chat-room">
     <header className="relative flex shrink-0 items-center gap-3 border-b border-neon/25 px-1 pb-3 pt-[max(env(safe-area-inset-top),0.7rem)]"><button type="button" aria-label="Zur Community zurück" data-testid="chat-back-button" onClick={() => nav({ to: "/community" })} className="grid h-11 w-11 place-items-center rounded-full border border-neon/40 bg-card/80 active:scale-95"><ArrowLeft className="h-5 w-5" /></button><div className="min-w-0 flex-1"><h1 data-testid="chat-title" className="truncate font-display text-xl text-neon-gradient">Community-Chat</h1><p data-testid="chat-online-counter" className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className={`h-2.5 w-2.5 rounded-full ${presence === null ? "bg-muted-foreground" : "bg-success shadow-[0_0_8px_var(--success)] animate-pulse"}`} />{presence === null ? "Verbinde …" : `${presence} online`}</p></div>{user.isAdmin && <button type="button" aria-label="Chatmeldungen öffnen" data-testid="chat-moderation-button" onClick={() => setModerationOpen((open) => !open)} className="grid h-11 w-11 place-items-center rounded-full border border-accent/50 bg-card/80"><Shield className="h-5 w-5 text-accent" /></button>}<button type="button" aria-label="Chat-Info" data-testid="chat-info-button" onClick={() => toast.message("Bitte respektvoll, ohne persönliche Daten und ohne Spam schreiben.")} className="grid h-11 w-11 place-items-center rounded-full border border-neon/40 bg-card/80"><MoreHorizontal className="h-5 w-5" /></button>{moderationOpen && <ModerationPanel reports={reportsQuery.data} onClose={() => setModerationOpen(false)} onReview={(id, status) => void run(actions.review.mutateAsync({ reportId: id, status }), status === "reviewed" ? "Meldung bearbeitet" : "Meldung verworfen")} />}</header>
     {restriction?.kind === "mute" && restriction.until_at && new Date(restriction.until_at).getTime() > Date.now() && <div data-testid="chat-muted-banner" className="my-2 flex shrink-0 items-center gap-2 rounded-2xl border border-accent/40 bg-accent/10 px-3 py-2 text-xs text-accent"><VolumeX className="h-4 w-4" />Du bist bis {time(restriction.until_at)} stummgeschaltet.</div>}
     {schemaMissing ? <div data-testid="chat-setup-message" className="my-auto rounded-3xl border border-neon/30 bg-card/80 p-5 text-center shadow-[0_0_24px_oklch(0.7_0.3_345/0.15)]"><Bell className="mx-auto mb-3 h-8 w-8 text-neon" /><h2 className="font-display text-lg">Chat-Datenbank noch nicht verbunden</h2><p className="mt-2 text-sm text-muted-foreground">Die Oberfläche ist bereit. Für Nachrichten und Realtime muss die Migration <code className="text-neon">007_community_chat.sql</code> einmal in deiner Supabase-Datenbank ausgeführt werden.</p></div> : <>

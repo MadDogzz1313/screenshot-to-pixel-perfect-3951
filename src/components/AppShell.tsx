@@ -22,7 +22,7 @@ export function AppShell({ children, title, vividBg }: { children: ReactNode; ti
         </header>
       )}
       <main className="flex-1 pb-24">{children}</main>
-      <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-3xl">
+      <div data-testid="app-bottom-nav" className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-3xl">
         <nav className="safe-bottom grid grid-cols-5 border-t border-neon bg-background/95 pt-2 backdrop-blur">
           {NAV.map(({ to, label, icon: Icon }) => (
             <Link key={to} to={to} className="flex flex-col items-center gap-0.5 text-xs text-muted-foreground"
