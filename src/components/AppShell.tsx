@@ -11,14 +11,15 @@ const NAV = [
   { to: "/profil", label: "Profil", icon: User },
 ] as const;
 
-export function AppShell({ children, title, vividBg }: { children: ReactNode; title?: string; vividBg?: boolean }) {
+export function AppShell({ children, title, vividBg, headerRight }: { children: ReactNode; title?: string; vividBg?: boolean; headerRight?: ReactNode }) {
   return (
     <div className="relative isolate mx-auto flex min-h-dvh w-full max-w-3xl flex-col">
       <img src={bg} alt="" aria-hidden className={`pointer-events-none fixed inset-0 -z-10 h-full w-full object-cover ${vividBg ? "opacity-90" : "opacity-60"}`} />
       <div className={`pointer-events-none fixed inset-0 -z-10 ${vividBg ? "bg-gradient-to-b from-background/70 via-background/25 to-background/60" : "bg-background/60"}`} />
       {title && (
-        <header className="px-4 pt-[max(env(safe-area-inset-top),1rem)] pb-2">
+        <header className="flex items-center justify-between gap-3 px-4 pt-[max(env(safe-area-inset-top),1rem)] pb-2">
           <h1 className="font-display text-2xl text-neon-gradient">{title}</h1>
+          {headerRight}
         </header>
       )}
       <main className="flex-1 pb-24">{children}</main>

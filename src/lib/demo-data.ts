@@ -17,7 +17,7 @@ export interface Profile {
   id: string; username: string; avatar: string; hasAvatar: boolean; avatarPath: string | null; bio: string; xp: number; likes: number;
   /** privates Profil, das der Betrachter nicht voll sehen darf */
   restricted: boolean; isPrivate: boolean; joinedAt: string | null; featured: string[] | null;
-  showAvatar: boolean; showJoinDate: boolean; showBadges: boolean;
+  showAvatar: boolean; showJoinDate: boolean; showBadges: boolean; showFriends: boolean;
 }
 export interface Spot {
   id: string; title: string; category: CategoryId; x: number; y: number; area: string;

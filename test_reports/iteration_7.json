@@ -1,0 +1,81 @@
+{
+  "iteration": 7,
+  "mode": "generate",
+  "summary": "New acceptance_matrix (8 criteria) covering the social layer: notification bell, foreign-profile friend actions, friends-list privacy, /freunde tabs, private DM chat, inbox + community social cards, ban screen, and admin Benutzerverwaltung. The real Supabase project (daxzwbkacxllrejaghym) has no SQL 008 tables/functions yet and no test accounts, so per seed_facts every check mocks Supabase in-browser (fake JWT session in localStorage + page.route interception of profile_cards/notifications/private_messages/rpc endpoints), mirroring the working pattern already proven in /app/.emergent/scripts/adhoc/*.spec.ts. All 9 browser-check runs (8 criteria + 1 public-preview ingress cross-check) passed on the first attempt against the real source (src/components/social/{NotificationBell,SocialProfile,AdminUserManagement,BanGate}.tsx and src/routes/{freunde,nachrichten.$userId,nachrichten.index,community}.tsx), confirming the implemented data-testids, RPC call names (send_friend_request, respond_friend_request, cancel_friend_request, block_user, unblock_user, report_user, mark_notifications_read, mark_conversation_read, send_private_message, admin_ban_user with _until:null for Permanent, admin_update_report) and UI behavior (badge counts, panel open/close, relation-based action buttons, 6 report reasons, friends-list privacy note vs count, tab navigation, DM bubbles/gap-to-nav/locked-note, ban-screen gating with reason/duration formatting and bottom-nav hidden, admin search/ban/protected-row/reports). No backend/FastAPI endpoints are involved in this matrix (purely Supabase-RPC-driven per spec_deviations), so no new pytest files were added this iteration; the existing backend suite (community chat migration + health) is unaffected and was not re-run since no criterion in this matrix touches it.",
+  "passed": 9,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Notification bell in own profile (/profil) top-right shows unread count; opening the panel marks shown notifications read",
+      "name": "notification-bell-unread-and-mark-read",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked 2 unread + 1 read notification. notification-bell-count showed '2' on load with mark_notifications_read NOT called. Clicking notification-bell-button opened notification-panel showing 'Möchte mit dir befreundet sein'; mark_notifications_read RPC fired after open (expect.poll true). After Escape-close + refetch, notification-bell-count disappeared (count 0)."
+    },
+    {
+      "criterion": "Notification bell (public preview ingress cross-check)",
+      "name": "notification-bell-unread-and-mark-read-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Same assertions re-run against https://leonida-karte--6tt5kohx.preview.emergentagent.com: bell count '2', panel opens, mark_notifications_read RPC observed. Confirms the ingress path renders identically to localhost."
+    },
+    {
+      "criterion": "Foreign profile /u/<username> shows friend actions by relation",
+      "name": "foreign-profile-friend-relations",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Single my_friend_state mock with 4 relations across 4 profiles: none->friend-add-button click called send_friend_request; incoming->friend-accept-button click called respond_friend_request; outgoing->friend-cancel-button click called cancel_friend_request; friends->friend-status-friends + friend-message-button href=/nachrichten/<B-id>; profile-more-button opened menu, user-report-button opened report-dialog with exactly 6 report-reason-{harassment,spam,fraud,inappropriate,suspicious,other} buttons, submitting called report_user; user-block-button + window.confirm (accepted) called block_user."
+    },
+    {
+      "criterion": "Friends list privacy on foreign profile",
+      "name": "friends-list-privacy-on-foreign-profile",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "friends_of -> {visible:false}: friends-private-note text 'Freundesliste ist privat' shown, friends-count absent. friends_of -> {visible:true,count:2}: friends-count shows '2', private note absent."
+    },
+    {
+      "criterion": "/freunde page tabs",
+      "name": "freunde-page-tabs-requests-blocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "friends-tab-freunde/anfragen/blockiert all visible. Anfragen tab: friends-incoming + friends-outgoing sections render; incoming-accept-button click called respond_friend_request; outgoing-cancel-button click called cancel_friend_request. Blockiert tab: friends-blocked section with blocked-unblock-button click called unblock_user."
+    },
+    {
+      "criterion": "Private chat /nachrichten/<friendId>",
+      "name": "private-chat-dm-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Friends relation: dm-bubble-own and dm-bubble-peer both rendered with dm-timestamp; incoming unread message triggered mark_conversation_read RPC automatically; measured gap (app-bottom-nav.top - dm-input-bar.bottom) <=10px at 390x844; sending text via dm-send-button called send_private_message. Non-friends relation (/nachrichten/<newguy>): dm-locked-note visible and dm-message-input disabled."
+    },
+    {
+      "criterion": "/nachrichten inbox + community social cards",
+      "name": "inbox-and-community-social-cards",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "my_conversations mock -> inbox-list shows inbox-conversation-<id> with inbox-unread-badge='1'. /community shows community-social-grid with community-friends-card/community-requests-card/community-dm-card; community-requests-card-badge='1' (incoming count) and community-dm-card-badge='1' (unread DMs)."
+    },
+    {
+      "criterion": "Ban screen only for real ban",
+      "name": "ban-screen-only-for-real-ban",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "my_account_ban -> [{until_at:<future>,permanent:false,reason:'Spam im Community-Chat'}]: ban-screen shown on /karte with ban-reason text, ban-duration containing 'bis ... Uhr', app-bottom-nav absent; ban-review-open-button opened ban-review-form. my_account_ban -> []: ban-screen absent and app-bottom-nav visible again on /karte."
+    },
+    {
+      "criterion": "Admin Benutzerverwaltung in /admin",
+      "name": "admin-benutzerverwaltung-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "has_role->true rendered admin-users with admin-user-search filtering to admin-user-<gatorboy id>; selecting opened admin-user-panel with admin-ban-duration-1d/perm chips; filling reason + Permanent + confirm(accepted) -> admin-ban-button called admin_ban_user with _until:null (verified via captured POST body). Selecting the admin/self row (protected) showed admin-user-protected and hid admin-ban-button. admin-user-reports listed admin-report-rep1; admin-report-resolve called admin_update_report. Existing admin-corrections and admin-donations sections still rendered alongside."
+    }
+  ],
+  "notes": [
+    "8 acceptance_matrix criteria covered by 9 checks[] entries (criterion 1 additionally cross-checked through the public preview ingress URL per method step 2).",
+    "No backend pytest files were added: this matrix is entirely Supabase-RPC/UI-driven (per spec_deviations, real DB writes/SQL-008-gated RPCs cannot be exercised from the browser or FastAPI, and there is no FastAPI surface for these criteria). The existing backend suite from prior iterations (community chat migration, health) is untouched and unaffected by this generation round.",
+    "All assertions were grounded directly in the current source (SocialProfile.tsx, NotificationBell.tsx, AdminUserManagement.tsx, BanGate.tsx, freunde.tsx, nachrichten.$userId.tsx, nachrichten.index.tsx, community.tsx) to pick real data-testids and RPC names rather than guessing from the briefing wording alone.",
+    "No bugs found; every check passed on the first run (no reruns/flakiness needed)."
+  ]
+}

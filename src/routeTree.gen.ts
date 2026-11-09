@@ -14,11 +14,14 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BeitragRouteImport } from './routes/beitrag'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as EntdeckenRouteImport } from './routes/entdecken'
+import { Route as FreundeRouteImport } from './routes/freunde'
 import { Route as KarteRouteImport } from './routes/karte'
 import { Route as PasswortNeuRouteImport } from './routes/passwort-neu'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as CommunityChatRouteImport } from './routes/community.chat'
 import { Route as FundortIdRouteImport } from './routes/fundort.$id'
+import { Route as NachrichtenIndexRouteImport } from './routes/nachrichten.index'
+import { Route as NachrichtenUserIdRouteImport } from './routes/nachrichten.$userId'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +49,11 @@ const EntdeckenRoute = EntdeckenRouteImport.update({
   path: '/entdecken',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FreundeRoute = FreundeRouteImport.update({
+  id: '/freunde',
+  path: '/freunde',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KarteRoute = KarteRouteImport.update({
   id: '/karte',
   path: '/karte',
@@ -71,6 +79,16 @@ const FundortIdRoute = FundortIdRouteImport.update({
   path: '/fundort/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NachrichtenIndexRoute = NachrichtenIndexRouteImport.update({
+  id: '/nachrichten/',
+  path: '/nachrichten/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NachrichtenUserIdRoute = NachrichtenUserIdRouteImport.update({
+  id: '/nachrichten/$userId',
+  path: '/nachrichten/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UUsernameRoute = UUsernameRouteImport.update({
   id: '/u/$username',
   path: '/u/$username',
@@ -83,12 +101,15 @@ export interface FileRoutesByFullPath {
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/entdecken': typeof EntdeckenRoute
+  '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
   '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
+  '/nachrichten/$userId': typeof NachrichtenUserIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/nachrichten/': typeof NachrichtenIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,12 +117,15 @@ export interface FileRoutesByTo {
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/entdecken': typeof EntdeckenRoute
+  '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
   '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
+  '/nachrichten/$userId': typeof NachrichtenUserIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/nachrichten': typeof NachrichtenIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,12 +134,15 @@ export interface FileRoutesById {
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/entdecken': typeof EntdeckenRoute
+  '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
   '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
+  '/nachrichten/$userId': typeof NachrichtenUserIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/nachrichten/': typeof NachrichtenIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,12 +152,15 @@ export interface FileRouteTypes {
     | '/beitrag'
     | '/community'
     | '/entdecken'
+    | '/freunde'
     | '/karte'
     | '/passwort-neu'
     | '/profil'
     | '/community/chat'
     | '/fundort/$id'
+    | '/nachrichten/$userId'
     | '/u/$username'
+    | '/nachrichten/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -138,12 +168,15 @@ export interface FileRouteTypes {
     | '/beitrag'
     | '/community'
     | '/entdecken'
+    | '/freunde'
     | '/karte'
     | '/passwort-neu'
     | '/profil'
     | '/community/chat'
     | '/fundort/$id'
+    | '/nachrichten/$userId'
     | '/u/$username'
+    | '/nachrichten'
   id:
     | '__root__'
     | '/'
@@ -151,12 +184,15 @@ export interface FileRouteTypes {
     | '/beitrag'
     | '/community'
     | '/entdecken'
+    | '/freunde'
     | '/karte'
     | '/passwort-neu'
     | '/profil'
     | '/community/chat'
     | '/fundort/$id'
+    | '/nachrichten/$userId'
     | '/u/$username'
+    | '/nachrichten/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,11 +201,14 @@ export interface RootRouteChildren {
   BeitragRoute: typeof BeitragRoute
   CommunityRoute: typeof CommunityRouteWithChildren
   EntdeckenRoute: typeof EntdeckenRoute
+  FreundeRoute: typeof FreundeRoute
   KarteRoute: typeof KarteRoute
   PasswortNeuRoute: typeof PasswortNeuRoute
   ProfilRoute: typeof ProfilRoute
   FundortIdRoute: typeof FundortIdRoute
+  NachrichtenUserIdRoute: typeof NachrichtenUserIdRoute
   UUsernameRoute: typeof UUsernameRoute
+  NachrichtenIndexRoute: typeof NachrichtenIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -209,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntdeckenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/freunde': {
+      id: '/freunde'
+      path: '/freunde'
+      fullPath: '/freunde'
+      preLoaderRoute: typeof FreundeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/karte': {
       id: '/karte'
       path: '/karte'
@@ -244,6 +290,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FundortIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nachrichten/': {
+      id: '/nachrichten/'
+      path: '/nachrichten'
+      fullPath: '/nachrichten/'
+      preLoaderRoute: typeof NachrichtenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nachrichten/$userId': {
+      id: '/nachrichten/$userId'
+      path: '/nachrichten/$userId'
+      fullPath: '/nachrichten/$userId'
+      preLoaderRoute: typeof NachrichtenUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/u/$username': {
       id: '/u/$username'
       path: '/u/$username'
@@ -272,11 +332,14 @@ const rootRouteChildren: RootRouteChildren = {
   BeitragRoute: BeitragRoute,
   CommunityRoute: CommunityRouteWithChildren,
   EntdeckenRoute: EntdeckenRoute,
+  FreundeRoute: FreundeRoute,
   KarteRoute: KarteRoute,
   PasswortNeuRoute: PasswortNeuRoute,
   ProfilRoute: ProfilRoute,
   FundortIdRoute: FundortIdRoute,
+  NachrichtenUserIdRoute: NachrichtenUserIdRoute,
   UUsernameRoute: UUsernameRoute,
+  NachrichtenIndexRoute: NachrichtenIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

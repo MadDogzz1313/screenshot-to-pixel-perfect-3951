@@ -85,6 +85,8 @@
   html, body { overflow-x: clip; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 }
 
+@keyframes ban-pop { from { opacity: 0; transform: translateY(12px) scale(0.94); } to { opacity: 1; transform: none; } }
+
 /* Untere Navigationsleiste: Abstand zum Home-Balken des iPhones */
 @utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.25rem); }
 

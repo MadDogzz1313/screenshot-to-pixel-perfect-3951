@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/lib/store";
 import { useInvalidate, useMyProgress } from "@/lib/social";
+import { NotificationBell } from "@/components/social/NotificationBell";
+import { FriendsSection } from "@/components/social/SocialProfile";
 
 export const Route = createFileRoute("/profil")({
   head: () => ({ meta: [{ title: "Mein Profil · Leonida Explorer" }, { name: "description", content: "Dein Profil, Level, Abzeichen und eingereichte Fundorte." }, { property: "og:title", content: "Mein Profil · Leonida Explorer" }, { property: "og:description", content: "Dein Profil, Level, Abzeichen und eingereichte Fundorte." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -21,6 +23,7 @@ const PRIVACY = [
   { k: "show_avatar", f: "showAvatar", l: "Profilbild öffentlich", d: "Ausgeschaltet sehen andere den Standardavatar." },
   { k: "show_join_date", f: "showJoinDate", l: "Beitrittsdatum öffentlich", d: "„Mitglied seit …“ für andere anzeigen." },
   { k: "show_badges", f: "showBadges", l: "Abzeichen öffentlich", d: "Deine Abzeichen für andere anzeigen." },
+  { k: "show_friends", f: "showFriends", l: "Freundesliste anzeigen", d: "Ein = öffentlich (Liste + Anzahl), Aus = privat, nur du siehst sie." },
 ] as const;
 
 function Profil() {
@@ -36,8 +39,9 @@ function Profil() {
   const pending = spots.filter((s) => s.author === me.username && s.status === "pending");
   const save = async (fields: Record<string, unknown>, ok = "Gespeichert") => { const err = await updateProfile(fields); if (err) toast.error(err); else toast.success(ok); return err; };
   return (
-    <AppShell title="Mein Profil">
+    <AppShell title="Mein Profil" headerRight={<NotificationBell />}>
       <ProfileView profile={me} spots={spots} own progress={progress.data} onFeature={(ids) => updateProfile({ featured_badges: ids }).then(async (e) => { await invalidate("badges"); return e; })} />
+      <div className="mt-4"><FriendsSection userId={user.id} own /></div>
       <div className="mt-4 space-y-3 px-3">
         {!!pending.length && <p className="neon-card p-3 text-sm">{pending.length} Beitrag/Beiträge warten auf Freigabe.</p>}
         <section data-testid="profile-edit" className="neon-card space-y-3 p-4">

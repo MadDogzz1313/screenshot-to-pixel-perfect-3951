@@ -28,13 +28,13 @@ const Ctx = createContext<Store | null>(null);
 const KEY = "leonida-demo-v1";
 
 type CardRow = { id: string; username: string; full_access?: boolean; is_private?: boolean; avatar_path: string | null; bio: string | null; xp: number | null;
-  joined_at: string | null; featured_badges: string[] | null; show_avatar?: boolean | null; show_join_date?: boolean | null; show_badges?: boolean | null };
+  joined_at: string | null; featured_badges: string[] | null; show_avatar?: boolean | null; show_join_date?: boolean | null; show_badges?: boolean | null; show_friends?: boolean | null };
 const toProfile = (r: CardRow, urls: Map<string, string>): Profile => {
   const url = r.avatar_path ? urls.get(r.avatar_path) : undefined;
   return {
     id: r.id, username: r.username, avatar: url ?? DEFAULT_AVATAR, hasAvatar: !!url, avatarPath: r.avatar_path, bio: r.bio ?? "", xp: r.xp ?? 0, likes: 0,
     isPrivate: !!r.is_private, restricted: !!r.is_private && !r.full_access, joinedAt: r.joined_at, featured: r.featured_badges,
-    showAvatar: r.show_avatar !== false, showJoinDate: r.show_join_date !== false, showBadges: r.show_badges !== false,
+    showAvatar: r.show_avatar !== false, showJoinDate: r.show_join_date !== false, showBadges: r.show_badges !== false, showFriends: r.show_friends === true,
   };
 };
 

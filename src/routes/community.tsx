@@ -1,11 +1,12 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { CircleHelp, FileText, MapPin, MessageCircle, Sparkles, Users } from "lucide-react";
+import { CircleHelp, FileText, Mail, MapPin, MessageCircle, Sparkles, UserPlus, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { LevelBadge } from "@/components/LevelBadge";
 import { useStore } from "@/lib/store";
 import { useLeaderboard } from "@/lib/social";
 import { useChatPresence } from "@/lib/chat";
+import { useConversations, useFriendState } from "@/lib/friends";
 
 export const Route = createFileRoute("/community")({
   head: () => ({ meta: [{ title: "Community · Leonida Explorer" }, { name: "description", content: "Austausch, Tipps, Fundorte und Neuigkeiten der Leonida-Community." }, { property: "og:title", content: "Community · Leonida Explorer" }, { property: "og:description", content: "Austausch, Tipps, Fundorte und Neuigkeiten der Leonida-Community." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -30,6 +31,8 @@ function Community() {
 
 function CommunityHub({ profiles, user }: { profiles: ReturnType<typeof useStore>["profiles"]; user: ReturnType<typeof useStore>["user"] }) {
   const online = useChatPresence(user?.id, !!user);
+  const friendState = useFriendState(!!user); const convs = useConversations(!!user);
+  const incoming = friendState.data?.incoming.length ?? 0; const unreadDm = (convs.data ?? []).reduce((n, c) => n + Number(c.unread), 0);
   const now = new Date(); const months = [0, 1, 2].map((k) => { const d = new Date(now.getFullYear(), now.getMonth() - k, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`; });
   const [tab, setTab] = useState<"xp" | "month">("xp"); const [month, setMonth] = useState(months[0]!);
   const board = useLeaderboard(month);
@@ -42,6 +45,15 @@ function CommunityHub({ profiles, user }: { profiles: ReturnType<typeof useStore
           <div className="relative flex items-start justify-between gap-3"><div><p data-testid="community-kicker" className="text-[11px] font-bold tracking-[0.26em] text-neon">LEONIDA EXPLORER</p><h1 data-testid="community-title" className="mt-1 flex items-center gap-2 font-display text-3xl text-neon-gradient"><Users className="h-8 w-8 text-neon" />Community</h1><p data-testid="community-subtitle" className="mt-2 text-sm text-muted-foreground">Austausch · Tipps · Fundorte · News</p></div><Sparkles aria-hidden className="mt-2 h-8 w-8 text-accent drop-shadow-[0_0_9px_var(--accent)]" /></div>
           <div data-testid="community-online-summary" className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success"><span className={`h-2.5 w-2.5 rounded-full ${online === null ? "bg-muted-foreground" : "bg-success animate-pulse"}`} />{online === null ? user ? "Live-Status wird verbunden …" : "Für Online-Status anmelden" : `${online} gerade online`}</div>
         </header>
+
+        <section data-testid="community-social-grid" className="space-y-2"><h2 className="px-1 text-xs font-bold tracking-[0.2em] text-muted-foreground">FREUNDE & NACHRICHTEN</h2><div className="grid grid-cols-3 gap-2">
+          {[{ test: "community-friends-card", icon: Users, title: "Freunde", count: friendState.data?.friends.length, badge: 0, link: <Link to="/freunde" className="absolute inset-0" aria-label="Freunde" /> },
+            { test: "community-requests-card", icon: UserPlus, title: "Anfragen", count: undefined, badge: incoming, link: <Link to="/freunde" search={{ tab: "anfragen" }} className="absolute inset-0" aria-label="Freundschaftsanfragen" /> },
+            { test: "community-dm-card", icon: Mail, title: "Private Nachrichten", count: undefined, badge: unreadDm, link: <Link to="/nachrichten" className="absolute inset-0" aria-label="Private Nachrichten" /> }].map(({ test, icon: Icon, title, count, badge, link }) =>
+            <div key={test} data-testid={test} className="relative flex min-h-[96px] flex-col items-center justify-center gap-1.5 rounded-3xl border border-neon/30 bg-card/80 p-2 text-center backdrop-blur-xl transition-[transform,border-color] duration-200 active:scale-[0.97] hover:border-neon/70">
+              <span className="relative grid h-11 w-11 place-items-center rounded-2xl border border-neon/40 bg-background/40 text-neon"><Icon className="h-6 w-6" />{badge > 0 && <span data-testid={`${test}-badge`} className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground shadow-[0_0_10px_var(--neon)]">{badge}</span>}</span>
+              <span className="text-[11px] font-semibold leading-tight">{title}{count !== undefined && <span className="text-muted-foreground"> ({count})</span>}</span>{link}</div>)}
+        </div></section>
 
         <section data-testid="community-topic-grid" className="space-y-2"><h2 data-testid="community-topics-heading" className="px-1 text-xs font-bold tracking-[0.2em] text-muted-foreground">COMMUNITY-BEREICHE</h2><div className="grid gap-3 sm:grid-cols-2">{TOPICS.map(({ to, test, icon: Icon, title, subtitle, tone, glow }) => <Link key={test} to={to} data-testid={test} className={`group relative flex min-h-[92px] items-center gap-4 overflow-hidden rounded-3xl border border-neon/25 bg-card/80 p-4 backdrop-blur-xl transition-[transform,border-color,box-shadow] duration-200 active:scale-[0.98] hover:-translate-y-0.5 hover:border-neon/70 ${glow}`}><span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-current/40 bg-background/40 ${tone}`}><Icon className="h-7 w-7" /></span><span className="min-w-0"><span data-testid={`${test}-title`} className="block font-display text-base">{title}</span><span data-testid={`${test}-subtitle`} className="mt-1 block text-xs text-muted-foreground">{subtitle}</span></span><span aria-hidden className="ml-auto text-2xl text-muted-foreground transition-transform duration-200 group-hover:translate-x-1">›</span></Link>)}</div></section>
 

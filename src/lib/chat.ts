@@ -34,6 +34,7 @@ export const isChatUnavailable = (error: { code?: string } | null | undefined) =
 export function chatErrorMessage(error: { code?: string; message?: string } | null | undefined) {
   if (!error) return null;
   const message = error.message ?? "";
+  if (message.includes("ACCOUNT_BANNED")) return "Dein Konto ist gesperrt.";
   if (message.includes("CHAT_RATE_LIMIT")) return "Zu viele Nachrichten. Bitte warte kurz.";
   if (message.includes("CHAT_MUTED")) return "Du bist momentan stummgeschaltet.";
   if (message.includes("CHAT_BANNED")) return "Du bist für den Chat gesperrt.";
