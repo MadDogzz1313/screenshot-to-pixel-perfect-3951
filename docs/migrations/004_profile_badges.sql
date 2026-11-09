@@ -87,6 +87,16 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values ('avatars', 'avatars', false, 2000000, array['image/jpeg', 'image/png', 'image/webp'])
 on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
+-- Profilspalten vor der Storage-Funktion anlegen: can_view_avatar() verwendet sie bereits.
+alter table public.profiles add column if not exists is_private boolean not null default false;
+alter table public.profiles add column if not exists show_avatar boolean not null default true;
+alter table public.profiles add column if not exists show_join_date boolean not null default true;
+alter table public.profiles add column if not exists show_badges boolean not null default true;
+alter table public.profiles add column if not exists featured_badges text[] not null default '{}';
+do $$ begin
+  alter table public.profiles add constraint featured_badges_max3 check (cardinality(featured_badges) <= 3);
+exception when duplicate_object then null; end $$;
+
 -- Profilbild sichtbar? Besitzer, Admin oder (öffentliches Profil UND Bild freigegeben)
 create or replace function public.can_view_avatar(_folder text) returns boolean
 language sql stable security definer set search_path = public as $$
@@ -111,14 +121,7 @@ create policy "delete own files" on storage.objects for delete to authenticated
 ------------------------------------------------------------------------------------------------
 -- TEIL D: Profile – Privatsphäre, Lieblingsabzeichen; private Daten nur über geschützte Ansicht
 ------------------------------------------------------------------------------------------------
-alter table public.profiles add column if not exists is_private boolean not null default false;
-alter table public.profiles add column if not exists show_avatar boolean not null default true;
-alter table public.profiles add column if not exists show_join_date boolean not null default true;
-alter table public.profiles add column if not exists show_badges boolean not null default true;
-alter table public.profiles add column if not exists featured_badges text[] not null default '{}';
-do $$ begin
-  alter table public.profiles add constraint featured_badges_max3 check (cardinality(featured_badges) <= 3);
-exception when duplicate_object then null; end $$;
+-- Die benötigten Profilspalten wurden vor can_view_avatar() angelegt.
 -- avatar_url enthält ab jetzt den Speicherpfad im Bucket "avatars" (<user-id>/<datei>.jpg); alte Fremd-URLs entfernen
 update public.profiles set avatar_url = null where avatar_url is not null and avatar_url not like id::text || '/%';
 

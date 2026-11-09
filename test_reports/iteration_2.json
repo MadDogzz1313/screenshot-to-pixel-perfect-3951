@@ -1,0 +1,32 @@
+{
+  "iteration": 2,
+  "mode": "retest",
+  "summary": "Re-ran backend pytest suite and all 12 persisted browser checks from iteration 1 (by name only, no script changes). All checks passed. Transient python http.server used by static-lane checks (port 4173) had to be restarted since it is not supervisor-managed and did not survive the session gap; this is an environment/process-lifecycle detail, not an application bug, and was restarted before rerunning the static checks.",
+  "passed": 13,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [
+    "The static SPA checks depend on a manually-started `python3 -m http.server 4173` serving /app/frontend/dist. It is not supervisor-managed and will not survive pod restarts/session gaps. If a future agent sees ERR_CONNECTION_REFUSED on localhost:4173 for the static-* checks, restart it (cd /app/frontend/dist && nohup python3 -m http.server 4173 &) before re-running - not an app bug."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {"criterion": "Deploy-layout: backend exists and starts", "name": "test_tscheck_health.py", "lane": "backend", "status": "passed", "evidence": "cd /app/backend && python -m pytest -q: 2 passed in 0.40s (GET /api/health -> 200 {status:ok}; GET /api/nope -> 404)"},
+    {"criterion": "Deploy-layout: backend reachable via public preview ingress", "name": "public-preview-login-renders", "lane": "browser", "status": "passed", "evidence": "Reran persisted check against https://leonida-karte--6tt5kohx.preview.emergentagent.com/ - login form rendered, guest flow reached /karte"},
+    {"criterion": "Preview dev server: login form renders", "name": "dev-login-form-renders", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check - PASSED, screenshot captured"},
+    {"criterion": "Preview dev server: wrong credentials show toast", "name": "dev-wrong-credentials-toast", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check - PASSED; console shows only expected 400 from auth token endpoint"},
+    {"criterion": "Preview dev server: guest -> /karte with approved spots", "name": "dev-guest-karte-flow", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check - PASSED, karte rendered after guest click"},
+    {"criterion": "Preview dev server: guest /admin redirected to /karte", "name": "dev-guest-admin-redirect", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check - PASSED"},
+    {"criterion": "Preview dev server: /beitrag as guest shows login prompt", "name": "dev-beitrag-guest-login-prompt", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check - PASSED"},
+    {"criterion": "Preview dev server: /passwort-neu with no session shows reset-invalid", "name": "dev-passwort-neu-invalid", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check - PASSED"},
+    {"criterion": "Static SPA (no Node server): login form renders", "name": "static-login-form-renders", "lane": "browser", "status": "passed", "evidence": "Initial rerun failed with ERR_CONNECTION_REFUSED because the ephemeral python http.server on :4173 from iteration 1 was gone; restarted it (cd /app/frontend/dist && python3 -m http.server 4173), curl http://localhost:4173/ -> 200, then rerun PASSED"},
+    {"criterion": "Static SPA: wrong credentials show toast", "name": "static-wrong-credentials-toast", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check after server restart - PASSED"},
+    {"criterion": "Static SPA: guest -> /karte with real approved spots count", "name": "static-guest-karte-flow", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check after server restart - PASSED"},
+    {"criterion": "Static SPA: direct /passwort-neu shows reset-invalid", "name": "static-passwort-neu-invalid", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check after server restart - PASSED"},
+    {"criterion": "Static SPA: guest opening /admin redirected to /karte", "name": "static-guest-admin-redirect", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check after server restart - PASSED"},
+    {"criterion": "Static SPA: /beitrag as guest shows login prompt", "name": "static-beitrag-guest-login-prompt", "lane": "browser", "status": "passed", "evidence": "Rerun persisted check after server restart - PASSED"}
+  ],
+  "notes": [
+    "This is a pure retest of iteration 1's artifacts - no new criteria, scripts, or test files were created, per retest-mode instructions.",
+    "No credentials exist per /app/memory/test_credentials.md (real Lovable/Supabase DB, email confirmation on) - logged-in flows (submit spot, admin approve) remain out of scope, consistent with iteration 1."
+  ]
+}
