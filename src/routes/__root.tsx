@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { StoreProvider } from "../lib/store";
 import { Toaster } from "../components/ui/sonner";
+import { PwaUpdatePrompt } from "../lib/PwaUpdatePrompt";
 
 function NotFoundComponent() {
   return (
@@ -140,6 +141,7 @@ function RootComponent() {
       <StoreProvider>
         <Outlet />
         <Toaster />
+        <PwaUpdatePrompt />
       </StoreProvider>
     </QueryClientProvider>
   );

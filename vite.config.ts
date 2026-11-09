@@ -15,7 +15,12 @@ const emergentPort = process.env["PORT"] ? Number(process.env["PORT"]) : undefin
 const emergentSpa = process.env["EMERGENT_SPA"] === "1";
 
 export default defineConfig({
-  ...(emergentPort ? { vite: { server: { port: emergentPort, strictPort: true, allowedHosts: true } } } : {}),
+  vite: {
+    define: {
+      __LEONIDA_BUILD_ID__: JSON.stringify(process.env["LEONIDA_BUILD_ID"] ?? new Date().toISOString()),
+    },
+    ...(emergentPort ? { server: { port: emergentPort, strictPort: true, allowedHosts: true } } : {}),
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
