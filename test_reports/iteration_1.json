@@ -1,0 +1,124 @@
+{
+  "iteration": 1,
+  "mode": "generate",
+  "summary": "All 6 acceptance_matrix criteria exercised across backend + dev-server + static-SPA + public-preview lanes. All checks passed.",
+  "passed": 15,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [
+    "Note: static SPA requires React hydration to finish before interactive elements respond to clicks (SSR-first paint looks interactive but isn't until hydrated) - not a bug, but noted for anyone writing further automation against this app: wait for 'load' + networkidle (or a hydration marker) before clicking, not just domcontentloaded."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Deploy-layout: backend exists and starts",
+      "name": "test_tscheck_health.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET http://localhost:8001/api/health -> 200 {\"status\":\"ok\"}; GET http://localhost:8001/api/nope -> 404. pytest: 2 passed in 0.11s"
+    },
+    {
+      "criterion": "Deploy-layout: backend exists and starts (public URL)",
+      "name": "public-preview-login-renders",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "https://leonida-karte--6tt5kohx.preview.emergentagent.com/ loads login form; guest flow navigates to /karte successfully through public ingress"
+    },
+    {
+      "criterion": "Deploy-layout: frontend is a real directory with build producing static SPA",
+      "name": "n/a (filesystem/build inspection)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "/app/frontend is a real dir (not symlink, verified via `test -L`); frontend/dist and frontend/build both contain index.html, assets/, manifest.webmanifest, icons/{apple-touch-icon,icon-192,icon-512}.png, and per-route folders karte/, passwort-neu/, profil/, admin/, beitrag/, community/, entdecken/ each with index.html; grep confirmed daxzwbkacxllrejaghym.supabase.co baked into assets/store-*.js"
+    },
+    {
+      "criterion": "TypeScript compiles",
+      "name": "n/a (compiler invocation)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app && npx tsc --noEmit -p tsconfig.json exited 0"
+    },
+    {
+      "criterion": "Admin check no longer depends on a TanStack server function",
+      "name": "n/a (source inspection)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "find/grep confirmed no src/lib/auth.functions.ts and zero remaining imports of auth.functions; src/lib/store.tsx:113 calls supabase.rpc(\"has_role\", { _user_id: uid, _role: \"admin\" }) to compute isAdmin"
+    },
+    {
+      "criterion": "Static SPA works without Node server: login form renders",
+      "name": "static-login-form-renders",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Served /app/frontend/dist via `python3 -m http.server 4173`; 390x844 viewport shows auth-email-input, auth-password-input, auth-submit-button, auth-guest-button, auth-forgot-link all visible"
+    },
+    {
+      "criterion": "Static SPA works without Node server: wrong credentials show toast",
+      "name": "static-wrong-credentials-toast",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Filled non-existent email + wrong password, submitted; toast 'E-Mail oder Passwort ist falsch.' appeared; only console error was the expected 400 from auth/v1/token?grant_type=password"
+    },
+    {
+      "criterion": "Static SPA works without Node server: guest -> /karte with real approved spots count",
+      "name": "static-guest-karte-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Clicked auth-guest-button, URL became /karte, map rendered, '2 Fundorte' shown matching seed_facts (~2 approved spots in Supabase)"
+    },
+    {
+      "criterion": "Static SPA works without Node server: direct /passwort-neu shows reset-invalid (no session)",
+      "name": "static-passwort-neu-invalid",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Direct nav to /passwort-neu on static server renders data-testid=reset-invalid card"
+    },
+    {
+      "criterion": "Static SPA works without Node server: guest opening /admin redirected to /karte",
+      "name": "static-guest-admin-redirect",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "As guest, direct nav to /admin resulted in URL /karte (client-side <Navigate> guard in admin.tsx:25)"
+    },
+    {
+      "criterion": "Static SPA works without Node server: /beitrag as guest shows login prompt",
+      "name": "static-beitrag-guest-login-prompt",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "As guest, /beitrag shows text 'Melde dich an, um Fundorte vorzuschlagen.' with Anmelden link"
+    },
+    {
+      "criterion": "Preview dev server (SSR) unchanged and healthy: login renders",
+      "name": "dev-login-form-renders",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "localhost:3000/ renders full login form with all required testids at 390x844"
+    },
+    {
+      "criterion": "Preview dev server (SSR) unchanged and healthy: wrong credentials toast",
+      "name": "dev-wrong-credentials-toast",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Same flow as static lane reproduced on dev server; toast visible, only expected 400 console error"
+    },
+    {
+      "criterion": "Preview dev server (SSR) unchanged and healthy: guest -> /karte, /entdecken, /community",
+      "name": "dev-guest-karte-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest button navigates to /karte showing '2 Fundorte'; /var/log/supervisor/frontend.err.log unchanged (72 lines, same historical content) across all checks in this session - no new ELOOP/symlink errors; supervisorctl shows frontend RUNNING throughout"
+    },
+    {
+      "criterion": "Preview dev server (SSR) unchanged and healthy: admin guard + beitrag login prompt",
+      "name": "dev-guest-admin-redirect / dev-beitrag-guest-login-prompt",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest direct nav to /admin redirected to /karte; /beitrag as guest shows 'Melde dich an, um Fundorte vorzuschlagen.'"
+    }
+  ],
+  "notes": [
+    "The acceptance_matrix listed 6 criteria but several bundle multiple UI assertions (static SPA criterion alone covers 6 distinct flows); each flow got its own named browser check per the one-flow-per-check rule, totalling 15 check artifacts across backend/browser lanes.",
+    "A test-authoring artifact was caught and corrected during this run: Playwright's `.fill()` on this app's controlled inputs combined with `domcontentloaded` navigation produced false negatives (clicks appeared to do nothing) because React hydration hadn't finished yet on this SSR app. Switching to `waitUntil: 'load'` + `networkidle` (or `keyboard.type` for fills) resolved it and confirmed the app's real behavior is correct. This was verified as NOT an app bug via DOM-level native click dispatch tests, direct-URL navigation cross-checks, and successful reruns.",
+    "No credentials exist per briefing; only negative-login and guest flows were exercised, consistent with spec_deviations noting logged-in flows (submit spot, admin approve) are out of scope without credentials."
+  ]
+}

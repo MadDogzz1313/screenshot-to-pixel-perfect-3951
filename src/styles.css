@@ -1,0 +1,105 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-display: "Russo One", system-ui, sans-serif;
+  --font-sans: "Outfit", system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-neon: var(--neon);
+  --color-sunset: var(--sunset);
+  --color-success: var(--success);
+  --color-cat-vehicle: var(--cat-vehicle);
+  --color-cat-weapon: var(--cat-weapon);
+  --color-cat-collect: var(--cat-collect);
+  --color-cat-activity: var(--cat-activity);
+  --color-cat-place: var(--cat-place);
+  --color-cat-other: var(--cat-other);
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0.17 0.07 300);
+  --foreground: oklch(0.97 0.01 320);
+  --card: oklch(0.22 0.08 300 / 0.82);
+  --card-foreground: oklch(0.97 0.01 320);
+  --popover: oklch(0.22 0.08 300);
+  --popover-foreground: oklch(0.97 0.01 320);
+  --primary: oklch(0.66 0.29 345);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.28 0.09 300);
+  --secondary-foreground: oklch(0.97 0.01 320);
+  --muted: oklch(0.26 0.07 300);
+  --muted-foreground: oklch(0.76 0.06 310);
+  --accent: oklch(0.74 0.18 55);
+  --accent-foreground: oklch(0.18 0.05 300);
+  --destructive: oklch(0.62 0.23 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.66 0.29 345 / 0.45);
+  --input: oklch(0.66 0.29 345 / 0.5);
+  --ring: oklch(0.7 0.28 345);
+  --neon: oklch(0.7 0.3 345);
+  --sunset: oklch(0.76 0.17 60);
+  --success: oklch(0.72 0.17 150);
+  --cat-vehicle: oklch(0.72 0.15 75);
+  --cat-weapon: oklch(0.5 0.2 300);
+  --cat-collect: oklch(0.65 0.27 350);
+  --cat-activity: oklch(0.6 0.17 150);
+  --cat-place: oklch(0.6 0.17 250);
+  --cat-other: oklch(0.55 0.2 300);
+  --gradient-sunset: linear-gradient(135deg, oklch(0.78 0.17 60), oklch(0.66 0.29 345) 55%, oklch(0.48 0.24 300));
+  --gradient-text: linear-gradient(180deg, oklch(0.97 0.02 320), oklch(0.7 0.3 345));
+  --shadow-neon: 0 0 0 1px oklch(0.7 0.3 345 / 0.7), 0 0 18px oklch(0.7 0.3 345 / 0.45);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
+}
+
+@utility neon-card {
+  background: var(--card);
+  border: 1px solid oklch(0.7 0.3 345 / 0.55);
+  box-shadow: 0 0 16px oklch(0.7 0.3 345 / 0.25), inset 0 0 20px oklch(0.4 0.2 300 / 0.25);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-2xl);
+}
+@utility neon-ring { box-shadow: var(--shadow-neon); }
+@utility bg-sunset { background-image: var(--gradient-sunset); }
+@utility text-neon-gradient {
+  background-image: var(--gradient-text);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 10px oklch(0.7 0.3 345 / 0.6));
+}
+@utility badge-roman {
+  background-image: var(--gradient-sunset);
+  box-shadow: 0 0 12px oklch(0.7 0.3 345 / 0.7), inset 0 0 0 2px oklch(0.98 0.02 320 / 0.5);
+  text-shadow: 0 0 6px oklch(0.3 0.15 300);
+}
+@utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }

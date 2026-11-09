@@ -1,0 +1,10 @@
+{
+  "name": "leonida-explorer-emergent-frontend",
+  "private": true,
+  "description": "Emergent wrapper: the real app (TanStack Start, Lovable) lives in the repo root.",
+  "scripts": {
+    "dev": "cd .. && yarn dev",
+    "build": "node build.mjs",
+    "start": "cd .. && yarn dev"
+  }
+}
