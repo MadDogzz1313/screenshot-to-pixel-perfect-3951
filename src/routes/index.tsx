@@ -1,5 +1,6 @@
 import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { peekPushTarget, takePushTarget } from "@/lib/push";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -41,9 +42,12 @@ function Login() {
       setMode("login"); setPassword(""); return;
     }
     toast.success(mode === "login" ? "Willkommen zurück!" : "Konto erstellt!");
-    nav({ to: "/karte" });
+    const next = takePushTarget(); if (next) nav({ href: next }); else nav({ to: "/karte" });
   };
-  if (authReady && user) return <Navigate to={recovery ? "/passwort-neu" : "/karte"} replace />;
+  // Push angetippt, Anmeldung nötig gewesen -> nach Login direkt zum Ziel
+  const [pushNext] = useState(() => (typeof window === "undefined" ? null : peekPushTarget()));
+  useEffect(() => { if (authReady && user && pushNext && !recovery) { takePushTarget(); void nav({ href: pushNext, replace: true }); } }, [authReady, user, pushNext, recovery, nav]);
+  if (authReady && user) return pushNext && !recovery ? null : <Navigate to={recovery ? "/passwort-neu" : "/karte"} replace />;
   return (
     <div className="relative isolate flex min-h-dvh flex-col items-center justify-end px-5 pb-10">
       <img src={bg} alt="" className="fixed inset-0 -z-10 h-full w-full object-cover" />

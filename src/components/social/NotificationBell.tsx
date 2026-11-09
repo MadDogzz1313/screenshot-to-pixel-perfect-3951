@@ -12,6 +12,11 @@ const ICON = { friend_request: UserPlus, friend_accepted: Check, private_message
 export function NotificationBell() {
   const { user } = useStore();
   const [open, setOpen] = useState(false);
+  // Push "Postfach-/Community-Mitteilung" antippen -> /profil?glocke=1 öffnet direkt die Übersicht
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("glocke") === "1") { setOpen(true); url.searchParams.delete("glocke"); window.history.replaceState(window.history.state, "", url.pathname + url.search); }
+  }, []);
   const list = useNotifications(!!user);
   const items = list.data ?? [];
   const unread = items.filter((n) => !n.read_at).length;

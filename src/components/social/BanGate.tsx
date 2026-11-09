@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Hourglass, LogOut, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
+import { rememberPushTarget, syncPushSubscription, takePushTarget } from "@/lib/push";
 import { requestBanReview, socialError, useMyBan, useSocialRealtime, type AccountBan } from "@/lib/friends";
 import bg from "@/assets/bg-sunset.jpg";
 
@@ -14,6 +15,15 @@ export function BanGate({ children }: { children: ReactNode }) {
   const { user } = useStore();
   useSocialRealtime(user?.id);
   const ban = useMyBan(user?.id);
+  const nav = useNavigate();
+  // Push angetippt: Ziel merken; ist der Nutzer (noch) nicht angemeldet, nach dem Login dorthin weiterleiten
+  useEffect(() => { rememberPushTarget(); }, []);
+  useEffect(() => {
+    if (!user) return;
+    void syncPushSubscription();
+    const target = takePushTarget();
+    if (target && target !== window.location.pathname + window.location.search) void nav({ href: target });
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (user && ban.data) return <BanScreen ban={ban.data} />;
   return <>{children}</>;
 }

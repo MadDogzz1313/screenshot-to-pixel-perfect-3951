@@ -1,6 +1,7 @@
 // App-Store: echte Anmeldung, Profile, Rollen und Fundorte über Lovable Cloud (Supabase).
 // Likes in der Datenbank (spot_likes); "Merken" vorerst nur auf dem Gerät (localStorage).
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { detachPushOnLogout } from "./push";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -195,6 +196,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return { error: null, needsConfirm: !data.session };
     },
     signOut: async () => {
+      await detachPushOnLogout();
       await supabase.auth.signOut();
       qc.removeQueries({ queryKey: ["access"] }); qc.removeQueries({ queryKey: ["liked"] }); qc.removeQueries({ queryKey: ["progress"] });
       setState((s) => ({ ...s, guest: false }));
