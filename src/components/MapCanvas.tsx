@@ -109,12 +109,12 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
   );
 
   return floating ? (
-    <div data-testid="map-floating" className={`relative min-h-0 ${className ?? ""}`}>
+    <div data-testid="map-floating" data-map-gesture className={`relative min-h-0 ${className ?? ""}`}>
       <div aria-hidden className="pointer-events-none absolute inset-[8%] -z-10 rounded-[40%] bg-[radial-gradient(ellipse_at_center,oklch(0.6_0.2_240/0.5),oklch(0.7_0.3_345/0.3)_55%,transparent_75%)] blur-2xl" />
       <div ref={boxRef} className="absolute inset-0">{map}</div>
     </div>
   ) : (
-    <div className={`relative overflow-hidden rounded-3xl neon-ring ${className ?? ""}`} style={{ aspectRatio: MAP_RATIO }}>
+    <div data-map-gesture className={`relative overflow-hidden rounded-3xl neon-ring ${className ?? ""}`} style={{ aspectRatio: MAP_RATIO }}>
       <div ref={boxRef} className="absolute inset-0">{map}</div>
     </div>
   );

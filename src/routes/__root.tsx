@@ -16,6 +16,7 @@ import { StoreProvider } from "../lib/store";
 import { Toaster } from "../components/ui/sonner";
 import { PwaUpdatePrompt } from "../lib/PwaUpdatePrompt";
 import { BanGate } from "../components/social/BanGate";
+import { useViewportGuard } from "../lib/useViewportGuard";
 
 function NotFoundComponent() {
   return (
@@ -84,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" },
       { title: "Leonida Explorer" },
       { name: "description", content: "Community-Karte für Fundorte in Leonida." },
       { property: "og:title", content: "Leonida Explorer" },
@@ -135,6 +136,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useViewportGuard();
 
   return (
     <QueryClientProvider client={queryClient}>

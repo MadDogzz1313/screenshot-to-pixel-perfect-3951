@@ -82,7 +82,9 @@
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
   /* iPhone: kein seitliches Verschieben der Seite, keine automatische Textvergrößerung */
-  html, body { overflow-x: clip; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { width: 100%; max-width: 100%; overflow-x: clip; overscroll-behavior-x: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  /* kein Doppeltipp-Zoom der Seite; Pinch-Vergrößern (Bedienungshilfe) bleibt erlaubt */
+  html { touch-action: manipulation; }
 }
 
 @keyframes ban-pop { from { opacity: 0; transform: translateY(12px) scale(0.94); } to { opacity: 1; transform: none; } }
