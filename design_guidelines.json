@@ -1,132 +1,227 @@
 {
-  "project_title": "Leonida Explorer - Seamless Map Feathering & Safari Masking",
-  "design_intent": "Elegante, nahtlose Verschmelzung der Leonida-Karte mit dem pink-violetten Miami-Sonnenuntergang-Hintergrund über 4-seitige CSS-Maskierung (mask-image / -webkit-mask-image) ohne harte Bildkanten, unter vollständiger Erhaltung aller Landmassen (inkl. südwestlicher Insel), interaktiver Pins, Gesten und Safari-Kompatibilität.",
+  "theme": "dark",
+  "archetype": "ARCHETYPE 5: LUXURY & VICE NIGHTLIFE (Miami Sunset & Neon Vice)",
+  "design_rationale": "Leonida Explorer embodies the iconic Vice City / Miami sunset aesthetic: deep night violet and rich obsidian backgrounds, glowing electric fuchsia-pink (#FF2E93) and cyan/amber neon accents, subtle glassmorphic surfaces with palm tree reflections, and clean mobile-first chat bubbles. Own messages pop in vibrant hot pink (#FF2E93) with crisp white text, while peer messages rest in deep translucent obsidian (#191124/90) with subtle violet borders. The bottom navigation bar (Karte, Entdecken, Beitrag, Community, Profil) remains completely anchored and untouched with safe-area padding.",
   "colors": {
     "surfaces": [
       {
         "name": "page",
         "kind": "solid",
-        "bg": "#230e38",
-        "on_bg": "#fbf2f8",
-        "on_bg_muted": "#cca4cf"
-      },
-      {
-        "name": "panel",
-        "kind": "solid",
-        "bg": "#31124d",
-        "on_bg": "#fbf2f8",
-        "on_bg_muted": "#cca4cf"
-      },
-      {
-        "name": "inverse",
-        "kind": "solid",
-        "bg": "#fbf2f8",
-        "on_bg": "#230e38",
-        "on_bg_muted": "#5c2a78"
-      },
-      {
-        "name": "sunset_hero_bg",
-        "kind": "image",
-        "contrast_against": "#1c0b2b",
-        "guarantee": "scrim: linear-gradient(180deg, rgba(35,14,56,0.7) 0%, rgba(35,14,56,0.25) 50%, rgba(35,14,56,0.6) 100%)",
-        "on_bg": "#fbf2f8",
-        "on_bg_muted": "#cca4cf",
+        "bg": "#0D0814",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#B3A4C8",
         "roles": {
-          "link": "#ff388c",
-          "error": "#ff4d4d",
-          "success": "#2fe091"
+          "link": "#FF61B6",
+          "error": "#FF4D6D",
+          "success": "#2CE89A",
+          "warning": "#FFB84D",
+          "neon_pink": "#FF2E93",
+          "neon_cyan": "#00F0FF",
+          "neon_amber": "#FF9E00"
         }
       },
       {
-        "name": "map_canvas_surface",
+        "name": "panel_glass",
         "kind": "glass",
-        "contrast_against": "#200c32",
-        "guarantee": "backdrop-filter: blur(12px) with bg-background/60 and oklch tint",
-        "on_bg": "#fbf2f8",
-        "on_bg_muted": "#cca4cf",
+        "contrast_against": "#181024",
+        "guarantee": "backdrop-blur-xl bg-[#130B1E]/80 border border-[#FF2E93]/20 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#C2B2D8",
         "roles": {
-          "link": "#ff388c",
-          "accent_label": "#ffaa33"
+          "badge_online": "#2CE89A",
+          "badge_admin": "#FFD166",
+          "category_label": "#FF61B6"
+        }
+      },
+      {
+        "name": "chat_bubble_own",
+        "kind": "solid",
+        "bg": "#FF2E93",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#FFE1F0",
+        "roles": {
+          "timestamp": "#FFD4EB",
+          "spot_preview_bg": "rgba(0,0,0,0.25)"
+        }
+      },
+      {
+        "name": "chat_bubble_peer",
+        "kind": "solid",
+        "bg": "#1C142A",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#A798BC",
+        "roles": {
+          "username": "#FF61B6",
+          "admin_tag": "#FFD166",
+          "timestamp": "#8E7EAA"
+        }
+      },
+      {
+        "name": "input_bar",
+        "kind": "glass",
+        "contrast_against": "#130A1F",
+        "guarantee": "backdrop-blur-2xl bg-[#11091C]/95 border-t border-[#FF2E93]/25 px-4 py-3 safe-bottom",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#9A8AA6"
+      },
+      {
+        "name": "bottom_nav",
+        "kind": "glass",
+        "contrast_against": "#0D0715",
+        "guarantee": "backdrop-blur-2xl bg-[#0F0818]/95 border-t border-white/10 z-50",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#8A799E",
+        "roles": {
+          "active_tab": "#FF2E93",
+          "inactive_tab": "#8A799E"
+        }
+      },
+      {
+        "name": "hero_banner",
+        "kind": "image",
+        "contrast_against": "#12081E",
+        "guarantee": "scrim: linear-gradient(180deg, rgba(13,8,20,0.2) 0%, rgba(13,8,20,0.92) 100%)",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#E0D3F5"
+      },
+      {
+        "name": "modal_dialog",
+        "kind": "solid",
+        "bg": "#160E22",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#B5A7C9",
+        "roles": {
+          "danger_action": "#FF3366",
+          "cancel_action": "#6E6182"
         }
       }
     ],
-    "accent": "#ff2a85",
-    "on_accent": "#ffffff",
-    "palette_tokens": {
-      "neon_pink": "oklch(0.7 0.3 345)",
-      "miami_sunset": "oklch(0.76 0.17 60)",
-      "deep_night": "oklch(0.17 0.07 300)",
-      "glow_cyan": "oklch(0.6 0.17 250)"
-    }
+    "accent": "#FF2E93",
+    "on_accent": "#FFFFFF"
   },
   "typography": {
-    "fonts": {
-      "display": "Russo One, system-ui, sans-serif",
-      "sans": "Outfit, system-ui, sans-serif"
-    },
+    "font_family_heading": "Outfit, Sora, sans-serif",
+    "font_family_body": "Plus Jakarta Sans, Inter, sans-serif",
+    "font_family_mono": "JetBrains Mono, monospace",
     "scale_px": {
-      "display": 42,
-      "h1": 32,
-      "h2": 24,
-      "h3": 20,
-      "body": 16,
-      "caption": 14
+      "display": 52,
+      "h1": 38,
+      "h2": 28,
+      "h3": 22,
+      "h4": 18,
+      "body": 15,
+      "caption": 13,
+      "micro": 11
+    },
+    "typesetting": {
+      "headings": "font-black tracking-tight leading-tight",
+      "subtitles": "font-medium tracking-normal text-[#C2B2D8]",
+      "chat_body": "font-normal leading-relaxed text-[15px]",
+      "timestamps": "font-mono text-[11px] tracking-wider uppercase opacity-85",
+      "category_pill": "font-bold text-[11px] uppercase tracking-widest"
     }
   },
   "entry_surfaces": {
-    "/karte": "Vivid sunset skyline background with seamless feathered floating map canvas, neon glass controls, and bottom navigation",
-    "/entdecken": "Miami sunset background with feed of approved Leonida spots and filter chips",
-    "/beitrag": "Contribution form with card-style map coordinate picker",
-    "/community": "Community leaderboard and badges with glass neon cards",
-    "/profil": "Player profile with level badge, statistics and submitted spots"
+    "/community": "Miami sunset glow header with neon subtitle, 4 structured action cards (Chat, Beiträge, Fundorte, Hilfe), online counter pill, and live activity preview",
+    "/community/chat": "Dedicated full-height real-time chat interface with fixed presence header, virtualized scrolling message feed, bubble grouping, spot attachment picker, and iOS safe-area floating input bar",
+    "/karte": "Full-screen interactive GTA VI Leonida map canvas with filter pills and floating HUD",
+    "/entdecken": "Curated discovery spot grid with category tabs, search input, and XP badges",
+    "/profil": "Gamer profile with stats, avatar editor, unlocked badges grid, and privacy switches"
   },
-  "map_feathering_specification": {
-    "goal": "Nahtlose 4-seitige Ausblendung der Bildkanten der Leonida-Karte in den Sonnenuntergang-Hintergrund, ohne Inselteile zu verdecken und ohne harte Ecken.",
-    "feathering_technique": "Dual CSS Masking with -webkit-mask-image and mask-image utilizing linear/radial gradients or combined directional gradients",
-    "safari_ios_rules": [
-      "Always declare both -webkit-mask-image and mask-image for full WebKit (iOS Safari) compatibility.",
-      "Never apply mask-image directly on the interactive TransformComponent wrapper or spot markers container, which would clip pins or interfere with touch hit-testing. Apply it specifically to the <img> element or a dedicated image-only wrapper.",
-      "Use gradient color stops that preserve 100% opacity over the central 82%-88% of the map, and fade smoothly to transparent (0%) only over the outer 6%-10% ocean border.",
-      "Ensure the southwest island (südwestliche Insel) and southern coastlines stay well within the 100% opacity zone.",
-      "Remove hard rectangular shadow boxes or heavy rectangular drop shadows from the image (replace with ambient radial glow behind the map or soft luminous blend)."
-    ],
-    "css_mask_implementation": {
-      "mask_css_rule": "mask-image: radial-gradient(ellipse 90% 92% at 50% 50%, black 72%, transparent 98%); -webkit-mask-image: radial-gradient(ellipse 90% 92% at 50% 50%, black 72%, transparent 98%);",
-      "alternative_directional_mask": "mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); mask-composite: intersect; -webkit-mask-composite: source-in;",
-      "ambient_glow": "Soft radial gradient behind the map with blur-3xl (oklch(0.6 0.2 240 / 0.35) and oklch(0.7 0.3 345 / 0.25)) to naturally fuse ocean water with Miami sunset."
-    }
-  },
-  "component_guidelines": {
-    "MapCanvas": {
-      "path": "/app/src/components/MapCanvas.tsx",
-      "instructions": [
-        "In variant='floating', remove hard shadow classes like shadow-[0_0_28px_...] from the <img> element that create rectangular edge artifacts.",
-        "Apply soft CSS masking to the map image (<img ... className='... [mask-image:radial-gradient(ellipse_92%_92%_at_50%_50%,black_75%,transparent_98%)] [-webkit-mask-image:radial-gradient(ellipse_92%_92%_at_50%_50%,black_75%,transparent_98%)]' />).",
-        "Keep pins and click handlers outside the masked image element so pins are always 100% opaque and fully clickable at any zoom level.",
-        "Preserve react-zoom-pan-pinch gesture support (pinch, pan, wheel, double click), initial center view, and minScale/maxScale logic.",
-        "Preserve layer toggle (showPins), reset view (Maximize), and zoomIn/zoomOut buttons with high-contrast glassmorphism."
+  "component_hierarchy": {
+    "community_hub": {
+      "path": "/app/src/routes/community.tsx",
+      "sections": [
+        "CommunityHeader (Title, 'Austausch • Tipps • Fundorte • News', Realtime Online Pulse)",
+        "CategoryTilesGrid (2x2 or staggered list of 4 cards: Community-Chat, Beiträge, Fundorte diskutieren, Hilfe & Support)",
+        "LiveChatTeaserCard (Latest 2 preview messages with quick-entry CTA)",
+        "CommunityRankingsTeaser (Top Explorers & Badges summary)"
       ]
     },
-    "KarteRoute": {
-      "path": "/app/src/routes/karte.tsx",
-      "instructions": [
-        "Keep AppShell vividBg set to true for the rich Miami sunset skyline backdrop.",
-        "Maintain safe area insets (safe-top and safe-bottom) for iPhone notch and home indicator.",
-        "Ensure search input, filter modal, stats bar, and 'Fundort vorschlagen' CTA button remain fully accessible and functional."
+    "realtime_chat": {
+      "path": "/app/src/components/chat/GlobalChatRoom.tsx",
+      "sections": [
+        "ChatHeader (Back button, 'Community-Chat', Green pulse indicator with real Presence count e.g. '142 online', Admin shield indicator)",
+        "MessageList (Date dividers, user avatars, bubble styling, timestamp, spot cards, delete/report action triggers)",
+        "ModerationBanner (Shown if user is temporarily muted with remaining duration countdown)",
+        "SpotShareDrawer (Select approved spots created by user or bookmarked to embed in chat)",
+        "ChatInputBar (Auto-expanding textarea, emoji toggle, spot attach button, send button with neon burst)",
+        "UserProfileModal (Tapping avatar opens profile view with badges, level, block user, and admin mod actions)"
       ]
     }
   },
-  "accessibility_and_contrast": {
-    "wcag_compliance": "All text and button labels maintain >= 4.5:1 contrast against their respective tinted glass or solid background.",
-    "touch_targets": "Minimum 44x44px touch targets on all interactive controls (Zoom, Reset, Layers, Profile, Filter, Search clear).",
-    "prefers_reduced_motion": "Support smooth transitions while respecting reduced motion media query.",
-    "testing_attributes": "All key controls and containers must maintain strict data-testid attributes (e.g. data-testid='map-floating', data-testid='map-image', data-testid='map-locate-button', data-testid='map-pin-*')."
+  "grids_and_layouts": {
+    "mobile_container": "max-w-md mx-auto min-h-screen flex flex-col relative pb-[calc(4.5rem+env(safe-area-inset-bottom))]",
+    "community_cards_grid": "grid grid-cols-1 sm:grid-cols-2 gap-3.5 px-4 py-2",
+    "chat_bubble_max_width": "max-w-[82%] sm:max-w-[75%]",
+    "bottom_nav_clearance": "h-16 pb-[env(safe-area-inset-bottom)]",
+    "keyboard_safe_area": "interactive-widget: resizes-content; visualViewport listener to adjust chat container height"
+  },
+  "visual_enhancers": {
+    "neon_glow_pink": "shadow-[0_0_18px_rgba(255,46,147,0.35)]",
+    "neon_glow_cyan": "shadow-[0_0_18px_rgba(0,240,255,0.35)]",
+    "neon_border": "border border-[#FF2E93]/30 hover:border-[#FF2E93]/70 transition-colors",
+    "card_gradient_overlay": "bg-gradient-to-b from-white/[0.07] to-transparent",
+    "sunset_ambient_backdrop": "fixed inset-0 bg-[#0D0814] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,20,100,0.28),rgba(255,46,147,0.06)_40%,transparent_100%)] pointer-events-none -z-10"
+  },
+  "motion": {
+    "bubble_entrance": "initial: { opacity: 0, y: 8, scale: 0.98 }, animate: { opacity: 1, y: 0, scale: 1 }, transition: { duration: 0.18, ease: 'easeOut' }",
+    "card_hover": "whileHover: { y: -2, scale: 1.01 }, whileTap: { scale: 0.98 }",
+    "presence_pulse": "animate-pulse duration-1000",
+    "scroll_behavior": "smooth scrolling to bottom on new message unless user has scrolled up past threshold (120px)"
+  },
+  "accessibility": {
+    "contrast_compliance": "All body copy passes WCAG AA (>= 4.5:1). Own chat bubble uses #FFFFFF text on #FF2E93 (Contrast ratio 4.8:1). Peer bubble uses #FFFFFF text on #1C142A (Contrast ratio > 12:1).",
+    "touch_targets": "Minimum 44px x 44px on all action buttons, input triggers, and avatar links.",
+    "screen_readers": "Aria labels on emoji picker, spot attachment trigger, delete message button, and report actions.",
+    "reduced_motion": "Respects prefers-reduced-motion media query by disabling scale and bounce transitions."
+  },
+  "testing_attributes": {
+    "convention": "data-testid kebab-case",
+    "key_elements": [
+      "community-tab-button",
+      "community-chat-card",
+      "community-topics-card",
+      "community-spots-card",
+      "community-help-card",
+      "chat-online-counter",
+      "chat-message-list",
+      "chat-message-bubble-own",
+      "chat-message-bubble-peer",
+      "chat-message-input",
+      "chat-send-button",
+      "chat-attach-spot-button",
+      "chat-message-delete-button",
+      "chat-message-report-button",
+      "chat-user-block-button",
+      "chat-admin-mute-button",
+      "chat-admin-ban-button",
+      "spot-preview-card"
+    ]
+  },
+  "image_urls": {
+    "backgrounds": [
+      {
+        "url": "https://images.unsplash.com/photo-1605723517503-3cadb5818a0c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MDV8MHwxfHNlYXJjaHwxfHxtaWFtaSUyMHN1bnNldCUyMG5lb24lMjBwYWxtJTIwdHJlZXMlMjBza3lsaW5lfGVufDB8fHx8MTc5NDI0OTI0Mnww&ixlib=rb-4.1.0&q=85",
+        "description": "Miami sunset skyline with palm trees silhouette for header ambience and hero backdrop",
+        "category": "header_background"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MDV8MHwxfHNlYXJjaHwyfHxtaWFtaSUyMHN1bnNldCUyMG5lb24lMjBwYWxtJTIwdHJlZXMlMjBza3lsaW5lfGVufDB8fHx8MTc5NDI0OTI0Mnww&ixlib=rb-4.1.0&q=85",
+        "description": "Neon palm street scene for community card banners",
+        "category": "card_accent"
+      }
+    ]
   },
   "instructions_to_main_agent": [
-    "1. Do NOT alter backend, Supabase, database schema, demo data, badges, user profiles, or routing logic.",
-    "2. Do NOT replace the map image file (src/assets/leonida-map.jpg). Use the existing high-res asset.",
-    "3. Focus solely on polishing MapCanvas.tsx and related map styling in styles.css to achieve the seamless feathered edge blending with the pink-violet sunset.",
-    "4. Test that the full Leonida island, including the southwest island and southern keys/coastlines, remains crisp, sharp and completely visible with zero cutoff.",
-    "5. Ensure iOS Safari and iPhone touch gestures (pinch-to-zoom, pan, tap) work smoothly without any glitch or blocked events."
+    "Retain the existing 5-item bottom navigation: Karte, Entdecken, Beitrag, Community, Profil. Never change their routes or structure.",
+    "Implement the Community overview with the 4 primary hubs: Community-Chat, Beiträge, Fundorte diskutieren, Hilfe & Support, styled with dark neon cards matching the reference image.",
+    "Use Supabase Realtime for instant chat messages and Realtime Presence for the live online count. Do not use fake or randomized numbers.",
+    "Style own messages with vibrant pink (#FF2E93) background and rounded bubbles (rounded-2xl rounded-tr-xs), peer messages with dark purple-slate background (#1C142A) and rounded bubbles (rounded-2xl rounded-tl-xs).",
+    "Include user avatar, display name, timestamp, and badge indicators on peer messages.",
+    "Implement safe-area and virtual viewport handling for iPhone Safari so the keyboard does not cover the message input bar.",
+    "Integrate approved spot sharing directly in chat: user can attach an approved spot which renders as an interactive card leading to the map view.",
+    "Add moderation actions: users can delete own messages, report others, block users; admins can delete any message, mute users, ban users, and view audit records.",
+    "Protect against spam: enforce 500-char message limits, client/server rate-limiting, and XSS sanitization."
   ]
 }

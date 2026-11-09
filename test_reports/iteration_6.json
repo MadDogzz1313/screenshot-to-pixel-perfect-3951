@@ -1,0 +1,72 @@
+{
+  "iteration": 6,
+  "mode": "retest",
+  "summary": "Retest pass after the chat_is_blocked bidirectional-block fix in docs/migrations/007_community_chat.sql. Re-ran the full backend pytest suite (5 passed) and re-ran all 4 existing browser checks by name only (no script resent): community-hub-layout, community-hub-layout-public-preview, community-chat-guest-gate, core-routes-regression-no-crash — all passed. Additionally source-verified the corrected chat_is_blocked() function directly in the migration file: it is security-definer, checks both block directions ((blocker=viewer AND blocked=author) OR (blocker=author AND blocked=viewer)), and is used inside the chat_messages RLS select policy, closing the mutual-block RLS bypass gap described in the briefing. The live authenticated chat UI surface remains unverifiable end-to-end (no test credentials, migration not yet applied in Supabase) — unchanged from iteration 5, still reported as blocked/action item.",
+  "passed": 8,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [
+    {
+      "type": "test_credentials_missing",
+      "severity": "medium",
+      "detail": "Still no authenticated-user test credentials and 007_community_chat.sql is still not applied in Supabase (both confirmed again in this iteration's briefing). The chat UI's full data-testid surface (message list, send, emoji, spot attach, report/delete/block, admin mute/ban/unrestrict, chat-setup-message fallback) and live realtime/presence/moderation behavior remain verifiable only via source inspection, not a live browser session. Carried over unchanged from iteration 5."
+    }
+  ],
+  "retest_needed": true,
+  "checks": [
+    {
+      "criterion": "Community-Hub zeigt vier Bereiche, bestehende Navigation und Ranglisten",
+      "name": "community-hub-layout",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run (reran-persisted, no script resent): PASSED. All 4 community tiles, 5-item bottom nav, and XP/month ranking tabs visible. Screenshot: community-hub-layout-community-hub-full.png"
+    },
+    {
+      "criterion": "Community-Hub zeigt vier Bereiche, bestehende Navigation und Ranglisten (public preview ingress cross-check)",
+      "name": "community-hub-layout-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run against https://leonida-karte--6tt5kohx.preview.emergentagent.com: PASSED, same assertions as localhost run. Screenshot: community-hub-layout-public-preview-community-hub-public-preview.png"
+    },
+    {
+      "criterion": "Chat ist nur für registrierte Nutzer zugänglich",
+      "name": "community-chat-guest-gate",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run: PASSED. /community/chat for a guest shows chat-auth-required card + chat-login-link, zero message bubbles rendered (no fabricated content). Screenshot: community-chat-guest-gate-chat-guest-gated.png"
+    },
+    {
+      "criterion": "Migration 007 bleibt additiv, RLS-geschützt und Realtime-fähig (inkl. korrigierte chat_is_blocked)",
+      "name": "test_tscheck_community_chat_migration.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q -p no:cacheprovider: 5 passed in 0.14s (unchanged suite, includes migration structural checks: no DROP/TRUNCATE, create table if not exists for chat_messages/chat_blocks/chat_reports, RLS enabled, realtime publication wiring). Additionally manually grepped docs/migrations/007_community_chat.sql lines 97-104 and 241: chat_is_blocked(_viewer,_author) is security-definer and its WHERE clause covers BOTH directions '(blocker_id=_viewer and blocked_id=_author) or (blocker_id=_author and blocked_id=_viewer)', and it gates the chat_messages select RLS policy at line 241 via 'chat_is_admin() or not chat_is_blocked(auth.uid(), author_id)' - confirms the fix described in seed_facts closes the mutual-block RLS bypass."
+    },
+    {
+      "criterion": "Chat-Komponenten enthalten mobile Eingabe, Realtime/Presence und Moderationsflächen",
+      "name": "community-chat-ui-surface (source inspection only, unchanged from iteration 5)",
+      "lane": "browser",
+      "status": "blocked",
+      "evidence": "Still no authenticated test user and chat_messages table still not live in Supabase (briefing confirms migration not yet run). Cannot render authenticated chat state live. Source inspection of src/components/chat/GlobalChatRoom.tsx (unchanged since iteration 5) still shows chat-message-list, chat-message-input, chat-send-button, chat-emoji-button/chat-emoji-picker, chat-attach-spot-button/chat-spot-picker, chat-message-report-button, chat-message-delete-button, chat-user-block-button, chat-admin-delete-button, chat-admin-mute-button, chat-admin-unrestrict-button, chat-moderation-panel, chat-setup-message fallback. Structural criterion satisfied; not live-exercised."
+    },
+    {
+      "criterion": "Bestehende Kernfunktionen bleiben regressionsfrei",
+      "name": "core-routes-regression-no-crash",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run: PASSED. /karte, /profil, /community all render without React/page errors. Screenshots: karte-ok, profil-ok, community-ok (prefixed core-routes-regression-no-crash-)."
+    },
+    {
+      "criterion": "Bestehende Kernfunktionen bleiben regressionsfrei (backend health)",
+      "name": "test_tscheck_health.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Included in the same 5-passed pytest run: GET /api/health -> 200 {status:ok}; GET /api/nope -> 404."
+    }
+  ],
+  "notes": [
+    "5 acceptance_matrix criteria covered by 7 checks[] entries (criterion 1 gets both a localhost and public-preview-ingress run; criterion 5 gets both browser and backend artifacts), consistent with iteration 5's structure per the method's instructions to extend rather than recreate.",
+    "No new browser checks or backend test files were created this iteration since no new UI-facing or API-bearing criteria were introduced - the only code change (chat_is_blocked bidirectional fix) was inside an existing criterion (migration RLS) and was verified by re-running the existing migration test plus a direct source grep of the corrected function/policy.",
+    "No bugs found. The only open item is the carried-over test_credentials_missing action item, unchanged from iteration 5 and explicitly still true per this iteration's briefing/seed_facts."
+  ]
+}

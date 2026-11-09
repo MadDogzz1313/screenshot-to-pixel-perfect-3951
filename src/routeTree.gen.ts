@@ -17,6 +17,7 @@ import { Route as EntdeckenRouteImport } from './routes/entdecken'
 import { Route as KarteRouteImport } from './routes/karte'
 import { Route as PasswortNeuRouteImport } from './routes/passwort-neu'
 import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as CommunityChatRouteImport } from './routes/community.chat'
 import { Route as FundortIdRouteImport } from './routes/fundort.$id'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 
@@ -60,6 +61,11 @@ const ProfilRoute = ProfilRouteImport.update({
   path: '/profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityChatRoute = CommunityChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => CommunityRoute,
+} as any)
 const FundortIdRoute = FundortIdRouteImport.update({
   id: '/fundort/$id',
   path: '/fundort/$id',
@@ -75,11 +81,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/beitrag': typeof BeitragRoute
-  '/community': typeof CommunityRoute
+  '/community': typeof CommunityRouteWithChildren
   '/entdecken': typeof EntdeckenRoute
   '/karte': typeof KarteRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -87,11 +94,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/beitrag': typeof BeitragRoute
-  '/community': typeof CommunityRoute
+  '/community': typeof CommunityRouteWithChildren
   '/entdecken': typeof EntdeckenRoute
   '/karte': typeof KarteRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -100,11 +108,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/beitrag': typeof BeitragRoute
-  '/community': typeof CommunityRoute
+  '/community': typeof CommunityRouteWithChildren
   '/entdecken': typeof EntdeckenRoute
   '/karte': typeof KarteRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/karte'
     | '/passwort-neu'
     | '/profil'
+    | '/community/chat'
     | '/fundort/$id'
     | '/u/$username'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/karte'
     | '/passwort-neu'
     | '/profil'
+    | '/community/chat'
     | '/fundort/$id'
     | '/u/$username'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/karte'
     | '/passwort-neu'
     | '/profil'
+    | '/community/chat'
     | '/fundort/$id'
     | '/u/$username'
   fileRoutesById: FileRoutesById
@@ -151,7 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   BeitragRoute: typeof BeitragRoute
-  CommunityRoute: typeof CommunityRoute
+  CommunityRoute: typeof CommunityRouteWithChildren
   EntdeckenRoute: typeof EntdeckenRoute
   KarteRoute: typeof KarteRoute
   PasswortNeuRoute: typeof PasswortNeuRoute
@@ -218,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community/chat': {
+      id: '/community/chat'
+      path: '/chat'
+      fullPath: '/community/chat'
+      preLoaderRoute: typeof CommunityChatRouteImport
+      parentRoute: typeof CommunityRoute
+    }
     '/fundort/$id': {
       id: '/fundort/$id'
       path: '/fundort/$id'
@@ -235,11 +254,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CommunityRouteChildren {
+  CommunityChatRoute: typeof CommunityChatRoute
+}
+
+const CommunityRouteChildren: CommunityRouteChildren = {
+  CommunityChatRoute: CommunityChatRoute,
+}
+
+const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
+  CommunityRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   BeitragRoute: BeitragRoute,
-  CommunityRoute: CommunityRoute,
+  CommunityRoute: CommunityRouteWithChildren,
   EntdeckenRoute: EntdeckenRoute,
   KarteRoute: KarteRoute,
   PasswortNeuRoute: PasswortNeuRoute,
