@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { isNativeApp } from "@/lib/native";
 import { toast } from "sonner";
 import { Star } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -48,6 +50,7 @@ export function BadgeGallery({ unlocked, progress, featured, onFeature }: {
             <p data-testid="badge-dialog-status" className={`text-sm font-semibold ${isOn ? "text-neon" : "text-muted-foreground"}`}>
               {isOn ? "Freigeschaltet" : open.kind === "donation" ? "Wird von einem Admin nach geprüfter Spende vergeben" : pr ? `Fortschritt: ${pr.label}` : "Gesperrt"}
             </p>
+            {!isOn && onFeature && open.kind === "donation" && !isNativeApp() && <Link to="/spenden" data-testid="badge-donate-link" className="inline-block rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">Jetzt unterstützen</Link>}
             {isOn && onFeature && <Button variant="outline" data-testid="badge-feature-button" onClick={() => toggleFav(open.id)}>
               <Star className="h-4 w-4" />{fav.includes(open.id) ? "Nicht mehr hervorheben" : "Im Profil hervorheben"}</Button>}
           </>}

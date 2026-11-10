@@ -1,0 +1,67 @@
+{
+  "iteration": 12,
+  "mode": "generate",
+  "summary": "New acceptance_matrix (7 criteria) for the Stripe-Spenden (donations) feature. No real Supabase test account exists, so all auth-gated /api/payments/* endpoints were verified via pytest with FastAPI app.dependency_overrides (current_user) plus module-level monkeypatching of routers.payments.require_admin / routers.payments.rest, exactly as instructed by spec_deviations. 5 new backend pytest files (24 tests total) cover tiers, checkout validation, status, webhook signature and admin confirm/double-credit/rollback. 2 named browser checks cover the two UI-facing (guest-visible) criteria; both needed the public preview URL explicitly because the local :3000 dev server does not proxy /api/* (only the ingress does) - without it the donate pages' React Query calls 404 and the test-mode hint / failed-session state never render.",
+  "passed": 7,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Spendenstufen-API",
+      "name": "test_tscheck_payments_tiers.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET http://localhost:8001/api/payments/tiers -> 200; 6 tiers present with exact amount_cents/lookup_key (supporter 100, bronze 500, silver 1500, gold 3000, diamond 5000, founder 10000, EUR), custom_min_cents=100, custom_max_cents=50000, test_mode=true."
+    },
+    {
+      "criterion": "Checkout nur angemeldet & serverseitig validiert",
+      "name": "test_tscheck_payments_checkout.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "No/invalid Bearer -> 401 (real server). With current_user overridden via TestClient: tier_id 'gold' -> 200, checkout_url contains 'checkout.stripe.com', session_id present; Mongo payment_transactions doc for that session has payment_status=pending, credit_status=open, amount_cents=3000, user_id matches. custom_amount_cents=777 -> 200. custom 50 -> 400, custom 60000 -> 400, no tier/amount -> 400, unknown tier_id without amount -> 400. (First run hit a transient network timeout talking to real Supabase for the invalid-bearer case; reran in isolation and in the full suite twice more - passed both times, classified flaky/network, not a bug.)"
+    },
+    {
+      "criterion": "Zahlungsstatus",
+      "name": "test_tscheck_payments_status.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET /api/payments/status/cs_test_tscheck_unknown_session -> 404. A session freshly created through the overridden checkout -> GET (unauthenticated, real server) returns 200 with payment_status='pending' and exactly the keys {session_id, status, payment_status}."
+    },
+    {
+      "criterion": "Webhook-Sicherheit",
+      "name": "test_tscheck_payments_webhook.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/stripe/webhook with a bogus stripe-signature header -> 400; with no signature header at all -> 400."
+    },
+    {
+      "criterion": "Admin-Endpunkte geschützt + Doppelgutschrift verhindert",
+      "name": "test_tscheck_payments_admin.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET admin/donations and POST .../confirm without token -> 401 (real server). With current_user + require_admin overridden/monkeypatched and routers.payments.rest replaced with a fake async callable: confirm on a tscheck paid/open fixture doc -> 200 credit_status='credited', rest called exactly once with POST /rest/v1/donations and correct user_id/amount_cents(3000)/verified_by; second confirm on the same doc -> 409; confirm on a pending-doc fixture -> 409; when the mocked rest returns status 400, confirm -> 502 and the fixture doc's credit_status reverts to 'open'. All fixture docs (session_id prefixed cs_test_tscheck_admin_...) deleted by each test after assertions; verified zero tscheck residue left in payment_transactions after the suite."
+    },
+    {
+      "criterion": "Spendenseite als Gast",
+      "name": "donate-page-guest-hints",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On public preview /spenden: donate-page, donate-test-mode-hint and donate-login-link all visible for a guest. /spenden?abgebrochen=1 shows donate-cancelled-hint. (Needed the explicit public-preview URL - localhost:3000 proxy returns 404 for /api/payments/tiers so the test-mode hint never mounts locally; this is a dev-proxy limitation, not an app bug, confirmed by the same endpoint returning 200 through the public preview ingress.)"
+    },
+    {
+      "criterion": "Danke-Seite bei ungültiger Session",
+      "name": "donate-thanks-invalid-session",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/spende-danke?session_id=cs_nope eventually shows donate-thanks-failed (after React Query's retry/backoff on the 404 status call - needed a 20s assertion timeout, not 5s) with a retry link href='/spenden'. /spende-danke with no session_id param also shows donate-thanks-failed."
+    }
+  ],
+  "notes": [
+    "All 7 acceptance_matrix criteria covered 1:1 (5 backend test files for the 5 API-bearing criteria, 2 browser checks for the 2 guest-visible UI criteria); matrix did not exceed the 8-item threshold.",
+    "Logged-in UI flows (tier selection -> Stripe redirect, admin StripeDonationsAdmin confirm list) were intentionally NOT browser-tested per spec_deviations (no Supabase test account) - fully covered instead via the dependency-override backend tests above.",
+    "Donation UI being hidden in the native app (isNativeApp) was not re-verified as a separate criterion - it is not in the acceptance_matrix and spec_deviations explicitly calls it out as intentional, not a gap.",
+    "No bugs found. The only friction was environmental: local :3000 doesn't proxy /api/* (ingress-only), requiring both browser checks to target the public preview URL explicitly."
+  ]
+}

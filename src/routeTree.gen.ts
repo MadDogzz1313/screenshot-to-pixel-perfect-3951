@@ -21,6 +21,8 @@ import { Route as KarteRouteImport } from './routes/karte'
 import { Route as NutzungsbedingungenRouteImport } from './routes/nutzungsbedingungen'
 import { Route as PasswortNeuRouteImport } from './routes/passwort-neu'
 import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as SpendeDankeRouteImport } from './routes/spende-danke'
+import { Route as SpendenRouteImport } from './routes/spenden'
 import { Route as ArcadeFishingRouteImport } from './routes/arcade/fishing'
 import { Route as ArcadeHighwayRouteImport } from './routes/arcade/highway'
 import { Route as CommunityChatRouteImport } from './routes/community.chat'
@@ -92,6 +94,16 @@ const ProfilRoute = ProfilRouteImport.update({
   path: '/profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SpendeDankeRoute = SpendeDankeRouteImport.update({
+  id: '/spende-danke',
+  path: '/spende-danke',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpendenRoute = SpendenRouteImport.update({
+  id: '/spenden',
+  path: '/spenden',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArcadeFishingRoute = ArcadeFishingRouteImport.update({
   id: '/fishing',
   path: '/fishing',
@@ -156,6 +168,8 @@ export interface FileRoutesByFullPath {
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/spende-danke': typeof SpendeDankeRoute
+  '/spenden': typeof SpendenRoute
   '/arcade/fishing': typeof ArcadeFishingRoute
   '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
@@ -180,6 +194,8 @@ export interface FileRoutesByTo {
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/spende-danke': typeof SpendeDankeRoute
+  '/spenden': typeof SpendenRoute
   '/arcade/fishing': typeof ArcadeFishingRoute
   '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
@@ -205,6 +221,8 @@ export interface FileRoutesById {
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/spende-danke': typeof SpendeDankeRoute
+  '/spenden': typeof SpendenRoute
   '/arcade/fishing': typeof ArcadeFishingRoute
   '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
@@ -231,6 +249,8 @@ export interface FileRouteTypes {
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
+    | '/spende-danke'
+    | '/spenden'
     | '/arcade/fishing'
     | '/arcade/highway'
     | '/community/chat'
@@ -255,6 +275,8 @@ export interface FileRouteTypes {
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
+    | '/spende-danke'
+    | '/spenden'
     | '/arcade/fishing'
     | '/arcade/highway'
     | '/community/chat'
@@ -279,6 +301,8 @@ export interface FileRouteTypes {
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
+    | '/spende-danke'
+    | '/spenden'
     | '/arcade/fishing'
     | '/arcade/highway'
     | '/community/chat'
@@ -304,6 +328,8 @@ export interface RootRouteChildren {
   NutzungsbedingungenRoute: typeof NutzungsbedingungenRoute
   PasswortNeuRoute: typeof PasswortNeuRoute
   ProfilRoute: typeof ProfilRoute
+  SpendeDankeRoute: typeof SpendeDankeRoute
+  SpendenRoute: typeof SpendenRoute
   CrewIdRoute: typeof CrewIdRoute
   CrewNeuRoute: typeof CrewNeuRoute
   FundortIdRoute: typeof FundortIdRoute
@@ -397,6 +423,20 @@ declare module '@tanstack/react-router' {
       path: '/profil'
       fullPath: '/profil'
       preLoaderRoute: typeof ProfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spende-danke': {
+      id: '/spende-danke'
+      path: '/spende-danke'
+      fullPath: '/spende-danke'
+      preLoaderRoute: typeof SpendeDankeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spenden': {
+      id: '/spenden'
+      path: '/spenden'
+      fullPath: '/spenden'
+      preLoaderRoute: typeof SpendenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arcade/fishing': {
@@ -510,6 +550,8 @@ const rootRouteChildren: RootRouteChildren = {
   NutzungsbedingungenRoute: NutzungsbedingungenRoute,
   PasswortNeuRoute: PasswortNeuRoute,
   ProfilRoute: ProfilRoute,
+  SpendeDankeRoute: SpendeDankeRoute,
+  SpendenRoute: SpendenRoute,
   CrewIdRoute: CrewIdRoute,
   CrewNeuRoute: CrewNeuRoute,
   FundortIdRoute: FundortIdRoute,

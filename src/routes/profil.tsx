@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Lock, Shield } from "lucide-react";
+import { Heart, Lock, Shield } from "lucide-react";
+import { isNativeApp } from "@/lib/native";
 import { AppShell } from "@/components/AppShell";
 import { ProfileView } from "@/components/ProfileView";
 import { AvatarEditor } from "@/components/AvatarEditor";
@@ -73,6 +74,7 @@ function Profil() {
           </div>
           <PushSettings />
         </section>
+        {!isNativeApp() && <Link to="/spenden" data-testid="profile-donate-link" className="neon-card flex items-center gap-2 p-4 font-semibold"><Heart className="h-5 w-5 text-accent" />Leonida Explorer unterstützen</Link>}
         {user.isAdmin && <Link to="/admin" data-testid="profile-admin-link" className="neon-card flex items-center gap-2 p-4 font-semibold"><Shield className="h-5 w-5 text-accent" />Admin-Bereich</Link>}
         <Button variant="outline" data-testid="profile-logout-button" className="w-full" onClick={async () => { await signOut(); nav({ to: "/", replace: true }); }}>Abmelden</Button>
         <DeleteAccount userId={user.id} />

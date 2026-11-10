@@ -10,6 +10,7 @@ import { useStore } from "@/lib/store";
 import type { Status } from "@/lib/demo-data";
 import { AdminUserManagement } from "@/components/social/AdminUserManagement";
 import { CrewActivityAdmin } from "@/components/crew/CrewActivityAdmin";
+import { StripeDonationsAdmin } from "@/components/StripeDonationsAdmin";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Leonida Explorer" }, { name: "robots", content: "noindex" }, { name: "description", content: "Moderation" }, { property: "og:title", content: "Admin" }, { property: "og:description", content: "Moderation" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -47,6 +48,7 @@ function Admin() {
             </div>))}
           {corrections.data?.length === 0 && <p className="text-xs text-muted-foreground">Keine offenen Korrekturen.</p>}
         </section>
+        <StripeDonationsAdmin />
         <section data-testid="admin-donations" className="neon-card space-y-2 p-3">
           <p className="font-display">Spende erfassen</p>
           <p className="text-xs text-muted-foreground">Nur nach geprüfter Spende eintragen. Stufen ergeben sich aus der Gesamtsumme; keine XP, keine Rechte. Beträge sind privat.</p>

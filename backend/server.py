@@ -2,7 +2,8 @@
 
 Die App selbst (TanStack Start) liegt im Projekt-Hauptordner und nutzt Lovable Cloud (Supabase).
 Dieser Dienst existiert nur, weil das Emergent-Deployment einen backend/-Ordner erwartet.
-Er nutzt keine Datenbank. Zusätzlich versendet er Web-Push-Mitteilungen (routers/push.py).
+Er versendet Web-Push-Mitteilungen (routers/push.py) und wickelt Stripe-Spenden ab (routers/payments.py,
+Zahlungen in MongoDB).
 """
 import os
 
@@ -13,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 from routers.push import router as push_router  # noqa: E402
+from routers.payments import router as payments_router  # noqa: E402
 
 app = FastAPI(title="Leonida Explorer API")
 api_router = APIRouter(prefix="/api")
@@ -24,6 +26,7 @@ async def health() -> dict[str, str]:
 
 
 api_router.include_router(push_router)
+api_router.include_router(payments_router)
 
 
 app.add_middleware(
