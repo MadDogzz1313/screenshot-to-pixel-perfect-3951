@@ -16,6 +16,7 @@ from py_vapid import Vapid02
 from pywebpush import WebPushException, webpush
 
 from models.push import DispatchRequest, DispatchResult, PublicKey, PushSubscription
+from services import apns
 
 router = APIRouter(prefix="/push", tags=["push"])
 log = logging.getLogger("push")
@@ -63,10 +64,21 @@ async def dispatch(req: DispatchRequest, x_push_secret: str = Header(default="")
     secret = os.environ.get("PUSH_WEBHOOK_SECRET", "")
     if not secret or not hmac.compare_digest(x_push_secret.encode(), secret.encode()):
         raise HTTPException(403, "forbidden")
-    vapid = _vapid()
+    vapid = _vapid() if req.subscriptions else None
     data = json.dumps(req.payload.model_dump(exclude_none=True), ensure_ascii=False)
     codes = await asyncio.gather(*(asyncio.to_thread(_send_one, s, data, vapid) for s in req.subscriptions))
     dead = [s.endpoint for s, c in zip(req.subscriptions, codes) if c in (404, 410)]
-    await _remove_dead(dead)
     sent = sum(1 for c in codes if 200 <= c < 300)
-    return DispatchResult(sent=sent, removed=len(dead), failed=len(codes) - sent - len(dead))
+    failed = len(codes) - sent - len(dead)
+    # iPhone-App (APNs). Ohne Apple-Schlüssel im Backend werden diese Geräte übersprungen (zählen als failed).
+    if req.apns_tokens:
+        if apns.configured():
+            p = req.payload
+            results = await asyncio.gather(*(apns.send(t, p.title, p.body, p.url, p.tag, p.notification_id) for t in req.apns_tokens))
+        else:
+            results = ["failed"] * len(req.apns_tokens)
+        dead += [t for t, r in zip(req.apns_tokens, results) if r == "dead"]
+        sent += results.count("sent")
+        failed += results.count("failed")
+    await _remove_dead(dead)
+    return DispatchResult(sent=sent, removed=len(dead), failed=failed)

@@ -1,9 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Hourglass, LogOut, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
-import { rememberPushTarget, syncPushSubscription, takePushTarget } from "@/lib/push";
+import { initNativePush, rememberPushTarget, storePushTarget, syncPushSubscription, takePushTarget } from "@/lib/push";
 import { requestBanReview, socialError, useMyBan, useSocialRealtime, type AccountBan } from "@/lib/friends";
 import bg from "@/assets/bg-sunset.jpg";
 
@@ -16,8 +16,16 @@ export function BanGate({ children }: { children: ReactNode }) {
   useSocialRealtime(user?.id);
   const ban = useMyBan(user?.id);
   const nav = useNavigate();
+  const userRef = useRef(user); userRef.current = user;
   // Push angetippt: Ziel merken; ist der Nutzer (noch) nicht angemeldet, nach dem Login dorthin weiterleiten
-  useEffect(() => { rememberPushTarget(); }, []);
+  useEffect(() => {
+    rememberPushTarget();
+    // iPhone-App: angetippte Mitteilung öffnen; ohne Anmeldung Ziel merken -> Login-Seite leitet danach weiter
+    initNativePush((path) => {
+      if (userRef.current) { void nav({ href: path }); return; }
+      storePushTarget(path); void nav({ to: "/" });
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!user) return;
     void syncPushSubscription();

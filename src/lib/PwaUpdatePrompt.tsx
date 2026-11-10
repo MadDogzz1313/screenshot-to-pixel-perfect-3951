@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { isNativeApp } from "./native";
 
 declare const __LEONIDA_BUILD_ID__: string;
 
@@ -10,7 +11,7 @@ export function PwaUpdatePrompt() {
   const [applying, setApplying] = useState(false);
 
   useEffect(() => {
-    if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return;
+    if (!import.meta.env.PROD || isNativeApp() || !("serviceWorker" in navigator)) return;   // iPhone-App lädt immer live, ohne Service Worker
 
     let disposed = false;
     let cleanupRegistration: (() => void) | undefined;

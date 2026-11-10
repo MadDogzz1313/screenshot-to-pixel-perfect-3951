@@ -1,0 +1,42 @@
+# Codemagic: baut die iPhone-App (Capacitor, Ordner ios/) in der Cloud und lädt sie zu TestFlight hoch.
+# Kein Mac nötig. Einmalig in Codemagic einrichten (siehe docs/IOS_APP_STORE_ANLEITUNG.md):
+#   Team settings -> Integrations -> Developer Portal -> App-Store-Connect-API-Schlüssel mit dem Namen "leonida-asc"
+# Die Web-App wird hier NICHT gebaut: die iPhone-App lädt die Live-Website (capacitor.config.ts -> server.url).
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: leonida-asc
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: de.leonida.explorer
+      node: 22
+      xcode: latest
+    triggering:
+      events: []          # nur manuell starten ("Start new build")
+    scripts:
+      - name: Abhängigkeiten installieren
+        script: yarn install --non-interactive --ignore-engines
+      - name: iOS-Projekt synchronisieren
+        script: npx cap sync ios
+      - name: Signierprofile anwenden
+        script: xcode-project use-profiles
+      - name: Build-Nummer erhöhen
+        script: |
+          cd ios/App
+          agvtool new-version -all $((BUILD_NUMBER + 1))
+      - name: App bauen (IPA)
+        script: |
+          xcode-project build-ipa \
+            --project ios/App/App.xcodeproj \
+            --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

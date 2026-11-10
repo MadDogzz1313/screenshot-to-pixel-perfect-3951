@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from pydantic import BaseModel, Field
 
 
@@ -20,7 +22,9 @@ class PushPayload(BaseModel):
 
 
 class DispatchRequest(BaseModel):
-    subscriptions: list[PushSubscription] = Field(max_length=10)
+    subscriptions: list[PushSubscription] = Field(default_factory=list, max_length=10)
+    # Apple-Gerätetokens der iPhone-App (SQL 011); fehlt bei älteren Datenbankständen
+    apns_tokens: list[Annotated[str, Field(pattern=r"^[0-9a-fA-F]{32,200}$")]] = Field(default_factory=list, max_length=10)
     payload: PushPayload
 
 

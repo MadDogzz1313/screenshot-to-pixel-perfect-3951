@@ -1,4 +1,5 @@
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
+import { Checkbox } from "@/components/ui/checkbox";
 import { peekPushTarget, takePushTarget } from "@/lib/push";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -20,7 +21,7 @@ function Login() {
   const nav = useNavigate();
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
   const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(false); const [accepted, setAccepted] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "forgot") {
@@ -33,6 +34,7 @@ function Login() {
     }
     const r = schema.safeParse({ email, password });
     if (!r.success) { toast.error(r.error.issues[0]?.message ?? "Ungültige Eingabe"); return; }
+    if (mode === "register" && !accepted) { toast.error("Bitte akzeptiere die Nutzungsbedingungen und Community-Regeln."); return; }
     setBusy(true);
     const res = mode === "login" ? await signIn(r.data.email, r.data.password) : await signUp(r.data.email, r.data.password);
     setBusy(false);
@@ -72,6 +74,12 @@ function Login() {
         )}
         {mode === "login" && (
           <button type="button" data-testid="auth-forgot-link" onClick={() => setMode("forgot")} className="block w-full text-right text-xs font-semibold text-neon">Passwort vergessen?</button>
+        )}
+        {mode === "register" && (
+          <label className="flex items-start gap-2.5 text-xs leading-snug text-muted-foreground">
+            <Checkbox data-testid="auth-terms-checkbox" checked={accepted} onCheckedChange={(v) => setAccepted(v === true)} className="mt-0.5" />
+            <span>Ich akzeptiere die <Link to="/nutzungsbedingungen" data-testid="auth-terms-link" className="font-semibold text-neon underline">Nutzungsbedingungen</Link> und Community-Regeln (keine Toleranz für anstößige Inhalte oder Belästigung) und habe die <Link to="/datenschutz" data-testid="auth-privacy-link" className="font-semibold text-neon underline">Datenschutzerklärung</Link> gelesen.</span>
+          </label>
         )}
         <Button type="submit" disabled={busy} data-testid="auth-submit-button" className="h-12 w-full bg-sunset text-base font-bold">{mode === "login" ? "Anmelden" : mode === "register" ? "Konto erstellen" : "Link senden"}</Button>
         {mode === "forgot" && (

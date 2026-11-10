@@ -13,9 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BeitragRouteImport } from './routes/beitrag'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as EntdeckenRouteImport } from './routes/entdecken'
 import { Route as FreundeRouteImport } from './routes/freunde'
 import { Route as KarteRouteImport } from './routes/karte'
+import { Route as NutzungsbedingungenRouteImport } from './routes/nutzungsbedingungen'
 import { Route as PasswortNeuRouteImport } from './routes/passwort-neu'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as CommunityChatRouteImport } from './routes/community.chat'
@@ -44,6 +46,11 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DatenschutzRoute = DatenschutzRouteImport.update({
+  id: '/datenschutz',
+  path: '/datenschutz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EntdeckenRoute = EntdeckenRouteImport.update({
   id: '/entdecken',
   path: '/entdecken',
@@ -57,6 +64,11 @@ const FreundeRoute = FreundeRouteImport.update({
 const KarteRoute = KarteRouteImport.update({
   id: '/karte',
   path: '/karte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NutzungsbedingungenRoute = NutzungsbedingungenRouteImport.update({
+  id: '/nutzungsbedingungen',
+  path: '/nutzungsbedingungen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PasswortNeuRoute = PasswortNeuRouteImport.update({
@@ -100,9 +112,11 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
+  '/datenschutz': typeof DatenschutzRoute
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
+  '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
   '/community/chat': typeof CommunityChatRoute
@@ -116,9 +130,11 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
+  '/datenschutz': typeof DatenschutzRoute
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
+  '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
   '/community/chat': typeof CommunityChatRoute
@@ -133,9 +149,11 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
+  '/datenschutz': typeof DatenschutzRoute
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
+  '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
   '/community/chat': typeof CommunityChatRoute
@@ -151,9 +169,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/beitrag'
     | '/community'
+    | '/datenschutz'
     | '/entdecken'
     | '/freunde'
     | '/karte'
+    | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
     | '/community/chat'
@@ -167,9 +187,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/beitrag'
     | '/community'
+    | '/datenschutz'
     | '/entdecken'
     | '/freunde'
     | '/karte'
+    | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
     | '/community/chat'
@@ -183,9 +205,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/beitrag'
     | '/community'
+    | '/datenschutz'
     | '/entdecken'
     | '/freunde'
     | '/karte'
+    | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
     | '/community/chat'
@@ -200,9 +224,11 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   BeitragRoute: typeof BeitragRoute
   CommunityRoute: typeof CommunityRouteWithChildren
+  DatenschutzRoute: typeof DatenschutzRoute
   EntdeckenRoute: typeof EntdeckenRoute
   FreundeRoute: typeof FreundeRoute
   KarteRoute: typeof KarteRoute
+  NutzungsbedingungenRoute: typeof NutzungsbedingungenRoute
   PasswortNeuRoute: typeof PasswortNeuRoute
   ProfilRoute: typeof ProfilRoute
   FundortIdRoute: typeof FundortIdRoute
@@ -241,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/datenschutz': {
+      id: '/datenschutz'
+      path: '/datenschutz'
+      fullPath: '/datenschutz'
+      preLoaderRoute: typeof DatenschutzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entdecken': {
       id: '/entdecken'
       path: '/entdecken'
@@ -260,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/karte'
       fullPath: '/karte'
       preLoaderRoute: typeof KarteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nutzungsbedingungen': {
+      id: '/nutzungsbedingungen'
+      path: '/nutzungsbedingungen'
+      fullPath: '/nutzungsbedingungen'
+      preLoaderRoute: typeof NutzungsbedingungenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/passwort-neu': {
@@ -331,9 +371,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   BeitragRoute: BeitragRoute,
   CommunityRoute: CommunityRouteWithChildren,
+  DatenschutzRoute: DatenschutzRoute,
   EntdeckenRoute: EntdeckenRoute,
   FreundeRoute: FreundeRoute,
   KarteRoute: KarteRoute,
+  NutzungsbedingungenRoute: NutzungsbedingungenRoute,
   PasswortNeuRoute: PasswortNeuRoute,
   ProfilRoute: ProfilRoute,
   FundortIdRoute: FundortIdRoute,

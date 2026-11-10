@@ -13,6 +13,7 @@ import { useInvalidate, useMyProgress } from "@/lib/social";
 import { NotificationBell } from "@/components/social/NotificationBell";
 import { FriendsSection } from "@/components/social/SocialProfile";
 import { PushSettings } from "@/components/social/PushSettings";
+import { DeleteAccount } from "@/components/social/DeleteAccount";
 
 export const Route = createFileRoute("/profil")({
   head: () => ({ meta: [{ title: "Mein Profil · Leonida Explorer" }, { name: "description", content: "Dein Profil, Level, Abzeichen und eingereichte Fundorte." }, { property: "og:title", content: "Mein Profil · Leonida Explorer" }, { property: "og:description", content: "Dein Profil, Level, Abzeichen und eingereichte Fundorte." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -63,6 +64,8 @@ function Profil() {
         </section>
         {user.isAdmin && <Link to="/admin" data-testid="profile-admin-link" className="neon-card flex items-center gap-2 p-4 font-semibold"><Shield className="h-5 w-5 text-accent" />Admin-Bereich</Link>}
         <Button variant="outline" data-testid="profile-logout-button" className="w-full" onClick={async () => { await signOut(); nav({ to: "/", replace: true }); }}>Abmelden</Button>
+        <DeleteAccount userId={user.id} />
+        <p className="text-center text-[11px] text-muted-foreground"><Link to="/nutzungsbedingungen" data-testid="profile-terms-link" className="underline">Nutzungsbedingungen</Link> · <Link to="/datenschutz" data-testid="profile-privacy-link" className="underline">Datenschutz</Link></p>
       </div>
     </AppShell>
   );

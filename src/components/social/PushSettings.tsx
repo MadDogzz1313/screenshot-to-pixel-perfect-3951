@@ -3,7 +3,7 @@ import { BellRing, Share, SquarePlus } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { useStore } from "@/lib/store";
-import { DEFAULT_PREFS, currentSubscription, disablePushOnDevice, enablePushOnDevice, pushSupport, sendTestPush, usePushPrefs, useSavePushPrefs, type PushPrefs } from "@/lib/push";
+import { DEFAULT_PREFS, deviceStatus, disablePushOnDevice, enablePushOnDevice, pushSupport, sendTestPush, usePushPrefs, useSavePushPrefs, type PushPrefs } from "@/lib/push";
 
 const CATEGORIES: { k: keyof PushPrefs; l: string }[] = [
   { k: "friend_request", l: "Freundschaftsanfragen" },
@@ -25,7 +25,7 @@ export function PushSettings() {
   const [subscribed, setSubscribed] = useState(false); const [busy, setBusy] = useState(false);
   useEffect(() => {
     const s = pushSupport(); setSupport(s);
-    if (s === "ok") { setPermission(Notification.permission); void currentSubscription().then((sub) => setSubscribed(!!sub)); }
+    if (s === "ok") void deviceStatus().then((d) => { setPermission(d.permission); setSubscribed(d.subscribed); }).catch(() => {});
   }, []);
   if (!user) return null;
   const p = prefs.data ?? DEFAULT_PREFS;
