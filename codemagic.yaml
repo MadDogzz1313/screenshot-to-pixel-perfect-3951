@@ -59,8 +59,9 @@ workflows:
           node -v
           xcodebuild -version
       - name: Abhängigkeiten installieren
-        # Codemagic nutzt ein neueres Yarn (2+, Fehler YN0050); das Projekt nutzt Yarn 1 (yarn.lock v1) -> feste Version per npx
-        script: npx --yes yarn@1.22.22 install --non-interactive --network-timeout 600000
+        # npm statt Yarn: unabhängig vom "packageManager"-Feld (Yarn 1/4, Corepack) und immer mit node_modules,
+        # die das iOS-Projekt (Swift Packages unter node_modules/@capacitor) braucht
+        script: npm install --no-audit --no-fund
       - name: Web-App bauen (React/Vite)
         script: npx vite build
       - name: Capacitor prüfen und iOS synchronisieren
