@@ -51,6 +51,10 @@ workflows:
     environment:
       node: 22
       xcode: latest
+      vars:
+        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        YARN_ENABLE_IMMUTABLE_INSTALLS: "false"   # yarn.lock darf beim Wechsel Yarn 1 -> 4 angepasst werden (nur auf dem Build-Server)
+        YARN_NODE_LINKER: node-modules            # echte node_modules statt PnP, die braucht das iOS-Projekt
     triggering:
       events: []          # nur manuell starten ("Start new build")
     scripts:
@@ -59,9 +63,16 @@ workflows:
           node -v
           xcodebuild -version
       - name: Abhängigkeiten installieren
-        # npm statt Yarn: unabhängig vom "packageManager"-Feld (Yarn 1/4, Corepack) und immer mit node_modules,
-        # die das iOS-Projekt (Swift Packages unter node_modules/@capacitor) braucht
-        script: npm install --no-audit --no-fund
+        # Yarn-Version aus package.json ("packageManager") per Corepack; ohne Feld nimmt Corepack Yarn 1.
+        # (npm scheitert hier an einem npm-10-Fehler mit "overrides": "Cannot read properties of null (reading 'edgesOut')")
+        script: |
+          mkdir -p "$HOME/.corepack-bin"
+          corepack enable --install-directory "$HOME/.corepack-bin"
+          export PATH="$HOME/.corepack-bin:$PATH"
+          echo "PATH=$PATH" >> "$CM_ENV"
+          yarn --version
+          yarn install
+          test -d node_modules/@capacitor/ios
       - name: Web-App bauen (React/Vite)
         script: npx vite build
       - name: Capacitor prüfen und iOS synchronisieren
