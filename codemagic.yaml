@@ -40,3 +40,73 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+
+  # Technischer Testbuild OHNE Apple-Konto und OHNE Signierung (kostenlos, nichts wird veröffentlicht).
+  # Prüft: Web-App-Build, Capacitor-Konfiguration, iOS-Abhängigkeiten (Swift Package Manager), Xcode-Build für den Simulator.
+  # Danach startet die App im iPhone-Simulator; das Bildschirmfoto liegt unter Artifacts (simulator-screenshot.png).
+  ios-build-check:
+    name: iOS Build-Check (Simulator, ohne Signierung)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      node: 22
+      xcode: latest
+    triggering:
+      events: []          # nur manuell starten ("Start new build")
+    scripts:
+      - name: Versionen anzeigen
+        script: |
+          node -v
+          xcodebuild -version
+      - name: Abhängigkeiten installieren
+        script: yarn install --non-interactive --ignore-engines
+      - name: Web-App bauen (React/Vite)
+        script: yarn build
+      - name: Capacitor prüfen und iOS synchronisieren
+        script: |
+          npx cap doctor ios
+          npx cap sync ios
+          test -f ios/App/App/capacitor.config.json
+          grep -q '"appId": "de.leonida.explorer"' ios/App/App/capacitor.config.json
+      - name: iOS-Konfiguration prüfen
+        script: |
+          plutil -lint ios/App/App/Info.plist ios/App/App/App.entitlements
+          xcodebuild -list -project ios/App/App.xcodeproj
+      - name: iOS-Abhängigkeiten auflösen (Swift Packages)
+        script: |
+          xcodebuild -resolvePackageDependencies \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -derivedDataPath build/sim
+      - name: Simulator-Build ohne Signierung
+        script: |
+          set -o pipefail
+          mkdir -p build
+          xcodebuild build \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath build/sim \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee build/xcodebuild-simulator.log | grep -E "error:|warning: .*deprecated|BUILD (SUCCEEDED|FAILED)" || true
+          test -d build/sim/Build/Products/Debug-iphonesimulator/App.app
+          cd build/sim/Build/Products/Debug-iphonesimulator && zip -qr "$CM_BUILD_DIR/build/Leonida-Explorer-Simulator.zip" App.app
+          echo "✅ iOS-Simulator-Build erfolgreich"
+      - name: App im Simulator starten (Bildschirmfoto)
+        ignore_failure: true
+        script: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for r in d for x in d[r] if x['name'].startswith('iPhone')))")
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" build/sim/Build/Products/Debug-iphonesimulator/App.app
+          xcrun simctl launch "$UDID" de.leonida.explorer
+          sleep 25
+          xcrun simctl io "$UDID" screenshot build/simulator-screenshot.png
+    artifacts:
+      - build/Leonida-Explorer-Simulator.zip
+      - build/simulator-screenshot.png
+      - build/xcodebuild-simulator.log
