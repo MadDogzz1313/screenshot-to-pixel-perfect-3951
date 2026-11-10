@@ -1,0 +1,82 @@
+{
+  "iteration": 10,
+  "mode": "generate",
+  "summary": "New acceptance_matrix (7 criteria) for Neon Highway's new WebGL (three.js) 2.5D renderer (synthwave sky/sun/skyline/road, chase/top-down camera toggle persisted in localStorage) layered over the existing, UNCHANGED game logic (spawn/speed/collision/score/rewards, per spec_deviations). No login is required; guest rounds are training rounds with no server call, matching seed_facts. All 8 named browser checks (7 criteria + 1 public-preview ingress cross-check, as required) passed against the real running app on a 390x844 viewport, with a 6s post-overlay wait to respect the documented hydration delay before clicking any button. Existing backend pytest suite (5 tests) re-run clean - this matrix has zero FastAPI/API surface (pure client-side WebGL rendering + localStorage), so no new backend test files were needed.",
+  "passed": 8,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Neon Highway lädt die neue WebGL-Grafik",
+      "name": "neon-highway-webgl-scene-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On /arcade/highway (390x844), behind highway-start-overlay the animated synthwave scene is visible (sun glow, skyline silhouette, neon road/grid, player car) within 3s; no response >=400 for any URL containing 'highway' (assets or renderer chunk) and no pageerror events captured."
+    },
+    {
+      "criterion": "Runde starten (ohne Login = Trainingsrunde)",
+      "name": "neon-highway-start-training-round",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest mode: clicking highway-start-overlay-button hides the overlay; highway-score (b text) increased over a 2s window and highway-time (b text) changed from its initial value; highway-canvas visible with cars rendered (confirmed visually in screenshot)."
+    },
+    {
+      "criterion": "Spurwechsel per Tippen links/rechts",
+      "name": "neon-highway-lane-switch-tap",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Screenshots before/after tapping the right then left canvas half show the player car visibly moving from lane 1 (center) to lane 2 (right) and back to lane 1; game kept running (canvas + score still valid) after both taps."
+    },
+    {
+      "criterion": "Kamera umschalten",
+      "name": "neon-highway-camera-toggle",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "highway-camera-toggle text flips Heck<->Oben on each click; screenshots show a clear perspective change (rear chase view vs. top-down view); clicking the toggle repeatedly did not trigger highway-game-over (no accidental lane/collision side effect); localStorage leonida-highway-view read back as 'high' and after page.reload() the toggle still showed 'Oben' (persisted). One console pageerror (React/TanStack hydration-mismatch warning, self-healing) appeared only on the post-interaction reload - flagged as a note below, not a functional bug since the persisted view still rendered correctly."
+    },
+    {
+      "criterion": "Pause/Weiter",
+      "name": "neon-highway-pause-resume",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "highway-pause-button click shows highway-pause-overlay; score text identical before/after a 1.5s wait while paused; clicking the overlay's Weiter button hides the overlay and the score resumes increasing over the next 1.5s."
+    },
+    {
+      "criterion": "Kollision und Game Over unverändert",
+      "name": "neon-highway-collision-gameover-restart",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Without any avoidance taps, highway-game-over became visible within 60s (natural collision), containing a numeric score and the exact text 'Nur Trainingsrunde – SQL 013 fehlt noch.'; clicking highway-restart-button hid the dialog, returned to highway-canvas and the score read back <10 immediately after restart (fresh round)."
+    },
+    {
+      "criterion": "Zurück-Navigation",
+      "name": "neon-highway-back-navigation",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "After starting a round, clicking highway-back-button navigates to /arcade and arcade-hub becomes visible; no pageerror and no >=500 response for any /arcade request during the navigation."
+    },
+    {
+      "criterion": "Cross-check: public preview ingress",
+      "name": "neon-highway-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Run against https://leonida-karte--6tt5kohx.preview.emergentagent.com: /arcade/highway shows the WebGL scene behind the start overlay, starting a round increases the score over 2s, matching the localhost behavior."
+    },
+    {
+      "criterion": "Backend regression (no FastAPI surface for this matrix)",
+      "name": "existing backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 5 passed in 0.15s - unaffected by this purely client-side WebGL/localStorage feature."
+    }
+  ],
+  "notes": [
+    "7 acceptance_matrix criteria mapped to 7 browser checks plus 1 additional public-preview cross-check (8 total), as required when the matrix has UI-facing criteria and the briefing asks for a preview-ingress run.",
+    "No new backend pytest file: the entire matrix (WebGL rendering, camera toggle, pause/collision/restart) is client-side canvas/localStorage behavior with zero FastAPI surface; the existing suite was re-run to confirm no regression.",
+    "neon-highway-camera-toggle surfaced one React/TanStack hydration-mismatch console pageerror, but only after the check itself had already written 'high' into localStorage and then reloaded the page - i.e. it is the app's initial-render-vs-localStorage SSR/CSR mismatch for the persisted camera view, not a crash (React self-heals by re-rendering client-side, and the persisted 'Oben' view still displayed correctly afterwards, satisfying the acceptance criterion). Recording as a 'note' (build/criterion disagreement on hydration cleanliness) rather than a bug per the classify-before-you-report rule, since functionality and the stated criterion (persists after reload) were both met.",
+    "Two in-authoring check-script fixes were needed and are not counted as bugs: (1) the start-overlay button needed an explicit 6s wait before clicking, matching the documented post-load hydration delay noted in seed_facts; (2) the restart-score assertion in neon-highway-collision-gameover-restart initially failed because the score had already ticked up by the time the assertion ran (first fresh pytest-style false negative from reading the DOM a beat too late, not an app defect) - fixed by reading the score immediately after the restart click and asserting <10 instead of exactly '0'.",
+    "No bugs found in the application. All 8 named checks (covering all 7 criteria plus the required public-preview cross-check) and the backend suite passed."
+  ]
+}
