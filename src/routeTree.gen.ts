@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as BeitragRouteImport } from './routes/beitrag'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
@@ -20,6 +21,8 @@ import { Route as KarteRouteImport } from './routes/karte'
 import { Route as NutzungsbedingungenRouteImport } from './routes/nutzungsbedingungen'
 import { Route as PasswortNeuRouteImport } from './routes/passwort-neu'
 import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as ArcadeFishingRouteImport } from './routes/arcade/fishing'
+import { Route as ArcadeHighwayRouteImport } from './routes/arcade/highway'
 import { Route as CommunityChatRouteImport } from './routes/community.chat'
 import { Route as FundortIdRouteImport } from './routes/fundort.$id'
 import { Route as NachrichtenIndexRouteImport } from './routes/nachrichten.index'
@@ -34,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArcadeRoute = ArcadeRouteImport.update({
+  id: '/arcade',
+  path: '/arcade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BeitragRoute = BeitragRouteImport.update({
@@ -81,6 +89,16 @@ const ProfilRoute = ProfilRouteImport.update({
   path: '/profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArcadeFishingRoute = ArcadeFishingRouteImport.update({
+  id: '/fishing',
+  path: '/fishing',
+  getParentRoute: () => ArcadeRoute,
+} as any)
+const ArcadeHighwayRoute = ArcadeHighwayRouteImport.update({
+  id: '/highway',
+  path: '/highway',
+  getParentRoute: () => ArcadeRoute,
+} as any)
 const CommunityChatRoute = CommunityChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -110,6 +128,7 @@ const UUsernameRoute = UUsernameRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/arcade': typeof ArcadeRouteWithChildren
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/datenschutz': typeof DatenschutzRoute
@@ -119,6 +138,8 @@ export interface FileRoutesByFullPath {
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/arcade/fishing': typeof ArcadeFishingRoute
+  '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
   '/nachrichten/$userId': typeof NachrichtenUserIdRoute
@@ -128,6 +149,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/arcade': typeof ArcadeRouteWithChildren
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/datenschutz': typeof DatenschutzRoute
@@ -137,6 +159,8 @@ export interface FileRoutesByTo {
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/arcade/fishing': typeof ArcadeFishingRoute
+  '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
   '/nachrichten/$userId': typeof NachrichtenUserIdRoute
@@ -147,6 +171,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/arcade': typeof ArcadeRouteWithChildren
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/datenschutz': typeof DatenschutzRoute
@@ -156,6 +181,8 @@ export interface FileRoutesById {
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
+  '/arcade/fishing': typeof ArcadeFishingRoute
+  '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
   '/fundort/$id': typeof FundortIdRoute
   '/nachrichten/$userId': typeof NachrichtenUserIdRoute
@@ -167,6 +194,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/arcade'
     | '/beitrag'
     | '/community'
     | '/datenschutz'
@@ -176,6 +204,8 @@ export interface FileRouteTypes {
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
+    | '/arcade/fishing'
+    | '/arcade/highway'
     | '/community/chat'
     | '/fundort/$id'
     | '/nachrichten/$userId'
@@ -185,6 +215,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/arcade'
     | '/beitrag'
     | '/community'
     | '/datenschutz'
@@ -194,6 +225,8 @@ export interface FileRouteTypes {
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
+    | '/arcade/fishing'
+    | '/arcade/highway'
     | '/community/chat'
     | '/fundort/$id'
     | '/nachrichten/$userId'
@@ -203,6 +236,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/arcade'
     | '/beitrag'
     | '/community'
     | '/datenschutz'
@@ -212,6 +246,8 @@ export interface FileRouteTypes {
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
+    | '/arcade/fishing'
+    | '/arcade/highway'
     | '/community/chat'
     | '/fundort/$id'
     | '/nachrichten/$userId'
@@ -222,6 +258,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  ArcadeRoute: typeof ArcadeRouteWithChildren
   BeitragRoute: typeof BeitragRoute
   CommunityRoute: typeof CommunityRouteWithChildren
   DatenschutzRoute: typeof DatenschutzRoute
@@ -251,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arcade': {
+      id: '/arcade'
+      path: '/arcade'
+      fullPath: '/arcade'
+      preLoaderRoute: typeof ArcadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/beitrag': {
@@ -316,6 +360,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/arcade/fishing': {
+      id: '/arcade/fishing'
+      path: '/fishing'
+      fullPath: '/arcade/fishing'
+      preLoaderRoute: typeof ArcadeFishingRouteImport
+      parentRoute: typeof ArcadeRoute
+    }
+    '/arcade/highway': {
+      id: '/arcade/highway'
+      path: '/highway'
+      fullPath: '/arcade/highway'
+      preLoaderRoute: typeof ArcadeHighwayRouteImport
+      parentRoute: typeof ArcadeRoute
+    }
     '/community/chat': {
       id: '/community/chat'
       path: '/chat'
@@ -354,6 +412,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ArcadeRouteChildren {
+  ArcadeFishingRoute: typeof ArcadeFishingRoute
+  ArcadeHighwayRoute: typeof ArcadeHighwayRoute
+}
+
+const ArcadeRouteChildren: ArcadeRouteChildren = {
+  ArcadeFishingRoute: ArcadeFishingRoute,
+  ArcadeHighwayRoute: ArcadeHighwayRoute,
+}
+
+const ArcadeRouteWithChildren =
+  ArcadeRoute._addFileChildren(ArcadeRouteChildren)
+
 interface CommunityRouteChildren {
   CommunityChatRoute: typeof CommunityChatRoute
 }
@@ -369,6 +440,7 @@ const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  ArcadeRoute: ArcadeRouteWithChildren,
   BeitragRoute: BeitragRoute,
   CommunityRoute: CommunityRouteWithChildren,
   DatenschutzRoute: DatenschutzRoute,

@@ -1,0 +1,82 @@
+{
+  "iteration": 9,
+  "mode": "generate",
+  "summary": "New acceptance_matrix (7 criteria) for Neon Arcade Phase 1 (Neon Highway + Leonida Fishing canvas games, coins/arcade-XP reward contracts, 150-coin spot unlock, nav/profile integration). Per seed_facts/spec_deviations, SQL 013 (docs/migrations/013_arcade_coins_spot_unlock.sql) has NOT been run against the real Lovable-managed Supabase project, so guest/real sessions genuinely get the 'training round only' / SQL-013-hint fallback paths. Guest-mode flows (hub listing, both full game play-throughs including real canvas collision/timer-driven game-over and restart, nav+compat fallback) were verified against the REAL running app (one run additionally through the public preview ingress, as required). The RPC-dependent success paths (coins/XP/new-highscore result text, leaderboard top-5 + personal stats, and the 150-coin locked-spot gate + its SQL-013-missing compatibility fallback) were verified with an in-browser Supabase mock (fake JWT session + page.route interception), the same proven pattern used in prior iterations, since the real RPCs don't exist in the live DB yet. All 6 named browser checks passed (1 genuine bug found and already fixed in my own fixture data, not an app defect - see notes). Existing backend pytest suite (5 tests, no FastAPI surface for this matrix) re-run clean and untouched.",
+  "passed": 6,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Neon Arcade ist erreichbar und zeigt die Phase-1-Spiele",
+      "name": "arcade-hub-shows-two-playable-games",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest flow (real app): /arcade shows data-testid=arcade-hub, coin-balance-display, arcade-guest-note; exactly 2 elements matching [data-testid^=game-tile-] (neon_highway, leonida_fishing), each with game-play-* and game-leaderboard-* buttons; 8 upcoming-game-chip entries for the not-yet-implemented games."
+    },
+    {
+      "criterion": "Neon Highway ist ein echtes spielbares Canvas-Spiel",
+      "name": "neon-highway-full-game-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Real app, guest mode. /arcade/highway: highway-start-overlay -> start click activates highway-canvas + highway-pause-button; HUD score (first <b>) increases via rAF loop; pause freezes the score (unchanged across 1s wait) and shows highway-pause-overlay; resume continues; game naturally ends via canvas collision (highway-game-over visible within 40s) -> restart returns to playing -> back button navigates to arcade-hub."
+    },
+    {
+      "criterion": "Leonida Fishing ist ein echtes spielbares Canvas-Spiel",
+      "name": "leonida-fishing-full-game-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Real app, guest mode. /arcade/fishing: start -> fishing-canvas + fishing-pause-button + 45s HUD timer; pause/resume works; polled bite indicator div until it showed 'BEISS! JETZT TIPPEN' then tapped fishing-cast-button, score (first <b>) changed from '0' confirming the timing-based catch mechanic increases score; let the 45s round run out naturally to fishing-game-over, verified restart/leaderboard buttons, restart reset score to '0', back navigated to arcade-hub."
+    },
+    {
+      "criterion": "Game-over und Neustart sind vorhanden",
+      "name": "neon-highway-full-game-flow / leonida-fishing-full-game-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Covered inside both game-flow checks above: each shows a game-over dialog with score + restart/top-5 buttons after a real end condition (collision for Highway, 45s timeout for Fishing); restart resets score and returns to the playing canvas in both games."
+    },
+    {
+      "criterion": "Serverseitige Belohnungs- und Highscore-Verträge sind vorbereitet",
+      "name": "arcade-reward-contracts-mocked-rpc",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked authenticated session + intercepted start_arcade_round/finish_arcade_round/arcade_leaderboard/my_arcade_stats RPCs (SQL 013 not live, per spec_deviations this success path is verified via mock). start_arcade_round called exactly once producing a unique round_id ('tscheck-round-1'); finish_arcade_round body carried that exact _round id (captured via intercepted POST body); highway-game-over showed '+18 Coins', '+9 XP', 'Neuer Highscore!'. Opening the leaderboard modal showed leaderboard-list-neon_highway with the mocked #1 row (score 999) and leaderboard-personal-neon_highway with rank #1 / 9 XP."
+    },
+    {
+      "criterion": "Fundort-Freischaltung zeigt die 150-Coins-Regel",
+      "name": "spot-unlock-150-coin-rule-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked session + fixture spot 'tscheck-spot-arcade-unlock-1' + my_spot_access=false + my_coin_balance=65: /fundort/<id> shows spot-locked-panel with the exact 'ersten zehn ... 150 Leonida Coins' rule text, coin-balance-display='65', and spot-unlock-button; clicking it (confirm dialog auto-accepted) called unlock_spot with the correct _spot id. Second scenario: my_spot_access 404s with PGRST202 (SQL 013 missing) -> spot-locked-panel is NOT shown and the existing public spot view renders instead (compatibility fallback), matching spec_deviations."
+    },
+    {
+      "criterion": "Bestehende App-Navigation bleibt nutzbar",
+      "name": "bottom-nav-and-profile-coins-guest",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest mode: app-bottom-nav visible on /karte; clicking app-nav-entdecken/arcade/beitrag/community/profil/karte each navigates to the matching route with the bottom nav still present. Separately, with a mocked authenticated session, /profil additionally shows coin-balance-display containing '42'."
+    },
+    {
+      "criterion": "Cross-check: public preview ingress",
+      "name": "arcade-hub-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Run against https://leonida-karte--6tt5kohx.preview.emergentagent.com (real deployment, no mocking): guest flow -> /arcade shows both game tiles -> Spielen on Neon Highway opens /arcade/highway with highway-start-overlay visible."
+    },
+    {
+      "criterion": "Backend regression (no FastAPI surface for this matrix)",
+      "name": "existing backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 5 passed in 0.26s (test_tscheck_health.py, test_tscheck_community_chat_migration.py) - unrelated to Arcade (purely Supabase RPC driven) but re-run to confirm no regression."
+    }
+  ],
+  "notes": [
+    "7 acceptance_matrix criteria mapped to 6 named browser checks: criterion 4 (game-over/restart) has no independent UI surface from criteria 2/3 (it's the natural end-state of the same two game components), so it is verified inside neon-highway-full-game-flow and leonida-fishing-full-game-flow rather than as a 7th separate script.",
+    "No new backend pytest file: this matrix is entirely Supabase-RPC/Canvas-UI-driven (per spec_deviations, FastAPI has zero surface here); the existing backend suite was re-run and remains green/unaffected.",
+    "During authoring, spot-unlock-150-coin-rule-mocked initially crashed (TypeError reading 'color' in fundort.$id.tsx) because MY OWN fixture spot used an invalid category id ('sunset', not in CATEGORIES). This was a test-fixture bug, not an app defect - fixed by using a valid category id ('place') and the check now passes cleanly; flagging it here per the classify-before-you-report rule rather than as a bug.",
+    "Per spec_deviations, the real Supabase reward/leaderboard/unlock RPCs (SQL 013) and a true iPhone 60fps/App Store test are blocked/unavailable; the successful RPC paths were verified through an in-browser Supabase mock and the game mechanics/UI were verified on real guest sessions plus one run through the public preview ingress, consistent with prior iterations' established pattern.",
+    "No bugs found in the application. All 6 named checks (covering all 7 criteria) and the backend suite passed; one check needed one in-authoring fix (my own fixture data), counted as the one allowed diagnosis+rerun, not as flaky or a regression."
+  ]
+}

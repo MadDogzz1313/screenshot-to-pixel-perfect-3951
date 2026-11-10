@@ -15,6 +15,7 @@ import { FriendsSection } from "@/components/social/SocialProfile";
 import { PushSettings } from "@/components/social/PushSettings";
 import { DeleteAccount } from "@/components/social/DeleteAccount";
 import { UsernameField } from "@/components/UsernameField";
+import { CoinBalance } from "@/components/arcade/CoinBalance";
 
 export const Route = createFileRoute("/profil")({
   head: () => ({ meta: [{ title: "Mein Profil · Leonida Explorer" }, { name: "description", content: "Dein Profil, Level, Abzeichen und eingereichte Fundorte." }, { property: "og:title", content: "Mein Profil · Leonida Explorer" }, { property: "og:description", content: "Dein Profil, Level, Abzeichen und eingereichte Fundorte." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -47,6 +48,7 @@ function Profil() {
   return (
     <AppShell title="Mein Profil" headerRight={<NotificationBell />}>
       <ProfileView profile={me} spots={spots} own progress={progress.data} onFeature={(ids) => updateProfile({ featured_badges: ids }).then(async (e) => { await invalidate("badges"); return e; })} />
+      <div className="px-3"><CoinBalance /></div>
       <div className="mt-4"><FriendsSection userId={user.id} own /></div>
       <div className="mt-4 space-y-3 px-3">
         {!!pending.length && <p className="neon-card p-3 text-sm">{pending.length} Beitrag/Beiträge warten auf Freigabe.</p>}

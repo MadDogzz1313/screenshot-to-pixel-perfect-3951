@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Map, Compass, PlusCircle, Users, User } from "lucide-react";
+import { Gamepad2, Map, Compass, PlusCircle, Users, User } from "lucide-react";
 import type { ReactNode } from "react";
 import bg from "@/assets/bg-sunset.jpg";
 
 const NAV = [
   { to: "/karte", label: "Karte", icon: Map },
   { to: "/entdecken", label: "Entdecken", icon: Compass },
+  { to: "/arcade", label: "Arcade", icon: Gamepad2 },
   { to: "/beitrag", label: "Beitrag", icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
   { to: "/profil", label: "Profil", icon: User },
@@ -24,9 +25,9 @@ export function AppShell({ children, title, vividBg, headerRight }: { children: 
       )}
       <main className="flex-1 pb-24">{children}</main>
       <div data-testid="app-bottom-nav" className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-3xl">
-        <nav className="safe-bottom grid grid-cols-5 border-t border-neon bg-background/95 pt-2 backdrop-blur">
+        <nav className="safe-bottom grid grid-cols-6 border-t border-neon bg-background/95 pt-2 backdrop-blur">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <Link key={to} to={to} className="flex flex-col items-center gap-0.5 text-xs text-muted-foreground"
+            <Link key={to} to={to} data-testid={`app-nav-${label.toLowerCase()}`} className="flex flex-col items-center gap-0.5 text-xs text-muted-foreground"
               activeProps={{ className: "text-neon [&_svg]:drop-shadow-[0_0_6px_var(--neon)]" }}>
               <Icon className="h-6 w-6" />{label}
             </Link>

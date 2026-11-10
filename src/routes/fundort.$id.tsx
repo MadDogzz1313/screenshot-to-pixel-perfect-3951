@@ -10,6 +10,8 @@ import { PencilLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { submitCorrection } from "@/lib/social";
+import { CoinBalance } from "@/components/arcade/CoinBalance";
+import { arcadeError, useSpotAccess, useUnlockSpot } from "@/lib/arcade";
 
 export const Route = createFileRoute("/fundort/$id")({
   head: () => ({ meta: [{ title: "Fundort · Leonida Explorer" }, { name: "description", content: "Details zu einem Fundort in Leonida." }, { property: "og:title", content: "Fundort · Leonida Explorer" }, { property: "og:description", content: "Details zu einem Fundort in Leonida." }, { property: "og:type", content: "article" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -20,8 +22,11 @@ function Detail() {
   const { id } = Route.useParams();
   const { spots, profiles, liked, saved, toggleLike, toggleSave, user } = useStore();
   const [fix, setFix] = useState(""); const [fixOpen, setFixOpen] = useState(false); const [busy, setBusy] = useState(false);
+  const access = useSpotAccess(id, !!user); const unlock = useUnlockSpot();
   const s = spots.find((x) => x.id === id);
   if (!s) return <AppShell title="Fundort"><p className="px-3">Nicht gefunden.</p></AppShell>;
+  if (user && access.data === false) return <AppShell title="Fundort"><div data-testid="spot-locked-panel" className="mx-3 space-y-4 rounded-3xl border border-[#FF2E97]/60 bg-[#21113B]/95 p-5 text-center shadow-[0_0_28px_rgba(255,46,151,0.22)]"><div className="mx-auto grid h-20 w-20 place-items-center rounded-full border-2 border-[#FF2E97] bg-[#120A24] text-4xl shadow-[0_0_24px_rgba(255,46,151,0.5)]">🔒</div><h1 className="font-display text-2xl text-neon-gradient">Fundort freischalten?</h1><p className="text-sm text-muted-foreground">Schalte die vollständigen Details dieses Fundorts dauerhaft frei. Die ersten zehn unterschiedlichen Fundorte sind kostenlos, danach kostet jeder weitere exakt 150 Leonida Coins.</p><div className="flex justify-center"><CoinBalance /></div><button type="button" data-testid="spot-unlock-button" disabled={unlock.isPending} onClick={() => { if (!confirm("Fundort freischalten? Die ersten zehn sind kostenlos, danach werden exakt 150 Leonida Coins abgezogen.")) return; unlock.mutate(id, { onSuccess: (r) => toast.success(r?.cost ? `Fundort freigeschaltet · −${r.cost} Coins` : "Fundort kostenlos freigeschaltet"), onError: (e) => toast.error(arcadeError(e as { code?: string; message?: string })) }); }} className="min-h-12 w-full rounded-full bg-primary font-bold text-primary-foreground disabled:opacity-50">{unlock.isPending ? "Wird freigeschaltet …" : "🔓 Jetzt freischalten"}</button><Link to="/karte" data-testid="spot-locked-back-link" className="block text-sm text-[#22E4F2]">Zurück zur Karte</Link></div></AppShell>;
+  if (user && access.isPending) return <AppShell title="Fundort"><p data-testid="spot-access-loading" className="px-3 text-sm text-muted-foreground">Fundort wird geladen …</p></AppShell>;
   const cat = categoryById(s.category); const author = profiles.find((p) => p.username === s.author);
   const need = () => { if (!user) { toast.error("Bitte anmelden"); return false; } return true; };
   const share = async () => {
