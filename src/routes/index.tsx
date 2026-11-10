@@ -1,5 +1,7 @@
 import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UsernameField } from "@/components/UsernameField";
+import { validateUsername } from "@/lib/username";
 import { peekPushTarget, takePushTarget } from "@/lib/push";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -20,7 +22,7 @@ function Login() {
   const { user, authReady, recovery, signIn, signUp, continueAsGuest, requestPasswordReset } = useStore();
   const nav = useNavigate();
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
-  const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false); const [accepted, setAccepted] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +37,12 @@ function Login() {
     const r = schema.safeParse({ email, password });
     if (!r.success) { toast.error(r.error.issues[0]?.message ?? "Ungültige Eingabe"); return; }
     if (mode === "register" && !accepted) { toast.error("Bitte akzeptiere die Nutzungsbedingungen und Community-Regeln."); return; }
+    if (mode === "register") {
+      const usernameIssue = validateUsername(username);
+      if (usernameIssue) { toast.error(usernameIssue); return; }
+    }
     setBusy(true);
-    const res = mode === "login" ? await signIn(r.data.email, r.data.password) : await signUp(r.data.email, r.data.password);
+    const res = mode === "login" ? await signIn(r.data.email, r.data.password) : await signUp(r.data.email, r.data.password, username);
     setBusy(false);
     if (res.error) { toast.error(res.error); return; }
     if (res.needsConfirm) {
@@ -66,6 +72,7 @@ function Login() {
             </button>
           ))}
         </div>
+        {mode === "register" && <UsernameField value={username} onChange={setUsername} inputTestId="auth-username-input" />}
         <Input type="email" autoComplete="email" data-testid="auth-email-input" placeholder="E-Mail" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12" />
         {mode === "forgot" ? (
           <p data-testid="auth-forgot-info" className="text-sm text-muted-foreground">Gib deine E-Mail ein. Wir schicken dir einen Link, mit dem du ein neues Passwort festlegen kannst.</p>

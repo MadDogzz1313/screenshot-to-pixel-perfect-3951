@@ -6,16 +6,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_AVATAR, isMissing, sb } from "./db";
+import { checkUsernameAvailable, usernameError, validateUsername } from "./username";
 import type { CategoryId, Profile, Spot, Status } from "./demo-data";
 import fallbackImg from "@/assets/bg-sunset.jpg";
 
-export interface AppUser { id: string; email: string; username: string; isAdmin: boolean }
+export interface AppUser { id: string; email: string; username: string; needsUsername: boolean; isAdmin: boolean }
 export interface AuthResult { error: string | null; needsConfirm?: boolean }
 interface Store {
   user: AppUser | null; guest: boolean; authReady: boolean; recovery: boolean;
   spots: Spot[]; profiles: Profile[]; liked: string[]; saved: string[];
   signIn: (email: string, password: string) => Promise<AuthResult>;
-  signUp: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (email: string, password: string, username: string) => Promise<AuthResult>;
+  updateUsername: (username: string) => Promise<string | null>;
   signOut: () => Promise<void>; continueAsGuest: () => void;
   requestPasswordReset: (email: string) => Promise<AuthResult>;
   updatePassword: (password: string) => Promise<AuthResult>;
@@ -28,14 +30,14 @@ interface Store {
 const Ctx = createContext<Store | null>(null);
 const KEY = "leonida-demo-v1";
 
-type CardRow = { id: string; username: string; full_access?: boolean; is_private?: boolean; avatar_path: string | null; bio: string | null; xp: number | null;
+type CardRow = { id: string; username: string | null; full_access?: boolean; is_private?: boolean; avatar_path: string | null; bio: string | null; xp: number | null;
   joined_at: string | null; featured_badges: string[] | null; show_avatar?: boolean | null; show_join_date?: boolean | null; show_badges?: boolean | null; show_friends?: boolean | null };
 const toProfile = (r: CardRow, urls: Map<string, string>): Profile => {
   const url = r.avatar_path ? urls.get(r.avatar_path) : undefined;
   return {
-    id: r.id, username: r.username, avatar: url ?? DEFAULT_AVATAR, hasAvatar: !!url, avatarPath: r.avatar_path, bio: r.bio ?? "", xp: r.xp ?? 0, likes: 0,
+    id: r.id, username: r.username ?? "Spieler", avatar: url ?? DEFAULT_AVATAR, hasAvatar: !!url, avatarPath: r.avatar_path, bio: r.bio ?? "", xp: r.xp ?? 0, likes: 0,
     isPrivate: !!r.is_private, restricted: !!r.is_private && !r.full_access, joinedAt: r.joined_at, featured: r.featured_badges,
-    showAvatar: r.show_avatar !== false, showJoinDate: r.show_join_date !== false, showBadges: r.show_badges !== false, showFriends: r.show_friends === true,
+    needsUsername: !r.username,    showAvatar: r.show_avatar !== false, showJoinDate: r.show_join_date !== false, showBadges: r.show_badges !== false, showFriends: r.show_friends === true,
   };
 };
 
@@ -172,7 +174,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const user: AppUser | null = session
     ? {
         id: session.user.id, email: session.user.email ?? "",
-        username: meRow?.username ?? (session.user.email ?? "").split("@")[0] ?? "Spieler",
+        username: meRow?.username ?? "Spieler", needsUsername: meRow?.needsUsername === true,
         isAdmin: accessQuery.data?.isAdmin === true && accessQuery.data.userId === session.user.id,
       }
     : null;
@@ -188,8 +190,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setState((s) => ({ ...s, guest: false }));
       return { error: null };
     },
-    signUp: async (email, password) => {
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/` } });
+    signUp: async (email, password, username) => {
+      const usernameIssue = validateUsername(username);
+      if (usernameIssue) return { error: usernameIssue };
+      try {
+        if (!(await checkUsernameAvailable(username))) return { error: "Dieser Benutzername ist bereits vergeben oder nicht verfügbar." };
+      } catch (e) { return { error: usernameError(e as { code?: string; message?: string }) }; }
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim() }, emailRedirectTo: `${window.location.origin}/` } });
       if (error) return { error: authMessage(error) };
       if (data.user && data.user.identities?.length === 0) return { error: "Diese E-Mail ist bereits registriert. Bitte melde dich an." };
       if (data.session) setState((s) => ({ ...s, guest: false }));
@@ -252,8 +259,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await Promise.all(["liked", "spots", "badges", "progress"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
     },
     toggleSave: (id) => me && setState((s) => ({ ...s, saved: s.saved.includes(id) ? s.saved.filter((x) => x !== id) : [...s.saved, id] })),
+    updateUsername: async (username) => {
+      if (!user) return "Bitte anmelden";
+      const issue = validateUsername(username);
+      if (issue) return issue;
+      try {
+        const { error } = await sb.rpc("set_my_username", { _username: username.trim() });
+        if (error) return usernameError(error);
+      } catch (e) { return usernameError(e as { code?: string; message?: string }); }
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["profiles"] }),
+        qc.invalidateQueries({ queryKey: ["spots"] }),
+        qc.invalidateQueries({ queryKey: ["friend-state"] }),
+        qc.invalidateQueries({ queryKey: ["friends-of"] }),
+        qc.invalidateQueries({ queryKey: ["conversations"] }),
+        qc.invalidateQueries({ queryKey: ["notifications"] }),
+        qc.invalidateQueries({ queryKey: ["admin-users"] }),
+      ]);
+      return null;
+    },
     updateProfile: async (fields) => {
       if (!user) return "Bitte anmelden";
+      if (Object.prototype.hasOwnProperty.call(fields, "username")) return "Bitte ändere den Benutzernamen im Bereich „Benutzername“.";
       const { error } = await sb.from("profiles").update(fields).eq("id", user.id);
       if (error) return isMissing(error) ? "Diese Einstellung wird nach dem Datenbank-Update (SQL 004) aktiv." : (error.message.includes("Abzeichen") ? error.message : "Speichern fehlgeschlagen");
       await qc.invalidateQueries({ queryKey: ["profiles"] });

@@ -20,7 +20,7 @@ export type Database = {
           bio: string
           created_at: string
           id: string
-          username: string
+          username: string | null
           xp: number
         }
         Insert: {
@@ -28,7 +28,7 @@ export type Database = {
           bio?: string
           created_at?: string
           id: string
-          username: string
+          username?: string | null
           xp?: number
         }
         Update: {
@@ -36,7 +36,7 @@ export type Database = {
           bio?: string
           created_at?: string
           id?: string
-          username?: string
+          username?: string | null
           xp?: number
         }
         Relationships: []

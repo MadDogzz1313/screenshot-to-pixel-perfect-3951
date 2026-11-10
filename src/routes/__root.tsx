@@ -17,6 +17,7 @@ import { Toaster } from "../components/ui/sonner";
 import { PwaUpdatePrompt } from "../lib/PwaUpdatePrompt";
 import { BanGate } from "../components/social/BanGate";
 import { useViewportGuard } from "../lib/useViewportGuard";
+import { UsernameReminder } from "../components/UsernameReminder";
 
 function NotFoundComponent() {
   return (
@@ -142,6 +143,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <StoreProvider>
+        <UsernameReminder />
         <BanGate><Outlet /></BanGate>
         <Toaster />
         <PwaUpdatePrompt />

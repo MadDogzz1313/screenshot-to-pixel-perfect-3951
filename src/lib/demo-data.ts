@@ -15,6 +15,7 @@ export const categoryById = (id: CategoryId) => CATEGORIES.find((c) => c.id === 
 export type Status = "pending" | "approved" | "rejected" | "hidden";
 export interface Profile {
   id: string; username: string; avatar: string; hasAvatar: boolean; avatarPath: string | null; bio: string; xp: number; likes: number;
+  needsUsername?: boolean;
   /** privates Profil, das der Betrachter nicht voll sehen darf */
   restricted: boolean; isPrivate: boolean; joinedAt: string | null; featured: string[] | null;
   showAvatar: boolean; showJoinDate: boolean; showBadges: boolean; showFriends: boolean;
