@@ -9,12 +9,12 @@ type DbError = { code?: string; message?: string } | null | undefined;
 export interface FriendRequest { id: string; user_id: string; created_at: string }
 export interface FriendState { friends: { id: string; since: string }[]; incoming: FriendRequest[]; outgoing: FriendRequest[]; blocked: string[] }
 export interface FriendsOf { visible: boolean; count: number | null; friends: string[] }
-export interface AppNotification { id: string; kind: "friend_request" | "friend_accepted" | "private_message" | "community" | "admin"; actor_id: string | null; ref_id: string | null; title: string; body: string | null; created_at: string; read_at: string | null }
+export interface AppNotification { id: string; kind: "friend_request" | "friend_accepted" | "private_message" | "community" | "admin" | "crew"; actor_id: string | null; ref_id: string | null; title: string; body: string | null; created_at: string; read_at: string | null }
 export interface PrivateMessage { id: string; sender_id: string; receiver_id: string; body: string; created_at: string; read_at: string | null; deleted_at: string | null }
 export interface Conversation { other_id: string; last_body: string; last_at: string; last_from_me: boolean; last_deleted: boolean; unread: number }
 export interface AccountBan { until_at: string | null; permanent: boolean; reason: string | null; created_at: string }
 export interface AdminUser { id: string; username: string; created_at: string; is_admin: boolean; is_private: boolean; banned: boolean; ban_until: string | null; ban_reason: string | null; open_reports: number; warnings: number }
-export interface AdminReport { id: string; reporter_id: string; reporter_name: string; reported_user_id: string; reported_name: string; reason: ReportReason; details: string | null; message_excerpt: string | null; status: "open" | "in_review" | "resolved" | "dismissed"; admin_note: string | null; created_at: string; handled_at: string | null }
+export interface AdminReport { id: string; reporter_id: string; reporter_name: string; reported_user_id: string; reported_name: string; reason: ReportReason; details: string | null; message_excerpt: string | null; status: "open" | "in_review" | "resolved" | "dismissed"; admin_note: string | null; created_at: string; handled_at: string | null; crew_id?: string | null }
 export interface ModerationEntry { id: string; actor_name: string | null; target_user_id: string | null; target_name: string | null; action: string; reason: string | null; metadata: Record<string, unknown>; created_at: string }
 
 export const REPORT_REASONS = [
@@ -132,6 +132,7 @@ export function useSocialActions() {
     block: useAction((other: string) => rpc("block_user", { _other: other })),
     unblock: useAction((other: string) => rpc("unblock_user", { _other: other })),
     reportUser: useAction(({ userId, reason, details }: { userId: string; reason: ReportReason; details: string }) => rpc("report_user", { _user: userId, _reason: reason, _details: details })),
+    reportCrew: useAction(({ crewId, reason, details }: { crewId: string; reason: ReportReason; details: string }) => rpc("report_crew", { _crew: crewId, _reason: reason, _details: details })),
     reportMessage: useAction(({ messageId, reason, details }: { messageId: string; reason: ReportReason; details: string }) => rpc("report_private_message", { _message_id: messageId, _reason: reason, _details: details })),
   };
 }

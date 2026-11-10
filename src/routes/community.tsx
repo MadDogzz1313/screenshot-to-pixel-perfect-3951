@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store";
 import { useLeaderboard } from "@/lib/social";
 import { useChatPresence } from "@/lib/chat";
 import { useConversations, useFriendState } from "@/lib/friends";
+import crewHero from "@/assets/crew/hero.webp";
 
 export const Route = createFileRoute("/community")({
   head: () => ({ meta: [{ title: "Community · Leonida Explorer" }, { name: "description", content: "Austausch, Tipps, Fundorte und Neuigkeiten der Leonida-Community." }, { property: "og:title", content: "Community · Leonida Explorer" }, { property: "og:description", content: "Austausch, Tipps, Fundorte und Neuigkeiten der Leonida-Community." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -54,6 +55,12 @@ function CommunityHub({ profiles, user }: { profiles: ReturnType<typeof useStore
               <span className="relative grid h-11 w-11 place-items-center rounded-2xl border border-neon/40 bg-background/40 text-neon"><Icon className="h-6 w-6" />{badge > 0 && <span data-testid={`${test}-badge`} className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground shadow-[0_0_10px_var(--neon)]">{badge}</span>}</span>
               <span className="text-[11px] font-semibold leading-tight">{title}{count !== undefined && <span className="text-muted-foreground"> ({count})</span>}</span>{link}</div>)}
         </div></section>
+
+        <Link to="/crew" data-testid="community-crew-finder-card" className="group relative block overflow-hidden rounded-[2rem] border-2 border-[#FF4FD8]/60 shadow-[0_0_26px_rgba(255,79,216,0.35)] transition-[transform,box-shadow] duration-200 active:scale-[0.98] hover:shadow-[0_0_34px_rgba(255,79,216,0.55)]">
+          <img src={crewHero} alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#12051F]/90 via-[#12051F]/55 to-transparent" />
+          <span className="relative flex min-h-[132px] items-center gap-4 p-5"><span className="min-w-0"><span data-testid="community-crew-finder-title" className="block font-display text-[1.7rem] italic leading-none text-[#FFC4F3] drop-shadow-[0_0_12px_rgba(255,79,216,0.9)]">👥 Crew Finder</span><span className="mt-2 block text-sm text-white/85">Finde Mitspieler für Raubüberfälle, Rennen & Erkundungstouren</span></span><span aria-hidden className="ml-auto grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[#FF7BE5]/70 bg-[#1A0B2E]/70 text-2xl text-white transition-transform duration-200 group-hover:translate-x-1">›</span></span>
+        </Link>
 
         <section data-testid="community-topic-grid" className="space-y-2"><h2 data-testid="community-topics-heading" className="px-1 text-xs font-bold tracking-[0.2em] text-muted-foreground">COMMUNITY-BEREICHE</h2><div className="grid gap-3 sm:grid-cols-2">{TOPICS.map(({ to, test, icon: Icon, title, subtitle, tone, glow }) => <Link key={test} to={to} data-testid={test} className={`group relative flex min-h-[92px] items-center gap-4 overflow-hidden rounded-3xl border border-neon/25 bg-card/80 p-4 backdrop-blur-xl transition-[transform,border-color,box-shadow] duration-200 active:scale-[0.98] hover:-translate-y-0.5 hover:border-neon/70 ${glow}`}><span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-current/40 bg-background/40 ${tone}`}><Icon className="h-7 w-7" /></span><span className="min-w-0"><span data-testid={`${test}-title`} className="block font-display text-base">{title}</span><span data-testid={`${test}-subtitle`} className="mt-1 block text-xs text-muted-foreground">{subtitle}</span></span><span aria-hidden className="ml-auto text-2xl text-muted-foreground transition-transform duration-200 group-hover:translate-x-1">›</span></Link>)}</div></section>
 

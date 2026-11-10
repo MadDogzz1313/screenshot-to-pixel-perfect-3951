@@ -1,0 +1,81 @@
+{
+  "iteration": 11,
+  "mode": "generate",
+  "summary": "New acceptance_matrix (8 criteria) for the Crew Finder feature (SQL 014 - not yet applied in the real, Lovable-managed Supabase instance). All Supabase calls were mocked per seed_facts (page.route('**/*.supabase.co/**'), localStorage sb-daxzwbkacxllrejaghym-auth-token with an unsigned JWT + user object). 8 named browser checks (one per criterion) all passed on first/second attempt at 390x844 (plus an additional 375x667 pass inside the iPhone check and a real public-preview entry-point check). Existing backend pytest suite (5 tests, unaffected - Crew Finder has no FastAPI surface) re-run clean.",
+  "passed": 8,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Crew-Finder-Einstieg in Community",
+      "name": "community-crew-finder-entry",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On /community, community-crew-finder-card ('👥 Crew Finder') is visible; clicking it navigates to /crew. As a guest (no mocked session), /crew shows crew-login-hint instead of a crew list."
+    },
+    {
+      "criterion": "Liste mit Crew-Karten und Filtern (gemockte Supabase-Antworten)",
+      "name": "crew-list-cards-and-filters",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With a mocked session, /crew shows crew-create-link, crew-filters, and crew-card-<id> for two mocked crews with title, CrewMeta, slot grid, description and join button. Clicking the 'playstation' platform chip triggered a new POST to /rest/v1/rpc/crew_browse containing \"_platform\":\"playstation\"; clicking the 'Freie Plätze 2+' chip triggered a new POST containing \"_min_free\":2."
+    },
+    {
+      "criterion": "Crew beitreten sendet Anfrage",
+      "name": "crew-join-success-and-full-error",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Clicking crew-card-join-<id> sent POST /rest/v1/rpc/request_join_crew with {\"_crew\":\"<id>\"} and showed the success toast 'Anfrage gesendet ...'. A second mocked call returning {message:'CREW_FULL'} with status 400 produced the exact German toast 'Die Crew ist bereits vollständig.'"
+    },
+    {
+      "criterion": "Neue Crew-Suche Formular",
+      "name": "crew-new-form-submit-navigates",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/crew/neu shows all required sections (crew-form-activity, -platform, -max, -present, -language, -headset, -start, -description). Selecting Xbox, max 4, present 2 players and a description, then clicking crew-form-submit sent POST /rest/v1/rpc/create_crew with _platform:'xbox', the typed _description, and a numeric _external; the mocked UUID response navigated the app to /crew/<uuid>."
+    },
+    {
+      "criterion": "Lobby für Mitglieder",
+      "name": "crew-leader-lobby-full-features",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With my_role='leader' and a full crew, crew-lobby-title shows '<Aktivität> – Crew-Lobby', crew-lobby-status shows 'Team steht – Vorbereitung & Start' (status pill for a full crew), crew-lobby-count shows '4 / 4 Spieler'. With a free slot and a pending request, accepting it (crew-request-accept-<id>) called respond_crew_request with {_request:'req1',_accept:true} and showed the success toast; sending a chat message called send_crew_message with the typed body and the message appeared in crew-chat-own; clicking crew-ready-button called set_crew_ready with the crew id."
+    },
+    {
+      "criterion": "Leader-Menü und Moderation",
+      "name": "crew-leader-menu-moderation-and-nonmember",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "crew-lobby-menu-button shows 'Suche bearbeiten'/'Suche schließen'/'Crew auflösen'; confirming (crew-confirm-ok) each in turn called close_crew then delete_crew (asserted via mock flags) with matching success toasts. For a non-member crew (my_role null), the lobby shows the member-only hint plus crew-join-button instead of chat, and the menu's 'Crew-Suche melden' opens the report dialog."
+    },
+    {
+      "criterion": "Ohne SQL 014 keine Abstürze",
+      "name": "crew-setup-hint-without-sql014",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With only the auth session mocked and crew_browse/crew_activities/my_crews returning a real-style 404 PGRST202 'function does not exist' response, /crew renders crew-setup-hint containing the exact text '... SQL 014 ...' instead of a crash or error boundary."
+    },
+    {
+      "criterion": "iPhone-Darstellung",
+      "name": "crew-iphone-no-horizontal-scroll",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At both 390x844 and 375x667, document.documentElement.scrollWidth <= clientWidth (no horizontal scroll) on /crew, /crew/neu and /crew/<id>; crew-create-link and crew-form-submit bounding boxes are both >= 44px tall."
+    },
+    {
+      "criterion": "Backend regression (no FastAPI surface for Crew Finder)",
+      "name": "existing backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 5 passed in 0.21s - Crew Finder is entirely Supabase RPC/table driven with zero FastAPI endpoints, so no new backend test file was needed; existing suite confirmed no regression."
+    }
+  ],
+  "notes": [
+    "All 8 acceptance_matrix criteria mapped 1:1 to 8 named browser checks; no criterion exceeded the 8-item threshold so no additional count note is needed beyond listing all 8.",
+    "No test_credentials were needed: every criterion with auth-gated UI was verified via the documented localStorage JWT + page.route Supabase mock pattern (seed_facts), matching the working pattern already proven in the provided adhoc screenshot script.",
+    "Two in-authoring script fixes were needed during crew-leader-lobby-full-features and are not counted as bugs: (1) the initial single-crew mock made the lobby simultaneously 'full' (blocking the accept button by design: 'Die Crew ist vollständig - Anfragen können erst angenommen werden, wenn ein Platz frei wird') and need a pending request, so the check was split into two sequential navigations - first a strictly-full crew for the title/status-pill/count assertions, then a crew with one free slot and a pending request for the accept/chat/ready assertions; (2) the crew_messages mock table needed to be mutated by the send_crew_message RPC handler (push the new message into the same array the table-read handler serves) so the invalidated query actually shows the just-sent message - otherwise the UI correctly shows nothing, which would have been a false-positive bug report.",
+    "No bugs found in the application. All 8 named checks and the backend regression suite passed."
+  ]
+}

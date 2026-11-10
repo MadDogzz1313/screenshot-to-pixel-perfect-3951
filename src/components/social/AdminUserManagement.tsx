@@ -45,7 +45,8 @@ export function AdminUserManagement({ myId }: { myId: string }) {
         <p className="text-xs text-muted-foreground">{dt(r.created_at)} · {r.reporter_name} meldet <Link to="/u/$username" params={{ username: r.reported_name }} className="font-semibold text-neon">{r.reported_name}</Link> · {STATUS[r.status]}</p>
         <p className="font-semibold">{reasonLabel(r.reason)}</p>
         {r.details && <p className="whitespace-pre-line text-xs">{r.details}</p>}
-        {r.message_excerpt !== null && <p className="rounded-lg bg-black/25 p-2 text-xs"><span className="text-muted-foreground">Gemeldete Nachricht: </span>{r.message_excerpt || "(vom Absender gelöscht)"}</p>}
+        {r.message_excerpt !== null && <p className="rounded-lg bg-black/25 p-2 text-xs"><span className="text-muted-foreground">{r.crew_id ? "Gemeldete Crew-Suche: " : "Gemeldete Nachricht: "}</span>{r.message_excerpt || "(vom Absender gelöscht)"}</p>}
+        {r.crew_id && <Link to="/crew/$id" params={{ id: r.crew_id }} data-testid="admin-report-open-crew" className="inline-block text-xs font-semibold text-neon">Crew-Suche öffnen und moderieren ›</Link>}
         {r.admin_note && <p className="text-xs text-muted-foreground">Notiz: {r.admin_note}</p>}
         {repTab === "open" && <>
           <Input data-testid="admin-report-note" placeholder="Notiz (optional)" value={notes[r.id] ?? ""} onChange={(e) => setNotes((n) => ({ ...n, [r.id]: e.target.value }))} className="text-base" />

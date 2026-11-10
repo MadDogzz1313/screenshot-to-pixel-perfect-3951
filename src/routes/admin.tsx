@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import type { Status } from "@/lib/demo-data";
 import { AdminUserManagement } from "@/components/social/AdminUserManagement";
+import { CrewActivityAdmin } from "@/components/crew/CrewActivityAdmin";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Leonida Explorer" }, { name: "robots", content: "noindex" }, { name: "description", content: "Moderation" }, { property: "og:title", content: "Admin" }, { property: "og:description", content: "Moderation" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -34,6 +35,7 @@ function Admin() {
     <AppShell title="Moderation">
       <div className="space-y-3 px-3">
         <AdminUserManagement myId={user.id} />
+        <CrewActivityAdmin />
         <section data-testid="admin-corrections" className="neon-card space-y-2 p-3">
           <p className="font-display">Korrekturen prüfen ({corrections.data?.length ?? 0})</p>
           {corrections.data?.map((c) => (

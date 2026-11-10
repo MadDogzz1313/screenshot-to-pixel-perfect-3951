@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, Check, MessageCircle, Megaphone, ShieldAlert, UserPlus } from "lucide-react";
+import { Bell, Check, MessageCircle, Megaphone, ShieldAlert, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useStore } from "@/lib/store";
 import { socialError, timeAgo, useFriendState, useMarkNotificationsRead, useNotifications, useSocialActions, type AppNotification } from "@/lib/friends";
 
-const ICON = { friend_request: UserPlus, friend_accepted: Check, private_message: MessageCircle, community: Megaphone, admin: ShieldAlert } as const;
+const ICON = { friend_request: UserPlus, friend_accepted: Check, private_message: MessageCircle, community: Megaphone, admin: ShieldAlert, crew: Users } as const;
 
 /** Glocke oben rechts im eigenen Profil. Zähler = ungelesene Benachrichtigungen (Realtime über useSocialRealtime). */
 export function NotificationBell() {
@@ -74,6 +74,7 @@ function NotificationItem({ n, isNew, onNavigate }: { n: AppNotification; isNew:
           <button type="button" data-testid="notification-accept-button" disabled={actions.respond.isPending} onClick={() => respond(true)} className="min-h-9 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground shadow-[0_0_12px_var(--neon)] active:scale-95 disabled:opacity-50">Annehmen</button>
           <button type="button" data-testid="notification-decline-button" disabled={actions.respond.isPending} onClick={() => respond(false)} className="min-h-9 rounded-full border border-border px-4 text-xs font-semibold active:scale-95 disabled:opacity-50">Ablehnen</button>
         </div> : <p className="mt-1 text-[11px] text-muted-foreground">Anfrage beantwortet oder zurückgezogen</p>)}
+        {n.kind === "crew" && n.ref_id && <Link to="/crew/$id" params={{ id: n.ref_id }} onClick={onNavigate} data-testid="notification-open-crew" className="mt-2 inline-block text-xs font-semibold text-neon">Crew öffnen ›</Link>}
         {n.kind === "private_message" && n.actor_id && <Link to="/nachrichten/$userId" params={{ userId: n.actor_id }} onClick={onNavigate} data-testid="notification-open-chat" className="mt-2 inline-block text-xs font-semibold text-neon">Chat öffnen ›</Link>}
       </div>
       {showActor && <Link to="/u/$username" params={{ username: actor.username }} onClick={onNavigate} aria-label="Profil öffnen" data-testid="notification-profile-link" className="text-xs text-muted-foreground">Profil ›</Link>}

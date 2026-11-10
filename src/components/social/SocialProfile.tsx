@@ -13,19 +13,20 @@ const primary = `${pill} bg-primary text-primary-foreground shadow-[0_0_16px_okl
 const outline = `${pill} border border-neon/50 bg-card/80 text-foreground`;
 
 /** Melde-Dialog für Benutzer (mode "user") oder eine private Nachricht (mode "message") */
-export function ReportDialog({ open, onOpenChange, targetId, mode, username }: { open: boolean; onOpenChange: (v: boolean) => void; targetId: string; mode: "user" | "message"; username: string }) {
+export function ReportDialog({ open, onOpenChange, targetId, mode, username }: { open: boolean; onOpenChange: (v: boolean) => void; targetId: string; mode: "user" | "message" | "crew"; username: string }) {
   const actions = useSocialActions();
   const [reason, setReason] = useState<ReportReason | null>(null); const [details, setDetails] = useState("");
-  const busy = actions.reportUser.isPending || actions.reportMessage.isPending;
+  const busy = actions.reportUser.isPending || actions.reportMessage.isPending || actions.reportCrew.isPending;
   const submit = () => {
     if (!reason) return;
     const done = { onSuccess: () => { toast.success("Danke! Das Admin-Team prüft deine Meldung."); setReason(null); setDetails(""); onOpenChange(false); }, onError: (e: Error) => toast.error(socialError(e)) };
     if (mode === "user") actions.reportUser.mutate({ userId: targetId, reason, details: details.trim() }, done);
+    else if (mode === "crew") actions.reportCrew.mutate({ crewId: targetId, reason, details: details.trim() }, done);
     else actions.reportMessage.mutate({ messageId: targetId, reason, details: details.trim() }, done);
   };
   return <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent data-testid="report-dialog" className="max-w-md border-neon/40 bg-[#140c20]">
-      <DialogHeader><DialogTitle className="font-display">{mode === "user" ? `${username} melden` : "Nachricht melden"}</DialogTitle>
+      <DialogHeader><DialogTitle className="font-display">{mode === "user" ? `${username} melden` : mode === "crew" ? `Crew-Suche „${username}“ melden` : "Nachricht melden"}</DialogTitle>
         <DialogDescription>Nur das Admin-Team sieht deine Meldung.</DialogDescription></DialogHeader>
       <div className="grid gap-2">{REPORT_REASONS.map((r) => <button key={r.id} type="button" data-testid={`report-reason-${r.id}`} onClick={() => setReason(r.id)}
         className={`min-h-11 rounded-2xl border px-3 text-left text-sm transition-colors duration-150 ${reason === r.id ? "border-neon bg-primary/20 text-neon" : "border-border bg-card"}`}>{r.label}</button>)}</div>

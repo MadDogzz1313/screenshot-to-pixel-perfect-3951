@@ -24,6 +24,9 @@ import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as ArcadeFishingRouteImport } from './routes/arcade/fishing'
 import { Route as ArcadeHighwayRouteImport } from './routes/arcade/highway'
 import { Route as CommunityChatRouteImport } from './routes/community.chat'
+import { Route as CrewIndexRouteImport } from './routes/crew.index'
+import { Route as CrewIdRouteImport } from './routes/crew.$id'
+import { Route as CrewNeuRouteImport } from './routes/crew.neu'
 import { Route as FundortIdRouteImport } from './routes/fundort.$id'
 import { Route as NachrichtenIndexRouteImport } from './routes/nachrichten.index'
 import { Route as NachrichtenUserIdRouteImport } from './routes/nachrichten.$userId'
@@ -104,6 +107,21 @@ const CommunityChatRoute = CommunityChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => CommunityRoute,
 } as any)
+const CrewIndexRoute = CrewIndexRouteImport.update({
+  id: '/crew/',
+  path: '/crew/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrewIdRoute = CrewIdRouteImport.update({
+  id: '/crew/$id',
+  path: '/crew/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrewNeuRoute = CrewNeuRouteImport.update({
+  id: '/crew/neu',
+  path: '/crew/neu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FundortIdRoute = FundortIdRouteImport.update({
   id: '/fundort/$id',
   path: '/fundort/$id',
@@ -141,9 +159,12 @@ export interface FileRoutesByFullPath {
   '/arcade/fishing': typeof ArcadeFishingRoute
   '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
+  '/crew/$id': typeof CrewIdRoute
+  '/crew/neu': typeof CrewNeuRoute
   '/fundort/$id': typeof FundortIdRoute
   '/nachrichten/$userId': typeof NachrichtenUserIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/crew/': typeof CrewIndexRoute
   '/nachrichten/': typeof NachrichtenIndexRoute
 }
 export interface FileRoutesByTo {
@@ -162,9 +183,12 @@ export interface FileRoutesByTo {
   '/arcade/fishing': typeof ArcadeFishingRoute
   '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
+  '/crew/$id': typeof CrewIdRoute
+  '/crew/neu': typeof CrewNeuRoute
   '/fundort/$id': typeof FundortIdRoute
   '/nachrichten/$userId': typeof NachrichtenUserIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/crew': typeof CrewIndexRoute
   '/nachrichten': typeof NachrichtenIndexRoute
 }
 export interface FileRoutesById {
@@ -184,9 +208,12 @@ export interface FileRoutesById {
   '/arcade/fishing': typeof ArcadeFishingRoute
   '/arcade/highway': typeof ArcadeHighwayRoute
   '/community/chat': typeof CommunityChatRoute
+  '/crew/$id': typeof CrewIdRoute
+  '/crew/neu': typeof CrewNeuRoute
   '/fundort/$id': typeof FundortIdRoute
   '/nachrichten/$userId': typeof NachrichtenUserIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/crew/': typeof CrewIndexRoute
   '/nachrichten/': typeof NachrichtenIndexRoute
 }
 export interface FileRouteTypes {
@@ -207,9 +234,12 @@ export interface FileRouteTypes {
     | '/arcade/fishing'
     | '/arcade/highway'
     | '/community/chat'
+    | '/crew/$id'
+    | '/crew/neu'
     | '/fundort/$id'
     | '/nachrichten/$userId'
     | '/u/$username'
+    | '/crew/'
     | '/nachrichten/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -228,9 +258,12 @@ export interface FileRouteTypes {
     | '/arcade/fishing'
     | '/arcade/highway'
     | '/community/chat'
+    | '/crew/$id'
+    | '/crew/neu'
     | '/fundort/$id'
     | '/nachrichten/$userId'
     | '/u/$username'
+    | '/crew'
     | '/nachrichten'
   id:
     | '__root__'
@@ -249,9 +282,12 @@ export interface FileRouteTypes {
     | '/arcade/fishing'
     | '/arcade/highway'
     | '/community/chat'
+    | '/crew/$id'
+    | '/crew/neu'
     | '/fundort/$id'
     | '/nachrichten/$userId'
     | '/u/$username'
+    | '/crew/'
     | '/nachrichten/'
   fileRoutesById: FileRoutesById
 }
@@ -268,9 +304,12 @@ export interface RootRouteChildren {
   NutzungsbedingungenRoute: typeof NutzungsbedingungenRoute
   PasswortNeuRoute: typeof PasswortNeuRoute
   ProfilRoute: typeof ProfilRoute
+  CrewIdRoute: typeof CrewIdRoute
+  CrewNeuRoute: typeof CrewNeuRoute
   FundortIdRoute: typeof FundortIdRoute
   NachrichtenUserIdRoute: typeof NachrichtenUserIdRoute
   UUsernameRoute: typeof UUsernameRoute
+  CrewIndexRoute: typeof CrewIndexRoute
   NachrichtenIndexRoute: typeof NachrichtenIndexRoute
 }
 
@@ -381,6 +420,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityChatRouteImport
       parentRoute: typeof CommunityRoute
     }
+    '/crew/': {
+      id: '/crew/'
+      path: '/crew'
+      fullPath: '/crew/'
+      preLoaderRoute: typeof CrewIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crew/$id': {
+      id: '/crew/$id'
+      path: '/crew/$id'
+      fullPath: '/crew/$id'
+      preLoaderRoute: typeof CrewIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crew/neu': {
+      id: '/crew/neu'
+      path: '/crew/neu'
+      fullPath: '/crew/neu'
+      preLoaderRoute: typeof CrewNeuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fundort/$id': {
       id: '/fundort/$id'
       path: '/fundort/$id'
@@ -450,9 +510,12 @@ const rootRouteChildren: RootRouteChildren = {
   NutzungsbedingungenRoute: NutzungsbedingungenRoute,
   PasswortNeuRoute: PasswortNeuRoute,
   ProfilRoute: ProfilRoute,
+  CrewIdRoute: CrewIdRoute,
+  CrewNeuRoute: CrewNeuRoute,
   FundortIdRoute: FundortIdRoute,
   NachrichtenUserIdRoute: NachrichtenUserIdRoute,
   UUsernameRoute: UUsernameRoute,
+  CrewIndexRoute: CrewIndexRoute,
   NachrichtenIndexRoute: NachrichtenIndexRoute,
 }
 export const routeTree = rootRouteImport
