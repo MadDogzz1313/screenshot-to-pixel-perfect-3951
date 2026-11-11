@@ -75,3 +75,6 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Zahlungen in MongoDB `payment_transactions` (MONGO_URL/DB_NAME in backend/.env). Stripe-Katalog: `cd backend && python setup_stripe.py` (Produkt leonida_donation, Preise lookup_key donation_<n>eur, EUR, txcd_10000000). Steuer-Modus „full“ (Stripe Managed Payments), Fallback Stripe Tax.
 - Frontend: `src/lib/payments.ts`, Route `/spenden` (Stufen mit Abzeichenbild, eigener Betrag, Testmodus-Hinweis, `?abgebrochen=1`), `/spende-danke?session_id=` (Status-Polling 2 s, max ~2 min), Admin `src/components/StripeDonationsAdmin.tsx` über „Spende erfassen“. Einstiege: Profil „Leonida Explorer unterstützen“, Abzeichen-Dialog „Jetzt unterstützen“ (Unterstützer, eigenes Profil).
 - iPhone-App (Capacitor): Spenden ausgeblendet (`isNativeApp`) wegen App-Store-Regeln für digitale Güter.
+
+## Öffentliche Datenschutzerklärung
+- Route `/datenschutz` ist ohne Anmeldung erreichbar und beschreibt die implementierten Verarbeitungen von Supabase Auth, Profile, Fundorten/Fotos, Community-Chat, Direktnachrichten/Freunden, Crew Finder, Push und Stripe-Spenden. Fehlende Betreiber-, Kontakt-, Rechtsgrundlagen-, Hosting-, Aufbewahrungs- und Betroffenenrechtsangaben sind bewusst als „BITTE ERGÄNZEN/PRÜFEN“ markiert. Der Link ist im Auth-Formular dauerhaft bei Anmeldung und Registrierung sichtbar.

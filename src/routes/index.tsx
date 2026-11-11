@@ -93,7 +93,8 @@ function Login() {
           <button type="button" data-testid="auth-forgot-back-button" onClick={() => setMode("login")} className="block w-full text-center text-xs font-semibold text-muted-foreground">Zurück zur Anmeldung</button>
         )}
         <Button type="button" variant="outline" data-testid="auth-guest-button" className="h-12 w-full" onClick={() => { continueAsGuest(); nav({ to: "/karte" }); }}>Ohne Anmeldung zur Karte</Button>
-        <p className="text-center text-[11px] text-muted-foreground">{mode === "register" ? "Nach der Registrierung erhältst du eine E-Mail zur Bestätigung." : "Noch kein Konto? Tippe oben auf „Registrieren“."}</p>
+        <p data-testid="auth-legal-links" className="text-center text-[11px] leading-relaxed text-muted-foreground"><Link to="/nutzungsbedingungen" data-testid="auth-terms-footer-link" className="font-semibold text-neon underline">Nutzungsbedingungen</Link><span aria-hidden> · </span><Link to="/datenschutz" data-testid="auth-privacy-footer-link" className="font-semibold text-neon underline">Datenschutzerklärung</Link></p>
+        <p data-testid="auth-form-hint" className="text-center text-[11px] text-muted-foreground">{mode === "register" ? "Nach der Registrierung erhältst du eine E-Mail zur Bestätigung." : "Noch kein Konto? Tippe oben auf „Registrieren“."}</p>
       </form>
     </div>
   );
