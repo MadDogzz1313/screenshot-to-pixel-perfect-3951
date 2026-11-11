@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isMissing, sb } from "./db";
 
+import { tr } from "@/lib/i18n";
 export type ArcadeGameId = "neon_highway" | "leonida_fishing";
 export type ArcadeRoundStart = { round_id: string; seed: string; started_at: string; max_duration_seconds: number; max_score: number };
 export type ArcadeRoundResult = { round_id: string; score: number; coins: number; xp: number; new_high_score: boolean; already_processed?: boolean; daily_limit_reached?: boolean };
@@ -8,36 +9,36 @@ export type LeaderboardEntry = { rank: number; user_id: string; username: string
 export type ArcadeStats = { high_score: number | null; rank: number | null; xp_earned: number };
 
 export const ARCADE_GAMES: { id: ArcadeGameId; name: string; description: string; icon: string; maxCoins: number; maxXp: number; playable: boolean }[] = [
-  { id: "neon_highway", name: "Neon Highway", description: "Weiche dem Verkehr aus und rase durch die Neon-Nacht.", icon: "🏎️", maxCoins: 40, maxXp: 20, playable: true },
-  { id: "leonida_fishing", name: "Leonida Fishing", description: "Treffe den richtigen Moment und ziehe seltene Fische an Land.", icon: "🎣", maxCoins: 35, maxXp: 18, playable: true },
+  { id: "neon_highway", name: "Neon Highway", description: tr("Weiche dem Verkehr aus und rase durch die Neon-Nacht."), icon: "🏎️", maxCoins: 40, maxXp: 20, playable: true },
+  { id: "leonida_fishing", name: "Leonida Fishing", description: tr("Treffe den richtigen Moment und ziehe seltene Fische an Land."), icon: "🎣", maxCoins: 35, maxXp: 18, playable: true },
 ];
-export const UPCOMING_ARCADE_GAMES = ["Alligator-Jagd", "Leonida Memory", "Neon Snake", "Flamingo Flight", "Beach Basketball", "Sunset Runner", "Neon Breaker", "Leonida Quiz"];
+export const UPCOMING_ARCADE_GAMES = [tr("Alligator-Jagd"), "Leonida Memory", "Neon Snake", "Flamingo Flight", "Beach Basketball", "Sunset Runner", "Neon Breaker", "Leonida Quiz"];
 
 export function arcadeError(error: { code?: string; message?: string } | null | undefined): string {
-  if (!error) return "Das hat nicht geklappt.";
-  if (isMissing(error)) return "Arcade-Belohnungen werden nach dem Datenbank-Update (SQL 013) aktiv.";
+  if (!error) return tr("Das hat nicht geklappt.");
+  if (isMissing(error)) return tr("Arcade-Belohnungen werden nach dem Datenbank-Update (SQL 013) aktiv.");
   const msg = error.message ?? "";
-  if (msg.includes("AUTH_REQUIRED")) return "Bitte melde dich an, um gewertete Runden zu spielen.";
-  if (msg.includes("ROUND_TOO_SHORT")) return "Diese Runde war zu kurz und wurde nicht gewertet.";
-  if (msg.includes("ROUND_EXPIRED")) return "Diese Runde war über 6 Stunden offen und ist verfallen.";
-  if (msg.includes("ROUND_DURATION_INVALID")) return "Die gemeldete Spielzeit war nicht plausibel – die Runde wurde nicht gewertet.";
-  if (msg.includes("ROUND_NOT_FOUND") || msg.includes("ROUND_CLOSED")) return "Diese Runde ist nicht mehr offen und konnte nicht gewertet werden.";
-  if (msg.includes("ROUND_SCORE_INVALID")) return "Das Ergebnis war serverseitig nicht plausibel und wurde nicht gewertet.";
-  if (msg.includes("INSUFFICIENT_COINS")) return "Du hast nicht genug Leonida Coins.";
-  if (msg.includes("SPOT_NOT_FOUND")) return "Dieser Fundort ist nicht mehr verfügbar.";
-  return "Die Arcade-Aktion konnte nicht abgeschlossen werden.";
+  if (msg.includes("AUTH_REQUIRED")) return tr("Bitte melde dich an, um gewertete Runden zu spielen.");
+  if (msg.includes("ROUND_TOO_SHORT")) return tr("Diese Runde war zu kurz und wurde nicht gewertet.");
+  if (msg.includes("ROUND_EXPIRED")) return tr("Diese Runde war über 6 Stunden offen und ist verfallen.");
+  if (msg.includes("ROUND_DURATION_INVALID")) return tr("Die gemeldete Spielzeit war nicht plausibel – die Runde wurde nicht gewertet.");
+  if (msg.includes("ROUND_NOT_FOUND") || msg.includes("ROUND_CLOSED")) return tr("Diese Runde ist nicht mehr offen und konnte nicht gewertet werden.");
+  if (msg.includes("ROUND_SCORE_INVALID")) return tr("Das Ergebnis war serverseitig nicht plausibel und wurde nicht gewertet.");
+  if (msg.includes("INSUFFICIENT_COINS")) return tr("Du hast nicht genug Leonida Coins.");
+  if (msg.includes("SPOT_NOT_FOUND")) return tr("Dieser Fundort ist nicht mehr verfügbar.");
+  return tr("Die Arcade-Aktion konnte nicht abgeschlossen werden.");
 }
 
 export function spotUnlockError(error: { code?: string; message?: string; details?: string } | null | undefined): string {
-  if (!error) return "Die Fundort-Freischaltung konnte nicht abgeschlossen werden.";
-  if (isMissing(error)) return "Die Fundort-Freischaltung ist in der Datenbank noch nicht eingerichtet. Bitte SQL 013 in Lovable ausführen.";
+  if (!error) return tr("Die Fundort-Freischaltung konnte nicht abgeschlossen werden.");
+  if (isMissing(error)) return tr("Die Fundort-Freischaltung ist in der Datenbank noch nicht eingerichtet. Bitte SQL 013 in Lovable ausführen.");
   const text = [error.message, error.details].filter(Boolean).join(" ");
-  if (text.includes("AUTH_REQUIRED")) return "Bitte melde dich an, um Fundorte freizuschalten.";
-  if (text.includes("INSUFFICIENT_COINS")) return "Du hast nicht genug Leonida Coins. Ab dem 11. Fundort brauchst du genau 150 Coins.";
-  if (text.includes("SPOT_NOT_FOUND")) return "Dieser Fundort ist nicht mehr verfügbar.";
-  if (error.code === "23505") return "Dieser Fundort ist bereits freigeschaltet. Lade die Seite kurz neu.";
-  if (error.code === "42501") return "Du hast keine Berechtigung, diesen Fundort freizuschalten.";
-  return "Die Fundort-Freischaltung konnte nicht abgeschlossen werden.";
+  if (text.includes("AUTH_REQUIRED")) return tr("Bitte melde dich an, um Fundorte freizuschalten.");
+  if (text.includes("INSUFFICIENT_COINS")) return tr("Du hast nicht genug Leonida Coins. Ab dem 11. Fundort brauchst du genau 150 Coins.");
+  if (text.includes("SPOT_NOT_FOUND")) return tr("Dieser Fundort ist nicht mehr verfügbar.");
+  if (error.code === "23505") return tr("Dieser Fundort ist bereits freigeschaltet. Lade die Seite kurz neu.");
+  if (error.code === "42501") return tr("Du hast keine Berechtigung, diesen Fundort freizuschalten.");
+  return tr("Die Fundort-Freischaltung konnte nicht abgeschlossen werden.");
 }
 
 export async function startArcadeRound(game: ArcadeGameId): Promise<ArcadeRoundStart | null> {

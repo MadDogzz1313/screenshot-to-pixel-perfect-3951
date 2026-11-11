@@ -3,6 +3,7 @@ import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isNativeApp } from "./native";
 
+import { tr } from "@/lib/i18n";
 declare const __LEONIDA_BUILD_ID__: string;
 
 export function PwaUpdatePrompt() {
@@ -78,7 +79,7 @@ export function PwaUpdatePrompt() {
       <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-neon/60 bg-[#160E22]/95 p-3 shadow-[0_0_24px_rgba(255,46,147,0.32)] backdrop-blur-xl">
         <RefreshCw className="h-5 w-5 shrink-0 text-neon" aria-hidden />
         <p data-testid="pwa-update-message" className="min-w-0 flex-1 text-sm font-semibold">
-          {applying ? "Neue Version wird geladen …" : "Update verfügbar"}
+          {applying ? tr("Neue Version wird geladen …") : tr("Update verfügbar")}
         </p>
         <Button
           type="button"
@@ -87,11 +88,10 @@ export function PwaUpdatePrompt() {
           onClick={applyUpdate}
           className="min-h-10 shrink-0 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground"
         >
-          Jetzt aktualisieren
-        </Button>
+          {tr("Jetzt aktualisieren")}</Button>
         <button
           type="button"
-          aria-label="Update-Hinweis schließen"
+          aria-label={tr("Update-Hinweis schließen")}
           data-testid="pwa-update-dismiss-button"
           onClick={() => setUpdateReady(false)}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-primary/15 hover:text-foreground"

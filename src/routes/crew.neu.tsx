@@ -39,11 +39,12 @@ import {
   type StartMode,
 } from "@/lib/crew";
 
+import { tr } from "@/lib/i18n";
 export const Route = createFileRoute("/crew/neu")({
   validateSearch: (s: Record<string, unknown>): { edit?: string } =>
     typeof s["edit"] === "string" ? { edit: s["edit"] } : {},
   head: () => ({
-    meta: [{ title: "Neue Crew-Suche · Leonida Explorer" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: tr("Neue Crew-Suche · Leonida Explorer") }, { name: "robots", content: "noindex" }],
   }),
   component: NewCrew,
 });
@@ -92,17 +93,16 @@ function NewCrew() {
   if (!authReady)
     return (
       <AppShell>
-        <p className="p-6 text-center text-sm">Wird geladen …</p>
+        <p className="p-6 text-center text-sm">{tr("Wird geladen …")}</p>
       </AppShell>
     );
   if (!user)
     return (
       <AppShell>
         <div className={`${neonPanel} m-4 p-5 text-center`}>
-          <p className="font-semibold">Bitte melde dich an, um eine Crew-Suche zu erstellen.</p>
+          <p className="font-semibold">{tr("Bitte melde dich an, um eine Crew-Suche zu erstellen.")}</p>
           <Link to="/" className="mt-3 inline-block text-neon">
-            Anmelden
-          </Link>
+            {tr("Anmelden")}</Link>
         </div>
       </AppShell>
     );
@@ -126,7 +126,7 @@ function NewCrew() {
         <p className={`${neonPanel} m-4 p-4 text-sm`}>
           {existing.isError
             ? crewError(existing.error)
-            : "Nur der Crew-Leader kann die Suche bearbeiten."}
+            : tr("Nur der Crew-Leader kann die Suche bearbeiten.")}
         </p>
       </AppShell>
     );
@@ -202,7 +202,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
 
   const submit = () => {
     if (!v.activity) {
-      toast.error("Bitte wähle eine Aktivität.");
+      toast.error(tr("Bitte wähle eine Aktivität."));
       return;
     }
     const input: CrewInput = {
@@ -211,7 +211,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
       startAt: v.startMode === "time" ? new Date(localTime).toISOString() : null,
     };
     if (input.startMode === "time" && Number.isNaN(new Date(localTime).getTime())) {
-      toast.error("Bitte wähle eine gültige Uhrzeit.");
+      toast.error(tr("Bitte wähle eine gültige Uhrzeit."));
       return;
     }
     if (editId)
@@ -219,7 +219,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         { id: editId, input },
         {
           onSuccess: () => {
-            toast.success("Crew-Suche aktualisiert");
+            toast.success(tr("Crew-Suche aktualisiert"));
             void nav({ to: "/crew/$id", params: { id: editId } });
           },
           onError: (e) => toast.error(crewError(e)),
@@ -228,7 +228,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
     else
       actions.create.mutate(input, {
         onSuccess: (id) => {
-          toast.success("Crew-Suche veröffentlicht");
+          toast.success(tr("Crew-Suche veröffentlicht"));
           void nav({ to: "/crew/$id", params: { id } });
         },
         onError: (e) => toast.error(crewError(e)),
@@ -242,7 +242,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         left={
           <button
             type="button"
-            aria-label="Zurück"
+            aria-label={tr("Zurück")}
             data-testid="crew-form-back-button"
             onClick={() =>
               editId
@@ -262,14 +262,14 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
             data-testid="crew-form-title"
             className="font-display text-[1.9rem] leading-none text-white"
           >
-            {editId ? "Crew-Suche bearbeiten" : "Neue Crew-Suche"}
+            {editId ? tr("Crew-Suche bearbeiten") : tr("Neue Crew-Suche")}
           </h1>
         </div>
 
         <Section
           testId="crew-form-activity"
           icon={<Crosshair className="h-7 w-7" />}
-          title="Aktivität"
+          title={tr("Aktivität")}
         >
           <Select
             value={v.activity}
@@ -288,12 +288,12 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
             }}
           >
             <SelectTrigger data-testid="crew-form-activity-select" className={selectCls}>
-              <SelectValue placeholder="Aktivität wählen" />
+              <SelectValue placeholder={tr("Aktivität wählen")} />
             </SelectTrigger>
             <SelectContent>
               {activities.map((a) => (
                 <SelectItem key={a.id} value={a.id} data-testid={`crew-form-activity-${a.id}`}>
-                  {a.emoji} {a.label}
+                  {a.emoji} {tr(a.label)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -303,7 +303,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         <Section
           testId="crew-form-platform"
           icon={<Gamepad2 className="h-7 w-7" />}
-          title="Plattform"
+          title={tr("Plattform")}
         >
           <div className="grid grid-cols-2 gap-3">
             {PLATFORMS.map((p) => {
@@ -332,7 +332,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         <Section
           testId="crew-form-max"
           icon={<Users className="h-7 w-7" />}
-          title="Maximale Spielerzahl"
+          title={tr("Maximale Spielerzahl")}
         >
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
             {maxOptions
@@ -354,7 +354,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         <Section
           testId="crew-form-present"
           icon={<UserPlus className="h-7 w-7" />}
-          title={`Bereits vorhandene Spieler (von ${v.max})`}
+          title={tr("Bereits vorhandene Spieler (von {0})", v.max)}
         >
           <div className="flex flex-wrap justify-center gap-3">
             {presentOptions.map((n) => (
@@ -371,12 +371,12 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
           </div>
           <p className="text-xs text-white/55">
             {editId
-              ? `Enthält ${inApp} Mitglied(er) mit App – der Rest sind Mitspieler ohne App-Konto.`
-              : "Inklusive dir – weitere Spieler sind Mitspieler außerhalb der App."}
+              ? tr("Enthält {0} Mitglied(er) mit App – der Rest sind Mitspieler ohne App-Konto.", inApp)
+              : tr("Inklusive dir – weitere Spieler sind Mitspieler außerhalb der App.")}
           </p>
         </Section>
 
-        <Section testId="crew-form-language" icon={<Globe className="h-7 w-7" />} title="Sprache">
+        <Section testId="crew-form-language" icon={<Globe className="h-7 w-7" />} title={tr("Sprache")}>
           <Select
             value={v.language}
             onValueChange={(l) => setV((x) => ({ ...x, language: l as Language }))}
@@ -397,7 +397,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         <Section
           testId="crew-form-headset"
           icon={<Headphones className="h-7 w-7" />}
-          title="Headset erforderlich"
+          title={tr("Headset erforderlich")}
           right={
             <Switch
               data-testid="crew-form-headset-switch"
@@ -411,14 +411,14 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         <Section
           testId="crew-form-start"
           icon={<CalendarClock className="h-7 w-7" />}
-          title="Geplanter Start"
+          title={tr("Geplanter Start")}
         >
           <div className="grid grid-cols-3 gap-2">
             {(
               [
-                ["now", "Jetzt"],
-                ["later", "Später"],
-                ["time", "Uhrzeit"],
+                ["now", tr("Jetzt")],
+                ["later", tr("Später")],
+                ["time", tr("Uhrzeit")],
               ] as [StartMode, string][]
             ).map(([id, label]) => (
               <button
@@ -443,16 +443,13 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
               className={`${selectCls} w-full [color-scheme:dark]`}
             />
           )}
-          <p className="text-xs text-white/55">
-            Die Suche läuft 6 Stunden nach dem geplanten Start automatisch ab
-            {v.startMode !== "time" ? " (ohne feste Uhrzeit: 6 Stunden nach dem Erstellen)" : ""}.
-          </p>
+          <p className="text-xs text-white/55">{tr("Die Suche läuft 6 Stunden nach dem geplanten Start automatisch ab {0}.", v.startMode !== "time" ? tr(" (ohne feste Uhrzeit: 6 Stunden nach dem Erstellen)") : "")}</p>
         </Section>
 
         <Section
           testId="crew-form-description"
           icon={<Pencil className="h-7 w-7" />}
-          title="Beschreibung"
+          title={tr("Beschreibung")}
         >
           <textarea
             data-testid="crew-form-description-input"
@@ -460,7 +457,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
             maxLength={500}
             rows={3}
             onChange={(e) => setV((x) => ({ ...x, description: e.target.value }))}
-            placeholder="Entspannte Crew gesucht. Gemeinsam planen und loslegen!"
+            placeholder={tr("Entspannte Crew gesucht. Gemeinsam planen und loslegen!")}
             className="w-full resize-none rounded-2xl border-2 border-[#FF7BE5]/45 bg-[#140822]/90 px-4 py-3 text-base leading-relaxed text-white outline-none placeholder:text-white/40 focus:border-[#FF7BE5]"
           />
           <p className="text-right text-[11px] text-white/45">{v.description.length}/500</p>
@@ -475,10 +472,10 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         >
           <UserPlus className="h-7 w-7 text-[#FFE08A]" />
           {busy
-            ? "Wird gespeichert …"
+            ? tr("Wird gespeichert …")
             : editId
-              ? "Änderungen speichern"
-              : "Eigene Crew-Suche erstellen"}
+              ? tr("Änderungen speichern")
+              : tr("Eigene Crew-Suche erstellen")}
         </button>
       </div>
     </div>

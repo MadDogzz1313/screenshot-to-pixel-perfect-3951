@@ -10,9 +10,10 @@ import { badgeImg } from "@/lib/badges";
 import { isNativeApp } from "@/lib/native";
 import { euro, startCheckout, useDonationTiers } from "@/lib/payments";
 
+import { tr } from "@/lib/i18n";
 export const Route = createFileRoute("/spenden")({
   validateSearch: (s: Record<string, unknown>): { abgebrochen?: 1 } => (s["abgebrochen"] ? { abgebrochen: 1 } : {}),
-  head: () => ({ meta: [{ title: "Unterstützen · Leonida Explorer" }, { name: "description", content: "Unterstütze Leonida Explorer mit einer Spende und erhalte ein Unterstützer-Abzeichen." }] }),
+  head: () => ({ meta: [{ title: tr("Unterstützen · Leonida Explorer") }, { name: "description", content: tr("Unterstütze Leonida Explorer mit einer Spende und erhalte ein Unterstützer-Abzeichen.") }] }),
   component: Donate,
 });
 
@@ -36,30 +37,30 @@ function Donate() {
     } catch (e) { toast.error((e as Error).message); setBusy(false); }
   };
 
-  if (!authReady) return <AppShell title="Unterstützen">{null}</AppShell>;
+  if (!authReady) return <AppShell title={tr("Unterstützen")}>{null}</AppShell>;
   if (isNativeApp()) return (
-    <AppShell title="Unterstützen"><div data-testid="donate-native-hint" className="neon-card mx-3 space-y-2 p-5 text-center text-sm">
-      <p className="font-display">Spenden in der App nicht verfügbar</p><p className="text-muted-foreground">Spenden sind nur über die Website von Leonida Explorer möglich.</p></div></AppShell>);
+    <AppShell title={tr("Unterstützen")}><div data-testid="donate-native-hint" className="neon-card mx-3 space-y-2 p-5 text-center text-sm">
+      <p className="font-display">{tr("Spenden in der App nicht verfügbar")}</p><p className="text-muted-foreground">{tr("Spenden sind nur über die Website von Leonida Explorer möglich.")}</p></div></AppShell>);
   return (
-    <AppShell title="Unterstützen">
+    <AppShell title={tr("Unterstützen")}>
       <div data-testid="donate-page" className="space-y-3 px-3 pb-4">
         <section className="neon-card space-y-2 p-4">
-          <p className="flex items-center gap-2 font-display text-lg"><Heart className="h-5 w-5 text-accent" />Leonida Explorer unterstützen</p>
-          <p className="text-sm text-muted-foreground">Mit deiner Spende hilfst du, Server und neue Funktionen zu finanzieren. Als Dank gibt es ein Unterstützer-Abzeichen – die Stufe richtet sich nach der Summe aller deiner bestätigten Spenden.</p>
-          {cfg?.test_mode && <p data-testid="donate-test-mode-hint" className="rounded-xl border border-[#FFD12A]/50 bg-[#FFD12A]/10 p-2 text-xs text-[#FFD12A]">Testmodus: Es wird kein echtes Geld abgebucht. Testkarte 4242 4242 4242 4242, beliebiges Datum in der Zukunft, beliebige Prüfziffer.</p>}
-          {abgebrochen && <p data-testid="donate-cancelled-hint" className="rounded-xl border border-border bg-background/40 p-2 text-xs">Zahlung abgebrochen – es wurde nichts abgebucht.</p>}
+          <p className="flex items-center gap-2 font-display text-lg"><Heart className="h-5 w-5 text-accent" />{tr("Leonida Explorer unterstützen")}</p>
+          <p className="text-sm text-muted-foreground">{tr("Mit deiner Spende hilfst du, Server und neue Funktionen zu finanzieren. Als Dank gibt es ein Unterstützer-Abzeichen – die Stufe richtet sich nach der Summe aller deiner bestätigten Spenden.")}</p>
+          {cfg?.test_mode && <p data-testid="donate-test-mode-hint" className="rounded-xl border border-[#FFD12A]/50 bg-[#FFD12A]/10 p-2 text-xs text-[#FFD12A]">{tr("Testmodus: Es wird kein echtes Geld abgebucht. Testkarte 4242 4242 4242 4242, beliebiges Datum in der Zukunft, beliebige Prüfziffer.")}</p>}
+          {abgebrochen && <p data-testid="donate-cancelled-hint" className="rounded-xl border border-border bg-background/40 p-2 text-xs">{tr("Zahlung abgebrochen – es wurde nichts abgebucht.")}</p>}
         </section>
 
         {!user ? (
-          <div className="neon-card space-y-3 p-5 text-center"><p>Melde dich an, damit wir deine Spende deinem Profil zuordnen können.</p>
-            <Link to="/" data-testid="donate-login-link" className="inline-block rounded-full bg-primary px-5 py-2 font-bold text-primary-foreground">Anmelden / Registrieren</Link></div>
+          <div className="neon-card space-y-3 p-5 text-center"><p>{tr("Melde dich an, damit wir deine Spende deinem Profil zuordnen können.")}</p>
+            <Link to="/" data-testid="donate-login-link" className="inline-block rounded-full bg-primary px-5 py-2 font-bold text-primary-foreground">{tr("Anmelden / Registrieren")}</Link></div>
         ) : tiers.isError ? (
-          <p data-testid="donate-error" className="neon-card p-4 text-sm text-destructive">Spenden sind gerade nicht erreichbar. Bitte versuche es später erneut.</p>
+          <p data-testid="donate-error" className="neon-card p-4 text-sm text-destructive">{tr("Spenden sind gerade nicht erreichbar. Bitte versuche es später erneut.")}</p>
         ) : !cfg ? (
           <div className="flex justify-center p-6"><Loader2 className="h-6 w-6 animate-spin text-neon" /></div>
         ) : (
           <section className="neon-card space-y-3 p-4">
-            <p className="text-xs font-bold tracking-[0.2em] text-muted-foreground">BETRAG WÄHLEN</p>
+            <p className="text-xs font-bold tracking-[0.2em] text-muted-foreground">{tr("BETRAG WÄHLEN")}</p>
             <div className="grid grid-cols-3 gap-2">
               {cfg.tiers.map((t) => {
                 const on = selected === t.id;
@@ -73,15 +74,15 @@ function Donate() {
               })}
             </div>
             <div className="space-y-1">
-              <label htmlFor="donate-custom" className="text-sm font-semibold">Eigener Betrag</label>
+              <label htmlFor="donate-custom" className="text-sm font-semibold">{tr("Eigener Betrag")}</label>
               <Input id="donate-custom" data-testid="donate-custom-amount-input" inputMode="decimal" placeholder={`${cfg.custom_min_cents / 100} – ${cfg.custom_max_cents / 100} €`} value={custom}
                 onFocus={() => setSelected(null)} onChange={(e) => { setSelected(null); setCustom(e.target.value.replace(/[^\d.,]/g, "")); }} />
-              {!selected && custom.trim() !== "" && !customValid && <p data-testid="donate-custom-amount-error" className="text-xs text-destructive">Bitte einen Betrag zwischen {euro(cfg.custom_min_cents)} und {euro(cfg.custom_max_cents)} eingeben.</p>}
+              {!selected && custom.trim() !== "" && !customValid && <p data-testid="donate-custom-amount-error" className="text-xs text-destructive">{tr("Bitte einen Betrag zwischen {0} und {1} eingeben.", euro(cfg.custom_min_cents), euro(cfg.custom_max_cents))}</p>}
             </div>
             <Button data-testid="donate-pay-button" className="w-full" disabled={busy || !amount} onClick={() => void pay()}>
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}{amount ? `${euro(amount)} spenden` : "Betrag wählen"}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}{amount ? `${euro(amount)} spenden` : tr("Betrag wählen")}
             </Button>
-            <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neon" />Sichere Zahlung über Stripe. Nach der Zahlung prüft ein Admin deine Spende und schaltet dein Abzeichen frei. Spenden bringen keine XP und keine Vorteile im Spiel.</p>
+            <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neon" />{tr("Sichere Zahlung über Stripe. Nach der Zahlung prüft ein Admin deine Spende und schaltet dein Abzeichen frei. Spenden bringen keine XP und keine Vorteile im Spiel.")}</p>
           </section>
         )}
       </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { isMissing, sb } from "./db";
 
+import { tr } from "@/lib/i18n";
 export interface ChatMessage {
   id: string;
   author_id: string;
@@ -34,13 +35,13 @@ export const isChatUnavailable = (error: { code?: string } | null | undefined) =
 export function chatErrorMessage(error: { code?: string; message?: string } | null | undefined) {
   if (!error) return null;
   const message = error.message ?? "";
-  if (message.includes("ACCOUNT_BANNED")) return "Dein Konto ist gesperrt.";
-  if (message.includes("CHAT_RATE_LIMIT")) return "Zu viele Nachrichten. Bitte warte kurz.";
-  if (message.includes("CHAT_MUTED")) return "Du bist momentan stummgeschaltet.";
-  if (message.includes("CHAT_BANNED")) return "Du bist für den Chat gesperrt.";
-  if (message.includes("CHAT_MESSAGE_TOO_LONG")) return "Eine Nachricht darf höchstens 500 Zeichen enthalten.";
-  if (isChatUnavailable(error)) return "Der Chat ist noch nicht mit der Datenbank verbunden.";
-  return "Die Chat-Aktion konnte nicht ausgeführt werden.";
+  if (message.includes("ACCOUNT_BANNED")) return tr("Dein Konto ist gesperrt.");
+  if (message.includes("CHAT_RATE_LIMIT")) return tr("Zu viele Nachrichten. Bitte warte kurz.");
+  if (message.includes("CHAT_MUTED")) return tr("Du bist momentan stummgeschaltet.");
+  if (message.includes("CHAT_BANNED")) return tr("Du bist für den Chat gesperrt.");
+  if (message.includes("CHAT_MESSAGE_TOO_LONG")) return tr("Eine Nachricht darf höchstens 500 Zeichen enthalten.");
+  if (isChatUnavailable(error)) return tr("Der Chat ist noch nicht mit der Datenbank verbunden.");
+  return tr("Die Chat-Aktion konnte nicht ausgeführt werden.");
 }
 
 export function useChatPresence(userId: string | undefined, enabled = true) {

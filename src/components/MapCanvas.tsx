@@ -4,6 +4,7 @@ import { Plus, Minus, Maximize, Layers } from "lucide-react";
 import mapImg from "@/assets/leonida-map.jpg";
 import { categoryById, type Spot } from "@/lib/demo-data";
 
+import { tr } from "@/lib/i18n";
 // Kartenbild: src/assets/leonida-map.jpg (827 × 1140). Bei Austausch Seitenverhältnis hier anpassen.
 // Fundorte nutzen relative Koordinaten (x/y in % von Breite/Höhe des Bildes) und bleiben so beim Zoomen stabil.
 const MAP_W = 827;
@@ -64,7 +65,7 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
                 const r = e.currentTarget.getBoundingClientRect();
                 onPick({ x: +(((e.clientX - r.left) / r.width) * 100).toFixed(2), y: +(((e.clientY - r.top) / r.height) * 100).toFixed(2) });
               }}>
-              <img src={mapImg} alt="Karte von Leonida" width={MAP_W} height={MAP_H} data-testid="map-image"
+              <img src={mapImg} alt={tr("Karte von Leonida")} width={MAP_W} height={MAP_H} data-testid="map-image"
                 className={`map-image-feather block h-full w-full select-none ${floating ? "" : ""}`} draggable={false} />
               {showPins && spots.map((s) => {
                 const c = categoryById(s.category);
@@ -87,18 +88,18 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
           </TransformComponent>
           {floating ? (
             <div className="absolute right-0 top-2 flex flex-col items-center gap-3">
-              <button type="button" aria-label={showPins ? "Fundorte ausblenden" : "Fundorte einblenden"} aria-pressed={!showPins} data-testid="map-layers-button"
+              <button type="button" aria-label={showPins ? tr("Fundorte ausblenden") : tr("Fundorte einblenden")} aria-pressed={!showPins} data-testid="map-layers-button"
                 onClick={() => setShowPins((v) => !v)} className={`${CTRL} ${showPins ? "" : "!bg-primary/60"}`}><Layers className="h-5 w-5" /></button>
-              <button type="button" aria-label="Ganze Karte anzeigen" data-testid="map-locate-button" onClick={resetView} className={CTRL}><Maximize className="h-5 w-5" /></button>
+              <button type="button" aria-label={tr("Ganze Karte anzeigen")} data-testid="map-locate-button" onClick={resetView} className={CTRL}><Maximize className="h-5 w-5" /></button>
               <div className="flex flex-col overflow-hidden rounded-2xl border border-neon/60 bg-background/70 shadow-[0_0_14px_oklch(0.7_0.3_345/0.35)] backdrop-blur-md">
-                <button type="button" aria-label="Vergrößern" data-testid="map-zoom-in-button" onClick={() => zoomIn(0.6)} className="grid h-11 w-11 place-items-center transition-colors duration-150 active:bg-primary/40"><Plus className="h-5 w-5" /></button>
+                <button type="button" aria-label={tr("Vergrößern")} data-testid="map-zoom-in-button" onClick={() => zoomIn(0.6)} className="grid h-11 w-11 place-items-center transition-colors duration-150 active:bg-primary/40"><Plus className="h-5 w-5" /></button>
                 <span className="mx-2 h-px bg-neon/50" />
-                <button type="button" aria-label="Verkleinern" data-testid="map-zoom-out-button" onClick={() => zoomOut(0.6)} className="grid h-11 w-11 place-items-center transition-colors duration-150 active:bg-primary/40"><Minus className="h-5 w-5" /></button>
+                <button type="button" aria-label={tr("Verkleinern")} data-testid="map-zoom-out-button" onClick={() => zoomOut(0.6)} className="grid h-11 w-11 place-items-center transition-colors duration-150 active:bg-primary/40"><Minus className="h-5 w-5" /></button>
               </div>
             </div>
           ) : (
             <div className="absolute right-3 top-3 flex flex-col gap-2">
-              {[{ i: Plus, f: () => zoomIn(0.6), l: "Vergrößern" }, { i: Minus, f: () => zoomOut(0.6), l: "Verkleinern" }, { i: Maximize, f: resetView, l: "Ganze Karte anzeigen" }].map(({ i: I, f, l }) => (
+              {[{ i: Plus, f: () => zoomIn(0.6), l: tr("Vergrößern") }, { i: Minus, f: () => zoomOut(0.6), l: tr("Verkleinern") }, { i: Maximize, f: resetView, l: tr("Ganze Karte anzeigen") }].map(({ i: I, f, l }) => (
                 <button key={l} type="button" aria-label={l} onClick={f} className="neon-card grid h-11 w-11 place-items-center !rounded-xl"><I className="h-5 w-5" /></button>
               ))}
             </div>

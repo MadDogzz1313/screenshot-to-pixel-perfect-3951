@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { isMissing, sb } from "./db";
 
+import { tr, locale } from "@/lib/i18n";
 export type Platform = "playstation" | "xbox";
 export type StartMode = "now" | "later" | "time";
 export const PLATFORMS: { id: Platform; label: string }[] = [
@@ -12,15 +13,15 @@ export const PLATFORMS: { id: Platform; label: string }[] = [
   { id: "xbox", label: "Xbox" },
 ];
 export const LANGUAGES = [
-  { id: "de", label: "Deutsch" },
-  { id: "en", label: "Englisch" },
-  { id: "es", label: "Spanisch" },
-  { id: "fr", label: "Französisch" },
-  { id: "it", label: "Italienisch" },
-  { id: "tr", label: "Türkisch" },
-  { id: "pl", label: "Polnisch" },
-  { id: "nl", label: "Niederländisch" },
-  { id: "other", label: "Andere" },
+  { id: "de", label: tr("Deutsch") },
+  { id: "en", label: tr("Englisch") },
+  { id: "es", label: tr("Spanisch") },
+  { id: "fr", label: tr("Französisch") },
+  { id: "it", label: tr("Italienisch") },
+  { id: "tr", label: tr("Türkisch") },
+  { id: "pl", label: tr("Polnisch") },
+  { id: "nl", label: tr("Niederländisch") },
+  { id: "other", label: tr("Andere") },
 ] as const;
 export type Language = (typeof LANGUAGES)[number]["id"];
 export const platformLabel = (p: string) => PLATFORMS.find((x) => x.id === p)?.label ?? p;
@@ -103,51 +104,51 @@ export const occupied = (c: Pick<Crew, "members" | "external_players">) =>
 export const freeSlots = (c: Crew) => Math.max(0, c.max_players - occupied(c));
 export const isFull = (c: Crew) => freeSlots(c) === 0;
 const hm = (iso: string) =>
-  new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+  new Intl.DateTimeFormat(locale(), { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 export const startLabel = (c: Pick<Crew, "start_mode" | "start_at">) =>
   c.start_mode === "now"
-    ? "Start: jetzt"
+    ? tr("Start: jetzt")
     : c.start_mode === "later"
-      ? "Start: später"
-      : `Start: ${new Intl.DateTimeFormat("de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(c.start_at!))} Uhr`;
+      ? tr("Start: später")
+      : tr("Start: {0} Uhr", new Intl.DateTimeFormat(locale(), { weekday: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(c.start_at!)));
 export const expiryLabel = (c: Pick<Crew, "expires_at" | "expired">) =>
-  c.expired ? "Abgelaufen" : `Läuft um ${hm(c.expires_at)} Uhr ab`;
+  c.expired ? tr("Abgelaufen") : tr("Läuft um {0} Uhr ab", hm(c.expires_at));
 
-export const CREW_SETUP_HINT = "Der Crew Finder wird nach dem Datenbank-Update (SQL 014) aktiv.";
+export const CREW_SETUP_HINT = tr("Der Crew Finder wird nach dem Datenbank-Update (SQL 014) aktiv.");
 const MESSAGES: Record<string, string> = {
-  CREW_NOT_FOUND: "Diese Crew gibt es nicht mehr oder sie ist nicht sichtbar.",
-  CREW_CLOSED: "Diese Crew-Suche ist geschlossen oder abgelaufen.",
-  CREW_FULL: "Die Crew ist bereits vollständig.",
-  CREW_ALREADY_MEMBER: "Du bist bereits Mitglied dieser Crew.",
-  CREW_ALREADY_REQUESTED: "Deine Anfrage ist bereits beim Crew-Leader.",
-  CREW_DECLINED_RECENTLY: "Deine Anfrage wurde gerade abgelehnt. Versuche es später erneut.",
-  CREW_BLOCKED: "Zwischen euch besteht eine Blockierung.",
-  CREW_NOT_LEADER: "Nur der Crew-Leader kann das.",
-  CREW_NOT_MEMBER: "Nur Mitglieder der Crew können das.",
-  CREW_LEADER_LEAVE: "Als Crew-Leader kannst du die Suche schließen oder die Crew auflösen.",
-  CREW_REQUEST_NOT_FOUND: "Diese Anfrage gibt es nicht mehr.",
-  CREW_REQUEST_CLOSED: "Diese Anfrage wurde bereits beantwortet.",
-  CREW_USER_UNAVAILABLE: "Dieser Spieler kann gerade keiner Crew beitreten.",
-  CREW_EXPIRED: "Diese Crew ist abgelaufen.",
-  CREW_LIMIT: "Du kannst höchstens 3 offene Crew-Suchen gleichzeitig haben.",
-  CREW_INVALID_SIZE: "Bitte prüfe die Spielerzahlen.",
-  CREW_SIZE_BELOW_MEMBERS: "Die maximale Spielerzahl ist kleiner als die aktuelle Crew.",
-  CREW_INVALID_START: "Bitte wähle eine Startzeit innerhalb der nächsten 7 Tage.",
-  CREW_INVALID_ACTIVITY: "Diese Aktivität ist nicht verfügbar.",
-  CREW_MESSAGE_EMPTY: "Bitte schreibe eine Nachricht.",
-  CREW_MESSAGE_TOO_LONG: "Eine Nachricht darf höchstens 1000 Zeichen haben.",
-  REPORT_DUPLICATE: "Du hast das bereits gemeldet. Das Admin-Team prüft es.",
-  REPORT_SELF: "Du kannst deine eigene Crew nicht melden.",
-  RATE_LIMIT: "Zu viele Aktionen in kurzer Zeit. Bitte warte kurz.",
-  ACCOUNT_BANNED: "Dein Konto ist gesperrt.",
-  ADMIN_ONLY: "Nur für Admins.",
+  CREW_NOT_FOUND: tr("Diese Crew gibt es nicht mehr oder sie ist nicht sichtbar."),
+  CREW_CLOSED: tr("Diese Crew-Suche ist geschlossen oder abgelaufen."),
+  CREW_FULL: tr("Die Crew ist bereits vollständig."),
+  CREW_ALREADY_MEMBER: tr("Du bist bereits Mitglied dieser Crew."),
+  CREW_ALREADY_REQUESTED: tr("Deine Anfrage ist bereits beim Crew-Leader."),
+  CREW_DECLINED_RECENTLY: tr("Deine Anfrage wurde gerade abgelehnt. Versuche es später erneut."),
+  CREW_BLOCKED: tr("Zwischen euch besteht eine Blockierung."),
+  CREW_NOT_LEADER: tr("Nur der Crew-Leader kann das."),
+  CREW_NOT_MEMBER: tr("Nur Mitglieder der Crew können das."),
+  CREW_LEADER_LEAVE: tr("Als Crew-Leader kannst du die Suche schließen oder die Crew auflösen."),
+  CREW_REQUEST_NOT_FOUND: tr("Diese Anfrage gibt es nicht mehr."),
+  CREW_REQUEST_CLOSED: tr("Diese Anfrage wurde bereits beantwortet."),
+  CREW_USER_UNAVAILABLE: tr("Dieser Spieler kann gerade keiner Crew beitreten."),
+  CREW_EXPIRED: tr("Diese Crew ist abgelaufen."),
+  CREW_LIMIT: tr("Du kannst höchstens 3 offene Crew-Suchen gleichzeitig haben."),
+  CREW_INVALID_SIZE: tr("Bitte prüfe die Spielerzahlen."),
+  CREW_SIZE_BELOW_MEMBERS: tr("Die maximale Spielerzahl ist kleiner als die aktuelle Crew."),
+  CREW_INVALID_START: tr("Bitte wähle eine Startzeit innerhalb der nächsten 7 Tage."),
+  CREW_INVALID_ACTIVITY: tr("Diese Aktivität ist nicht verfügbar."),
+  CREW_MESSAGE_EMPTY: tr("Bitte schreibe eine Nachricht."),
+  CREW_MESSAGE_TOO_LONG: tr("Eine Nachricht darf höchstens 1000 Zeichen haben."),
+  REPORT_DUPLICATE: tr("Du hast das bereits gemeldet. Das Admin-Team prüft es."),
+  REPORT_SELF: tr("Du kannst deine eigene Crew nicht melden."),
+  RATE_LIMIT: tr("Zu viele Aktionen in kurzer Zeit. Bitte warte kurz."),
+  ACCOUNT_BANNED: tr("Dein Konto ist gesperrt."),
+  ADMIN_ONLY: tr("Nur für Admins."),
 };
 export function crewError(error: unknown): string {
   const e = error as { code?: string; message?: string } | null;
-  if (!e) return "Unbekannter Fehler";
+  if (!e) return tr("Unbekannter Fehler");
   if (isMissing(e)) return CREW_SETUP_HINT;
   const key = Object.keys(MESSAGES).find((k) => e.message?.includes(k));
-  return key ? MESSAGES[key]! : "Das hat nicht geklappt. Bitte versuche es erneut.";
+  return key ? MESSAGES[key]! : tr("Das hat nicht geklappt. Bitte versuche es erneut.");
 }
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
   const { data, error } = await sb.rpc(fn, args);

@@ -19,6 +19,7 @@ import { BanGate } from "../components/social/BanGate";
 import { useViewportGuard } from "../lib/useViewportGuard";
 import { UsernameReminder } from "../components/UsernameReminder";
 
+import { lang, tr } from "@/lib/i18n";
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -88,9 +89,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" },
       { title: "Leonida Explorer" },
-      { name: "description", content: "Community-Karte für Fundorte in Leonida." },
+      { name: "description", content: tr("Community-Karte für Fundorte in Leonida.") },
       { property: "og:title", content: "Leonida Explorer" },
-      { property: "og:description", content: "Community-Karte für Fundorte in Leonida." },
+      { property: "og:description", content: tr("Community-Karte für Fundorte in Leonida.") },
       { name: "theme-color", content: "#2a0b3d" },
       // iPhone-Home-Bildschirm-Modus (PWA)
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -123,7 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="de">
+    <html lang={lang} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

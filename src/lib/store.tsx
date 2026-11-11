@@ -10,6 +10,7 @@ import { checkUsernameAvailable, usernameError, validateUsername } from "./usern
 import type { CategoryId, Profile, Spot, Status } from "./demo-data";
 import fallbackImg from "@/assets/bg-sunset.jpg";
 
+import { tr } from "@/lib/i18n";
 export interface AppUser { id: string; email: string; username: string; needsUsername: boolean; isAdmin: boolean }
 export interface AuthResult { error: string | null; needsConfirm?: boolean }
 interface Store {
@@ -35,7 +36,7 @@ type CardRow = { id: string; username: string | null; full_access?: boolean; is_
 const toProfile = (r: CardRow, urls: Map<string, string>): Profile => {
   const url = r.avatar_path ? urls.get(r.avatar_path) : undefined;
   return {
-    id: r.id, username: r.username ?? "Spieler", avatar: url ?? DEFAULT_AVATAR, hasAvatar: !!url, avatarPath: r.avatar_path, bio: r.bio ?? "", xp: r.xp ?? 0, likes: 0,
+    id: r.id, username: r.username ?? tr("Spieler"), avatar: url ?? DEFAULT_AVATAR, hasAvatar: !!url, avatarPath: r.avatar_path, bio: r.bio ?? "", xp: r.xp ?? 0, likes: 0,
     isPrivate: !!r.is_private, restricted: !!r.is_private && !r.full_access, joinedAt: r.joined_at, featured: r.featured_badges,
     needsUsername: !r.username,    showAvatar: r.show_avatar !== false, showJoinDate: r.show_join_date !== false, showBadges: r.show_badges !== false, showFriends: r.show_friends === true,
   };
@@ -55,19 +56,19 @@ const toSpot = (r: SpotRow): Spot => {
     id: r.id, title: r.title, category: r.category, area: r.area, x: Number(r.x), y: Number(r.y),
     vehicleType: r.vehicle_type ?? undefined, hour: r.hour ?? undefined, description: r.description,
     images: photos.length ? photos.map((p) => photoUrl(p.path)) : [fallbackImg],
-    author: r.author?.username ?? "Unbekannt", authorId: r.author_id, likes: r.likes_count, status: r.status, createdAt: r.created_at.slice(0, 10),
+    author: r.author?.username ?? tr("Unbekannt"), authorId: r.author_id, likes: r.likes_count, status: r.status, createdAt: r.created_at.slice(0, 10),
     accurate: !!r.accuracy_verified_at,
   };
 };
 
 function authMessage(e: { code?: string | undefined; message: string }): string {
   const c = e.code ?? ""; const m = e.message.toLowerCase();
-  if (c === "invalid_credentials" || m.includes("invalid login")) return "E-Mail oder Passwort ist falsch.";
-  if (c === "email_not_confirmed" || m.includes("not confirmed")) return "Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach).";
-  if (c === "user_already_exists" || m.includes("already registered")) return "Diese E-Mail ist bereits registriert. Bitte melde dich an.";
-  if (c === "weak_password" || m.includes("password")) return "Das Passwort ist zu schwach. Bitte wähle ein längeres Passwort.";
-  if (c.includes("rate_limit") || m.includes("rate limit")) return "Zu viele Versuche. Bitte warte kurz und versuche es erneut.";
-  return "Das hat nicht geklappt. Bitte versuche es erneut.";
+  if (c === "invalid_credentials" || m.includes("invalid login")) return tr("E-Mail oder Passwort ist falsch.");
+  if (c === "email_not_confirmed" || m.includes("not confirmed")) return tr("Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach).");
+  if (c === "user_already_exists" || m.includes("already registered")) return tr("Diese E-Mail ist bereits registriert. Bitte melde dich an.");
+  if (c === "weak_password" || m.includes("password")) return tr("Das Passwort ist zu schwach. Bitte wähle ein längeres Passwort.");
+  if (c.includes("rate_limit") || m.includes("rate limit")) return tr("Zu viele Versuche. Bitte warte kurz und versuche es erneut.");
+  return tr("Das hat nicht geklappt. Bitte versuche es erneut.");
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -174,7 +175,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const user: AppUser | null = session
     ? {
         id: session.user.id, email: session.user.email ?? "",
-        username: meRow?.username ?? "Spieler", needsUsername: meRow?.needsUsername === true,
+        username: meRow?.username ?? tr("Spieler"), needsUsername: meRow?.needsUsername === true,
         isAdmin: accessQuery.data?.isAdmin === true && accessQuery.data.userId === session.user.id,
       }
     : null;
@@ -194,11 +195,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const usernameIssue = validateUsername(username);
       if (usernameIssue) return { error: usernameIssue };
       try {
-        if (!(await checkUsernameAvailable(username))) return { error: "Dieser Benutzername ist bereits vergeben oder nicht verfügbar." };
+        if (!(await checkUsernameAvailable(username))) return { error: tr("Dieser Benutzername ist bereits vergeben oder nicht verfügbar.") };
       } catch (e) { return { error: usernameError(e as { code?: string; message?: string }) }; }
       const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim() }, emailRedirectTo: `${window.location.origin}/` } });
       if (error) return { error: authMessage(error) };
-      if (data.user && data.user.identities?.length === 0) return { error: "Diese E-Mail ist bereits registriert. Bitte melde dich an." };
+      if (data.user && data.user.identities?.length === 0) return { error: tr("Diese E-Mail ist bereits registriert. Bitte melde dich an.") };
       if (data.session) setState((s) => ({ ...s, guest: false }));
       return { error: null, needsConfirm: !data.session };
     },
@@ -216,19 +217,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     updatePassword: async (password) => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
-        if (error.code === "same_password") return { error: "Das neue Passwort muss sich vom alten unterscheiden." };
+        if (error.code === "same_password") return { error: tr("Das neue Passwort muss sich vom alten unterscheiden.") };
         return { error: authMessage(error) };
       }
       setRecovery(false);
       return { error: null };
     },
     addSpot: async (spot, files) => {
-      if (!user) return { error: "Bitte anmelden" };
+      if (!user) return { error: tr("Bitte anmelden") };
       const { data, error } = await supabase.from("spots").insert({
         author_id: user.id, title: spot.title, category: spot.category, area: spot.area, x: spot.x, y: spot.y,
         vehicle_type: spot.vehicleType ?? null, hour: spot.hour ?? null, description: spot.description,
       }).select("id").single();
-      if (error || !data) return { error: "Einreichen fehlgeschlagen. Bitte versuche es erneut." };
+      if (error || !data) return { error: tr("Einreichen fehlgeschlagen. Bitte versuche es erneut.") };
       let photoWarning = false;
       for (const f of files) {
         const ext = f.type === "image/png" ? "png" : f.type === "image/webp" ? "webp" : "jpg";
@@ -244,8 +245,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // Die Datenbank (RLS + has_role) erlaubt das nur Admins; XP vergibt ausschließlich der Datenbank-Trigger.
     setStatus: async (id, status) => {
       const { data, error } = await supabase.from("spots").update({ status }).eq("id", id).select("id");
-      if (error) return "Speichern fehlgeschlagen";
-      if (!data?.length) return "Keine Berechtigung";
+      if (error) return tr("Speichern fehlgeschlagen");
+      if (!data?.length) return tr("Keine Berechtigung");
       await Promise.all(["spots", "profiles", "badges", "progress", "leaderboard"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
       return null;
     },
@@ -260,7 +261,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     toggleSave: (id) => me && setState((s) => ({ ...s, saved: s.saved.includes(id) ? s.saved.filter((x) => x !== id) : [...s.saved, id] })),
     updateUsername: async (username) => {
-      if (!user) return "Bitte anmelden";
+      if (!user) return tr("Bitte anmelden");
       const issue = validateUsername(username);
       if (issue) return issue;
       try {
@@ -279,10 +280,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return null;
     },
     updateProfile: async (fields) => {
-      if (!user) return "Bitte anmelden";
-      if (Object.prototype.hasOwnProperty.call(fields, "username")) return "Bitte ändere den Benutzernamen im Bereich „Benutzername“.";
+      if (!user) return tr("Bitte anmelden");
+      if (Object.prototype.hasOwnProperty.call(fields, "username")) return tr("Bitte ändere den Benutzernamen im Bereich „Benutzername“.");
       const { error } = await sb.from("profiles").update(fields).eq("id", user.id);
-      if (error) return isMissing(error) ? "Diese Einstellung wird nach dem Datenbank-Update (SQL 004) aktiv." : (error.message.includes("Abzeichen") ? error.message : "Speichern fehlgeschlagen");
+      if (error) return isMissing(error) ? tr("Diese Einstellung wird nach dem Datenbank-Update (SQL 004) aktiv.") : (error.message.includes("Abzeichen") ? error.message : tr("Speichern fehlgeschlagen"));
       await qc.invalidateQueries({ queryKey: ["profiles"] });
       return null;
     },

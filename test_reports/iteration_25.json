@@ -1,0 +1,77 @@
+{
+  "iteration": 25,
+  "mode": "generate",
+  "summary": "i18n (German/English) feature: device-locale default, manual language switch persistence, English translations of main pages, German unchanged, legal-page English placeholders, and backend protection of push admin endpoints. 7 acceptance criteria covered by 7 browser checks + 1 backend test file (6 assertions). All checks passed. One real bug found: a React hydration mismatch (SSR renders English text, client re-renders in the detected/stored language) fires on every first load whenever the resolved language isn't English - console pageerror, not visually broken (React recovers and re-renders correctly) but violates the explicit 'no hydration errors' criterion.",
+  "passed": 8,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "First start with no saved choice follows device language",
+      "name": "lang-follows-device-locale-en-default",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "navigator.language=en-US, empty localStorage -> / shows 'Sign in', 'Register', 'Forgot password?'; document.documentElement.lang === 'en'. Screenshot captured."
+    },
+    {
+      "criterion": "First start with no saved choice follows device language (German locale)",
+      "name": "lang-follows-device-locale-de-default",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "navigator.language=de-DE, empty localStorage -> / shows 'Anmelden', 'Registrieren', 'Passwort vergessen?'; document.documentElement.lang === 'de'. Screenshot captured. NOTE: this run surfaced the hydration-mismatch bug (see bugs[])."
+    },
+    {
+      "criterion": "Manual language switch in profile persists across reloads",
+      "name": "lang-manual-switch-persists-reload",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/profil shows language-option-de / language-option-en buttons. Clicking language-option-de triggers reload, localStorage['leonida-lang']='de'. Fresh reload with navigator.language forced back to en-US still shows German UI and lang='de' - stored preference overrides device locale on subsequent loads, as required."
+    },
+    {
+      "criterion": "Main user pages are translated in English",
+      "name": "english-main-pages-translated",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With leonida-lang=en: /karte shows placeholder 'Search spots, places or areas …', 'Filter', '1 spot', 'Suggest a spot'; bottom nav = Map/Discover/Arcade/Submit/Community/Profile; /arcade, /community, /entdecken, /crew, /beitrag, /spenden, /passwort-neu screenshots show English headings (Neon Arcade, Community, Discover, Crew Finder, Submit, Support, New password) with no leftover German UI labels; no raw '{0}' or '[object Object]' found in body text."
+    },
+    {
+      "criterion": "German mode unchanged",
+      "name": "german-mode-unchanged",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With leonida-lang=de: /karte placeholder 'Fundorte, Orte oder Gebiete suchen …' visible; bottom nav shows 'Karte'/'Entdecken'/'Beitrag'; /beitrag renders German UI; document.documentElement.lang === 'de'."
+    },
+    {
+      "criterion": "Legal pages in English show only a placeholder",
+      "name": "legal-pages-english-placeholder-german-full",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "English mode: /datenschutz and /nutzungsbedingungen show title 'Privacy'/'Terms of Use', data-testid=legal-english-placeholder with 'The English version of this document is coming soon.'; no German legal strings ('Verantwortlicher'/'Datenschutzerklärung') present. German mode: legal-english-placeholder has 0 count on both pages and full German body text (>200 chars) is rendered."
+    },
+    {
+      "criterion": "No runtime errors from the translation layer / language switch works via public ingress",
+      "name": "lang-switch-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Run against https://leonida-karte--6tt5kohx.preview.emergentagent.com: /profil shows language-option-de/en with leonida-lang=en, /karte shows English search placeholder. No assertion failures."
+    },
+    {
+      "criterion": "Push admin endpoints are protected",
+      "name": "test_tscheck_push_admin_protected.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET http://localhost:8001/api/push/admin/status (no auth) -> 401; POST .../admin/setup (no auth) -> 401; both with 'Authorization: Bearer tscheck-invalid-token-12345' -> 401; GET /api/push/public-key -> 200 {'publicKey': 'BEN6V2jC7x5MN7xZ...'}; GET /api/health -> 200 {'status':'ok'}. 6/6 assertions passed (pytest)."
+    }
+  ],
+  "bugs": [
+    {
+      "severity": "low",
+      "title": "React hydration mismatch on first load when resolved language differs from server-rendered default",
+      "evidence": "Browser console pageerror captured on lang-follows-device-locale-de-default, lang-manual-switch-persists-reload (x2), german-mode-unchanged, and legal-pages-english-placeholder-german-full (x2) runs: 'Hydration failed because the server rendered text didn't match the client... + Anmelden - Sign in'. The SSR/prerendered HTML always contains the English/default strings; the client then re-renders in the detected or stored language (de), causing a documented React hydration-mismatch error. Visually recovers (final UI is correct, per the 'no hydration errors' sub-clause of criterion 'No runtime errors from the translation layer' this is still a violation.",
+      "criterion": "No runtime errors from the translation layer"
+    }
+  ],
+  "action_items": [
+    "Fix the SSR/prerender step to render the login/profile/legal pages in the language that will be resolved on the client (device locale or stored leonida-lang), or otherwise suppress hydration by deferring language-dependent text until after mount, to eliminate the recurring hydration-mismatch console error."
+  ],
+  "retest_needed": true
+}

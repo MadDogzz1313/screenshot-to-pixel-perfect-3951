@@ -1,14 +1,15 @@
 // Kategorien & Typen. (Demo-Fundorte/-Profile entfernt – Daten kommen aus Lovable Cloud.)
 import { Car, Crosshair, Gem, Flag, Building2, HelpCircle, type LucideIcon } from "lucide-react";
 
+import { tr } from "@/lib/i18n";
 export type CategoryId = "vehicle" | "weapon" | "collect" | "activity" | "place" | "other";
 export const CATEGORIES: { id: CategoryId; label: string; icon: LucideIcon; color: string }[] = [
-  { id: "vehicle", label: "Fahrzeuge", icon: Car, color: "bg-cat-vehicle" },
-  { id: "weapon", label: "Waffen", icon: Crosshair, color: "bg-cat-weapon" },
-  { id: "collect", label: "Sammelobjekte", icon: Gem, color: "bg-cat-collect" },
-  { id: "activity", label: "Aktivitäten", icon: Flag, color: "bg-cat-activity" },
-  { id: "place", label: "Orte & Gebäude", icon: Building2, color: "bg-cat-place" },
-  { id: "other", label: "Sonstiges", icon: HelpCircle, color: "bg-cat-other" },
+  { id: "vehicle", label: tr("Fahrzeuge"), icon: Car, color: "bg-cat-vehicle" },
+  { id: "weapon", label: tr("Waffen"), icon: Crosshair, color: "bg-cat-weapon" },
+  { id: "collect", label: tr("Sammelobjekte"), icon: Gem, color: "bg-cat-collect" },
+  { id: "activity", label: tr("Aktivitäten"), icon: Flag, color: "bg-cat-activity" },
+  { id: "place", label: tr("Orte & Gebäude"), icon: Building2, color: "bg-cat-place" },
+  { id: "other", label: tr("Sonstiges"), icon: HelpCircle, color: "bg-cat-other" },
 ];
 export const categoryById = (id: CategoryId) => CATEGORIES.find((c) => c.id === id)!;
 

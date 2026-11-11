@@ -11,12 +11,13 @@ import logging
 import os
 
 import httpx
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from py_vapid import Vapid02
 from pywebpush import WebPushException, webpush
 
-from models.push import DispatchRequest, DispatchResult, PublicKey, PushSubscription
+from models.push import DispatchRequest, DispatchResult, PublicKey, PushServerStatus, PushSubscription
 from services import apns
+from services.supabase import AuthUser, current_user, require_admin, rest
 
 router = APIRouter(prefix="/push", tags=["push"])
 log = logging.getLogger("push")
@@ -82,3 +83,48 @@ async def dispatch(req: DispatchRequest, x_push_secret: str = Header(default="")
         failed += results.count("failed")
     await _remove_dead(dead)
     return DispatchResult(sent=sent, removed=len(dead), failed=failed)
+
+
+def _server_url(request: Request) -> str:
+    """Öffentliche Adresse dieses Servers (hinter dem Proxy), z. B. https://…/api/push/dispatch"""
+    host = (request.headers.get("x-forwarded-host") or request.headers.get("host") or "").split(",")[0].strip()
+    return f"https://{host}/api/push/dispatch"
+
+
+async def _db_status(user: AuthUser) -> dict | None:
+    res = await rest("POST", "/rest/v1/rpc/push_admin_status", user.token, {"_secret": os.environ.get("PUSH_WEBHOOK_SECRET", "")})
+    if res.status_code == 404 or "PGRST202" in res.text:
+        return None  # SQL 017 fehlt
+    if res.status_code != 200:
+        raise HTTPException(502, "Supabase-Abfrage fehlgeschlagen")
+    return res.json()
+
+
+@router.get("/admin/status", response_model=PushServerStatus)
+async def admin_status(request: Request, user: AuthUser = Depends(current_user)) -> PushServerStatus:
+    await require_admin(user)
+    url = _server_url(request)
+    db = await _db_status(user)
+    st = PushServerStatus(server_url=url, web_keys=bool(os.environ.get("VAPID_PUBLIC_KEY") and os.environ.get("VAPID_PRIVATE_KEY")),
+                          apple_keys=apns.configured(), secret_set=len(os.environ.get("PUSH_WEBHOOK_SECRET", "")) >= 32,
+                          db_ready=db is not None)
+    if db and db.get("configured"):
+        st.db_configured, st.db_url = True, db.get("dispatch_url")
+        st.db_url_matches, st.db_secret_matches = st.db_url == url, bool(db.get("secret_matches"))
+    return st
+
+
+@router.post("/admin/setup", response_model=PushServerStatus)
+async def admin_setup(request: Request, user: AuthUser = Depends(current_user)) -> PushServerStatus:
+    """Trägt Versand-Adresse + geheimen Schlüssel dieses Servers in Supabase ein (push_config über SQL 017)."""
+    await require_admin(user)
+    secret = os.environ.get("PUSH_WEBHOOK_SECRET", "")
+    if len(secret) < 32:
+        raise HTTPException(503, "PUSH_WEBHOOK_SECRET fehlt auf dem Server")
+    res = await rest("POST", "/rest/v1/rpc/push_admin_setup", user.token, {"_dispatch_url": _server_url(request), "_secret": secret})
+    if res.status_code == 404 or "PGRST202" in res.text:
+        raise HTTPException(409, "Bitte zuerst SQL 017 in Lovable ausführen")
+    if res.status_code != 200:
+        log.warning("push_admin_setup fehlgeschlagen: %s %s", res.status_code, res.text[:200])
+        raise HTTPException(502, "Einrichtung in Supabase fehlgeschlagen")
+    return await admin_status(request, user)

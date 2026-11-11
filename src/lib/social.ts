@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isMissing, sb } from "./db";
 import type { Progress } from "./badges";
 
+import { tr } from "@/lib/i18n";
 export function useUserBadges(userId: string | undefined) {
   return useQuery({
     queryKey: ["badges", userId], enabled: !!userId,
@@ -63,41 +64,41 @@ export function useInvalidate() {
   return (...keys: string[]) => Promise.all(keys.map((k) => qc.invalidateQueries({ queryKey: [k] })));
 }
 const dbErr = (e: { code?: string; message?: string } | null, fallback: string) =>
-  !e ? null : isMissing(e) ? "Diese Funktion wird nach dem Datenbank-Update (SQL 004) aktiv." : (e.message?.includes("Abzeichen") || e.message?.includes("Admin") ? e.message : fallback);
+  !e ? null : isMissing(e) ? tr("Diese Funktion wird nach dem Datenbank-Update (SQL 004) aktiv.") : (e.message?.includes("Abzeichen") || e.message?.includes("Admin") ? e.message : fallback);
 
 export async function submitCorrection(spotId: string, userId: string, message: string) {
   const { error } = await sb.from("spot_corrections").insert({ spot_id: spotId, user_id: userId, message });
-  return dbErr(error, "Korrektur konnte nicht gesendet werden");
+  return dbErr(error, tr("Korrektur konnte nicht gesendet werden"));
 }
 export async function reviewCorrection(id: string, status: "confirmed" | "rejected") {
   const { data, error } = await sb.from("spot_corrections").update({ status }).eq("id", id).select("id");
-  return dbErr(error, "Speichern fehlgeschlagen") ?? (data?.length ? null : "Keine Berechtigung");
+  return dbErr(error, tr("Speichern fehlgeschlagen")) ?? (data?.length ? null : tr("Keine Berechtigung"));
 }
 export async function setAccuracy(spotId: string, verified: boolean) {
   const { error } = await sb.rpc("set_spot_accuracy", { _spot: spotId, _verified: verified });
-  return dbErr(error, "Speichern fehlgeschlagen");
+  return dbErr(error, tr("Speichern fehlgeschlagen"));
 }
 export async function addDonation(userId: string, adminId: string, euros: number, note: string) {
   const { error } = await sb.from("donations").insert({ user_id: userId, amount_cents: Math.round(euros * 100), note: note || null, verified_by: adminId });
-  return dbErr(error, "Spende konnte nicht gespeichert werden");
+  return dbErr(error, tr("Spende konnte nicht gespeichert werden"));
 }
 export async function deleteDonation(id: string) {
   const { error } = await sb.from("donations").delete().eq("id", id);
-  return dbErr(error, "Löschen fehlgeschlagen");
+  return dbErr(error, tr("Löschen fehlgeschlagen"));
 }
 /** Profilbild: privater Bucket "avatars", Pfad <user-id>/<zufall>.jpg; altes Bild wird entfernt. */
 export async function uploadAvatar(userId: string, blob: Blob, oldPath: string | null) {
   const path = `${userId}/${crypto.randomUUID()}.jpg`;
   const up = await sb.storage.from("avatars").upload(path, blob, { contentType: "image/jpeg", upsert: false });
-  if (up.error) return up.error.message.toLowerCase().includes("bucket") ? "Profilbilder werden nach dem Datenbank-Update (SQL 004) aktiv." : "Hochladen fehlgeschlagen";
+  if (up.error) return up.error.message.toLowerCase().includes("bucket") ? tr("Profilbilder werden nach dem Datenbank-Update (SQL 004) aktiv.") : tr("Hochladen fehlgeschlagen");
   const { error } = await sb.from("profiles").update({ avatar_url: path }).eq("id", userId);
-  if (error) { await sb.storage.from("avatars").remove([path]); return "Speichern fehlgeschlagen"; }
+  if (error) { await sb.storage.from("avatars").remove([path]); return tr("Speichern fehlgeschlagen"); }
   if (oldPath && oldPath !== path) await sb.storage.from("avatars").remove([oldPath]);
   return null;
 }
 export async function deleteAvatar(userId: string, path: string | null) {
   const { error } = await sb.from("profiles").update({ avatar_url: null }).eq("id", userId);
-  if (error) return "Löschen fehlgeschlagen";
+  if (error) return tr("Löschen fehlgeschlagen");
   if (path) await sb.storage.from("avatars").remove([path]);
   return null;
 }

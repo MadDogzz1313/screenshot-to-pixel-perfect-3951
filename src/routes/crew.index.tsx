@@ -43,13 +43,14 @@ import {
   type Platform,
 } from "@/lib/crew";
 
+import { tr } from "@/lib/i18n";
 export const Route = createFileRoute("/crew/")({
   head: () => ({
     meta: [
-      { title: "Crew Finder · Leonida Explorer" },
+      { title: tr("Crew Finder · Leonida Explorer") },
       {
         name: "description",
-        content: "Finde Mitspieler für gemeinsame Missionen, Rennen und Erkundungstouren.",
+        content: tr("Finde Mitspieler für gemeinsame Missionen, Rennen und Erkundungstouren."),
       },
     ],
   }),
@@ -82,7 +83,7 @@ function CrewFinder() {
           left={
             <Link
               to="/community"
-              aria-label="Zurück zur Community"
+              aria-label={tr("Zurück zur Community")}
               data-testid="crew-back-button"
               className={glassBtn}
             >
@@ -99,22 +100,19 @@ function CrewFinder() {
             Crew Finder
           </h1>
           <p data-testid="crew-subtitle" className="mt-2 text-center text-[15px] text-white/90">
-            Finde Mitspieler für gemeinsame Missionen
-          </p>
+            {tr("Finde Mitspieler für gemeinsame Missionen")}</p>
           <NeonUnderline />
         </CrewHero>
 
         <div className="space-y-4 px-3">
           {!authReady ? (
-            <p className="text-center text-sm text-white/70">Wird geladen …</p>
+            <p className="text-center text-sm text-white/70">{tr("Wird geladen …")}</p>
           ) : !user ? (
             <div data-testid="crew-login-hint" className={`${neonPanel} p-5 text-center`}>
               <p className="font-semibold">
-                Melde dich an, um Crews zu finden und selbst eine Crew-Suche zu starten.
-              </p>
+                {tr("Melde dich an, um Crews zu finden und selbst eine Crew-Suche zu starten.")}</p>
               <Link to="/" data-testid="crew-login-link" className={`${pinkButton} mt-4`}>
-                Anmelden
-              </Link>
+                {tr("Anmelden")}</Link>
             </div>
           ) : setup ? (
             <p data-testid="crew-setup-hint" className={`${neonPanel} p-4 text-sm text-white/80`}>
@@ -128,14 +126,12 @@ function CrewFinder() {
                 className="flex min-h-14 items-center justify-center gap-3 rounded-full border-2 border-[#FFB36B]/80 bg-gradient-to-r from-[#FF7A2F] via-[#FF2E97] to-[#D61CFF] text-lg font-bold text-white shadow-[0_0_26px_rgba(255,110,80,0.55)] transition-transform duration-150 active:scale-[0.98]"
               >
                 <UserPlus className="h-6 w-6 text-[#FFE08A]" />
-                Eigene Crew-Suche erstellen
-              </Link>
+                {tr("Eigene Crew-Suche erstellen")}</Link>
 
               {myActive.length > 0 && (
                 <section data-testid="crew-mine" className="space-y-2">
                   <h2 className="px-1 text-xs font-bold tracking-[0.2em] text-white/60">
-                    MEINE CREWS
-                  </h2>
+                    {tr("MEINE CREWS")}</h2>
                   <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1">
                     {myActive.map((c) => (
                       <Link
@@ -147,9 +143,9 @@ function CrewFinder() {
                       >
                         <span className="text-2xl">{c.activity_emoji}</span>
                         <span className="min-w-0">
-                          <span className="block truncate font-semibold">{c.activity_label}</span>
+                          <span className="block truncate font-semibold">{tr(c.activity_label)}</span>
                           <span className="block text-[11px] text-[#CDB4F5]">
-                            {c.my_role === "leader" ? "Du bist Crew-Leader" : "Mitglied"} ·{" "}
+                            {c.my_role === "leader" ? tr("Du bist Crew-Leader") : tr("Mitglied")} ·{" "}
                             {c.members.length + c.external_players}/{c.max_players}
                           </span>
                         </span>
@@ -162,7 +158,7 @@ function CrewFinder() {
 
               <section data-testid="crew-filters" className={`${neonPanel} space-y-3 p-3`}>
                 <div className="-mx-1 flex gap-2 overflow-x-auto px-1">
-                  {[{ id: null, label: "Alle Plattformen" }, ...PLATFORMS].map((p) => (
+                  {[{ id: null, label: tr("Alle Plattformen") }, ...PLATFORMS].map((p) => (
                     <button
                       key={p.label}
                       type="button"
@@ -186,7 +182,7 @@ function CrewFinder() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL}>Alle Aktivitäten</SelectItem>
+                      <SelectItem value={ALL}>{tr("Alle Aktivitäten")}</SelectItem>
                       {(activities.data ?? []).map((a) => (
                         <SelectItem key={a.id} value={a.id}>
                           {a.emoji} {a.label}
@@ -207,7 +203,7 @@ function CrewFinder() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL}>Alle Sprachen</SelectItem>
+                      <SelectItem value={ALL}>{tr("Alle Sprachen")}</SelectItem>
                       {LANGUAGES.map((l) => (
                         <SelectItem key={l.id} value={l.id}>
                           {l.label}
@@ -217,7 +213,7 @@ function CrewFinder() {
                   </Select>
                 </div>
                 <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1">
-                  <span className="shrink-0 text-xs font-semibold text-white/60">Freie Plätze</span>
+                  <span className="shrink-0 text-xs font-semibold text-white/60">{tr("Freie Plätze")}</span>
                   {[0, 1, 2, 3].map((n) => (
                     <button
                       key={n}
@@ -226,7 +222,7 @@ function CrewFinder() {
                       onClick={() => setF((v) => ({ ...v, minFree: n }))}
                       className={chip(f.minFree === n)}
                     >
-                      {n === 0 ? "Alle" : `${n}+`}
+                      {n === 0 ? tr("Alle") : `${n}+`}
                     </button>
                   ))}
                 </div>
@@ -241,10 +237,9 @@ function CrewFinder() {
               {browse.data && !browse.data.length && (
                 <div data-testid="crew-empty" className={`${neonPanel} p-6 text-center`}>
                   <Hourglass className="mx-auto h-8 w-8 text-[#FF7BE5]" />
-                  <p className="mt-2 font-semibold">Gerade keine passenden Crew-Suchen.</p>
+                  <p className="mt-2 font-semibold">{tr("Gerade keine passenden Crew-Suchen.")}</p>
                   <p className="mt-1 text-sm text-white/65">
-                    Ändere die Filter oder starte selbst eine Crew-Suche.
-                  </p>
+                    {tr("Ändere die Filter oder starte selbst eine Crew-Suche.")}</p>
                 </div>
               )}
               <div data-testid="crew-list" className="space-y-4">
@@ -266,12 +261,12 @@ function CrewCard({ crew }: { crew: Crew }) {
   const full = isFull(crew);
   const join = () =>
     actions.requestJoin.mutate(crew.id, {
-      onSuccess: () => toast.success("Anfrage gesendet – der Crew-Leader wird benachrichtigt."),
+      onSuccess: () => toast.success(tr("Anfrage gesendet – der Crew-Leader wird benachrichtigt.")),
       onError: (e) => toast.error(crewError(e)),
     });
   const cancel = () =>
     actions.cancelJoin.mutate(crew.id, {
-      onSuccess: () => toast.success("Anfrage zurückgezogen"),
+      onSuccess: () => toast.success(tr("Anfrage zurückgezogen")),
       onError: (e) => toast.error(crewError(e)),
     });
   return (
@@ -282,8 +277,7 @@ function CrewCard({ crew }: { crew: Crew }) {
       <div className="flex items-center justify-between gap-2 border-b border-[#FF4FD8]/20 px-4 py-3">
         <span className="flex items-center gap-2 font-display text-xl italic text-[#FF9BEA] drop-shadow-[0_0_8px_rgba(255,79,216,0.7)]">
           <Flame className="h-6 w-6 fill-[#FF8A3D] text-[#FFB36B]" />
-          Crew gesucht
-        </span>
+          {tr("Crew gesucht")}</span>
         <SlotsPill crew={crew} />
       </div>
       <Link
@@ -297,8 +291,7 @@ function CrewCard({ crew }: { crew: Crew }) {
           className="flex items-center gap-2.5 text-[1.35rem] font-bold leading-tight text-white"
         >
           <span className="text-3xl">{crew.activity_emoji}</span>
-          {crew.activity_label} – Crew aufbauen
-        </h3>
+          {tr(crew.activity_label)} {tr("– Crew aufbauen")}</h3>
         <CrewMeta crew={crew} />
         <SlotGrid crew={crew} />
         {crew.description && (
@@ -320,8 +313,7 @@ function CrewCard({ crew }: { crew: Crew }) {
             data-testid={`crew-card-lobby-${crew.id}`}
             className={pinkButton}
           >
-            Zur Lobby
-            <ChevronRight className="h-5 w-5" />
+            {tr("Zur Lobby")}<ChevronRight className="h-5 w-5" />
           </Link>
         ) : crew.my_request === "pending" ? (
           <button
@@ -331,12 +323,10 @@ function CrewCard({ crew }: { crew: Crew }) {
             disabled={actions.cancelJoin.isPending}
             className={ghostButton}
           >
-            Anfrage gesendet · zurückziehen
-          </button>
+            {tr("Anfrage gesendet · zurückziehen")}</button>
         ) : full ? (
           <span data-testid={`crew-card-full-${crew.id}`} className={`${ghostButton} opacity-70`}>
-            Crew vollständig
-          </span>
+            {tr("Crew vollständig")}</span>
         ) : (
           <button
             type="button"
@@ -345,8 +335,7 @@ function CrewCard({ crew }: { crew: Crew }) {
             disabled={actions.requestJoin.isPending}
             className={pinkButton}
           >
-            Crew beitreten
-            <ChevronRight className="h-5 w-5" />
+            {tr("Crew beitreten")}<ChevronRight className="h-5 w-5" />
           </button>
         )}
       </div>

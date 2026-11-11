@@ -1,5 +1,8 @@
 import "@testing-library/jest-dom/vitest";
 
+// Bestehende Tests prüfen deutsche Texte.
+window.localStorage.setItem("leonida-lang", "de");
+
 Object.defineProperty(window, "scrollTo", {
   writable: true,
   value: () => {},

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { isMissing, sb } from "./db";
 
+import { tr, locale } from "@/lib/i18n";
 type DbError = { code?: string; message?: string } | null | undefined;
 export interface FriendRequest { id: string; user_id: string; created_at: string }
 export interface FriendState { friends: { id: string; since: string }[]; incoming: FriendRequest[]; outgoing: FriendRequest[]; blocked: string[] }
@@ -18,54 +19,54 @@ export interface AdminReport { id: string; reporter_id: string; reporter_name: s
 export interface ModerationEntry { id: string; actor_name: string | null; target_user_id: string | null; target_name: string | null; action: string; reason: string | null; metadata: Record<string, unknown>; created_at: string }
 
 export const REPORT_REASONS = [
-  { id: "harassment", label: "Beleidigung oder Belästigung" },
+  { id: "harassment", label: tr("Beleidigung oder Belästigung") },
   { id: "spam", label: "Spam" },
-  { id: "fraud", label: "Betrug oder Täuschung" },
-  { id: "inappropriate", label: "Unangemessene Inhalte" },
-  { id: "suspicious", label: "Verdächtiges Verhalten" },
-  { id: "other", label: "Sonstiges" },
+  { id: "fraud", label: tr("Betrug oder Täuschung") },
+  { id: "inappropriate", label: tr("Unangemessene Inhalte") },
+  { id: "suspicious", label: tr("Verdächtiges Verhalten") },
+  { id: "other", label: tr("Sonstiges") },
 ] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number]["id"];
 export const reasonLabel = (id: string) => REPORT_REASONS.find((r) => r.id === id)?.label ?? id;
 
 export const timeAgo = (iso: string) => {
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return "gerade eben";
-  if (s < 3600) return `vor ${Math.floor(s / 60)} Min.`;
-  if (s < 86400) return `vor ${Math.floor(s / 3600)} Std.`;
-  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+  if (s < 60) return tr("gerade eben");
+  if (s < 3600) return tr("vor {0} Min.", Math.floor(s / 60));
+  if (s < 86400) return tr("vor {0} Std.", Math.floor(s / 3600));
+  return new Intl.DateTimeFormat(locale(), { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 };
 
 /** Tabellen/Funktionen aus SQL 008 fehlen noch -> Bereich zeigt Hinweis statt Fehler */
-export const SETUP_HINT = "Wird nach dem Datenbank-Update (SQL 008) aktiv.";
+export const SETUP_HINT = tr("Wird nach dem Datenbank-Update (SQL 008) aktiv.");
 const MESSAGES: Record<string, string> = {
-  FRIEND_SELF: "Du kannst dir nicht selbst eine Anfrage senden.",
-  FRIEND_BLOCKED: "Zwischen euch besteht eine Blockierung.",
-  FRIEND_ALREADY: "Ihr seid bereits Freunde.",
-  FRIEND_ALREADY_REQUESTED: "Du hast bereits eine Anfrage gesendet.",
-  FRIEND_REQUEST_NOT_FOUND: "Diese Anfrage gibt es nicht mehr.",
-  FRIEND_REQUEST_CLOSED: "Diese Anfrage wurde bereits beantwortet.",
-  PM_NOT_FRIENDS: "Privat schreiben könnt ihr nur als bestätigte Freunde.",
-  PM_BLOCKED: "Zwischen euch besteht eine Blockierung.",
-  PM_TOO_LONG: "Eine Nachricht darf höchstens 1000 Zeichen haben.",
-  PM_NOT_FOUND: "Nachricht nicht gefunden.",
-  REPORT_DUPLICATE: "Du hast das bereits gemeldet. Das Admin-Team prüft es.",
-  REPORT_SELF: "Du kannst dich nicht selbst melden.",
-  RATE_LIMIT: "Zu viele Aktionen in kurzer Zeit. Bitte warte kurz.",
-  ACCOUNT_BANNED: "Dein Konto ist gesperrt.",
-  ADMIN_ONLY: "Nur für Admins.",
-  ADMIN_SELF: "Du kannst dich nicht selbst sperren oder verwarnen.",
-  ADMIN_PROTECTED: "Admin-Konten sind geschützt.",
-  REASON_REQUIRED: "Bitte gib einen Grund an (mind. 3 Zeichen).",
-  BAN_INVALID_DATE: "Das Sperrende muss in der Zukunft liegen.",
-  BAN_NOT_FOUND: "Für dieses Konto besteht keine Sperre.",
-  BLOCK_SELF: "Du kannst dich nicht selbst blockieren.",
+  FRIEND_SELF: tr("Du kannst dir nicht selbst eine Anfrage senden."),
+  FRIEND_BLOCKED: tr("Zwischen euch besteht eine Blockierung."),
+  FRIEND_ALREADY: tr("Ihr seid bereits Freunde."),
+  FRIEND_ALREADY_REQUESTED: tr("Du hast bereits eine Anfrage gesendet."),
+  FRIEND_REQUEST_NOT_FOUND: tr("Diese Anfrage gibt es nicht mehr."),
+  FRIEND_REQUEST_CLOSED: tr("Diese Anfrage wurde bereits beantwortet."),
+  PM_NOT_FRIENDS: tr("Privat schreiben könnt ihr nur als bestätigte Freunde."),
+  PM_BLOCKED: tr("Zwischen euch besteht eine Blockierung."),
+  PM_TOO_LONG: tr("Eine Nachricht darf höchstens 1000 Zeichen haben."),
+  PM_NOT_FOUND: tr("Nachricht nicht gefunden."),
+  REPORT_DUPLICATE: tr("Du hast das bereits gemeldet. Das Admin-Team prüft es."),
+  REPORT_SELF: tr("Du kannst dich nicht selbst melden."),
+  RATE_LIMIT: tr("Zu viele Aktionen in kurzer Zeit. Bitte warte kurz."),
+  ACCOUNT_BANNED: tr("Dein Konto ist gesperrt."),
+  ADMIN_ONLY: tr("Nur für Admins."),
+  ADMIN_SELF: tr("Du kannst dich nicht selbst sperren oder verwarnen."),
+  ADMIN_PROTECTED: tr("Admin-Konten sind geschützt."),
+  REASON_REQUIRED: tr("Bitte gib einen Grund an (mind. 3 Zeichen)."),
+  BAN_INVALID_DATE: tr("Das Sperrende muss in der Zukunft liegen."),
+  BAN_NOT_FOUND: tr("Für dieses Konto besteht keine Sperre."),
+  BLOCK_SELF: tr("Du kannst dich nicht selbst blockieren."),
 };
 export function socialError(error: DbError): string {
-  if (!error) return "Unbekannter Fehler";
+  if (!error) return tr("Unbekannter Fehler");
   if (isMissing(error as { code?: string })) return SETUP_HINT;
   const key = Object.keys(MESSAGES).find((k) => error.message?.includes(k));
-  return key ? MESSAGES[key]! : "Das hat nicht geklappt. Bitte versuche es erneut.";
+  return key ? MESSAGES[key]! : tr("Das hat nicht geklappt. Bitte versuche es erneut.");
 }
 /** RPC aufrufen und Fehler als Exception werfen */
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {

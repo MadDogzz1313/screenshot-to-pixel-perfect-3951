@@ -36,3 +36,16 @@ class DispatchResult(BaseModel):
 
 class PublicKey(BaseModel):
     publicKey: str
+
+
+class PushServerStatus(BaseModel):
+    """Stand der Push-Einrichtung (nur Admins). Enthält nie geheime Werte."""
+    server_url: str                 # Adresse, die dieser Server bei „einrichten“ eintragen würde
+    web_keys: bool                  # VAPID-Schlüssel vorhanden (Web/PWA)
+    apple_keys: bool                # APNs-Schlüssel vorhanden (iPhone-App)
+    secret_set: bool                # PUSH_WEBHOOK_SECRET vorhanden
+    db_ready: bool                  # SQL 017 ausgeführt
+    db_configured: bool = False     # push_config ausgefüllt
+    db_url: str | None = None
+    db_url_matches: bool = False
+    db_secret_matches: bool = False

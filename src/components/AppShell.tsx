@@ -3,13 +3,14 @@ import { Gamepad2, Map, Compass, PlusCircle, Users, User } from "lucide-react";
 import type { ReactNode } from "react";
 import bg from "@/assets/bg-sunset.jpg";
 
+import { tr } from "@/lib/i18n";
 const NAV = [
-  { to: "/karte", label: "Karte", icon: Map },
-  { to: "/entdecken", label: "Entdecken", icon: Compass },
+  { to: "/karte", label: tr("Karte"), icon: Map },
+  { to: "/entdecken", label: tr("Entdecken"), icon: Compass },
   { to: "/arcade", label: "Arcade", icon: Gamepad2 },
-  { to: "/beitrag", label: "Beitrag", icon: PlusCircle },
+  { to: "/beitrag", label: tr("Beitrag"), icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
-  { to: "/profil", label: "Profil", icon: User },
+  { to: "/profil", label: tr("Profil"), icon: User },
 ] as const;
 
 export function AppShell({ children, title, vividBg, headerRight }: { children: ReactNode; title?: string; vividBg?: boolean; headerRight?: ReactNode }) {

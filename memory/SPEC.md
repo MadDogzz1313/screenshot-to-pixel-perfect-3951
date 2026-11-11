@@ -127,3 +127,17 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 
 ## Kartenüberschrift
 - Nur `src/routes/karte.tsx` geändert: Unter „LEONIDA EXPLORER“ steht jetzt zentriert „COMMUNITY MAP“ statt „GTA VI COMMUNITY MAP“. Andere GTA-VI-Texte, Funktionen und Designs bleiben unverändert.
+
+## Mehrsprachigkeit Deutsch/Englisch (i18n)
+- Eigene, abhängigkeitsfreie Lösung (kein neues npm-Paket -> yarn.lock/Codemagic unverändert): `src/lib/i18n.ts` (`tr("Deutscher Text", ...werte)`, `{0}`-Platzhalter, `lang`, `locale()` = de-DE / en-GB, `setLang()` speichert `localStorage["leonida-lang"]` und lädt neu). Englische Texte: `src/lib/i18n-en.ts` (Schlüssel = deutscher Originaltext; fehlt einer, erscheint Deutsch). Test `src/lib/i18n.test.ts` meldet fehlende Übersetzungen/Platzhalter.
+- Sprache: gespeicherte Wahl > Gerätesprache (`navigator.languages[0]` beginnt mit „de“ -> Deutsch) > Englisch. iOS: `Info.plist` CFBundleLocalizations [en, de], damit WKWebView die echte Gerätesprache meldet. `<html lang>` folgt der Sprache.
+- Umschalter: `src/components/LanguageSwitch.tsx` im Profil (Einstellungen, unter Push) und in der Gast-Ansicht des Profils (testids language-option-de/en).
+- NICHT übersetzt: Admin-/Moderationsbereich (admin.tsx, AdminUserManagement, CrewActivityAdmin, StripeDonationsAdmin, PushServerAdmin), nutzergenerierte Inhalte. Rechtstexte (`/datenschutz`, `/nutzungsbedingungen`): auf Englisch nur Platzhalter „The English version of this document is coming soon.“ (`LegalPage`), englische Texte liefert der Nutzer später.
+- Crew-Aktivitäten aus der DB: Standard-Labels (Raubüberfall, Missionen, Rennen, Gemeinsam erkunden, Freies Spiel) werden per `tr(label)` übersetzt; neue Admin-Labels erscheinen unverändert.
+- Werkzeug für neue Texte: `node scripts/i18n/extract.mjs` (listet unübersetzte Texte nach /tmp/i18n_strings.json), Einträge in i18n-en.ts ergänzen, `node scripts/i18n/transform.mjs` wickelt sie in tr(...) ein.
+
+## Push-Server per Knopfdruck (SQL 017 – ENTWURF, vom Nutzer in Lovable auszuführen)
+- Ursache „PUSH_NOT_CONFIGURED“: Tabelle `push_config` leer (push_set_config nie ausgeführt) -> `push_send_test` bricht ab. Zusätzlich fehlen APNs-Schlüssel (APNS_TEAM_ID, APNS_KEY_ID, APNS_PRIVATE_KEY) -> iPhone-Geräte werden übersprungen.
+- SQL 017: `push_admin_setup(url, secret)` + `push_admin_status(secret)` (nur Admins via has_role, Schlüssel wird nie zurückgegeben, nur `secret_matches`).
+- Backend: GET `/api/push/admin/status`, POST `/api/push/admin/setup` (Supabase-Token + require_admin). Adresse = `https://<x-forwarded-host>/api/push/dispatch`, Schlüssel = PUSH_WEBHOOK_SECRET des Servers. Modelle `PushServerStatus` (backend/models/push.py) ↔ Interface in `src/components/social/PushServerAdmin.tsx`.
+- Admin-Bereich: Karte „Push-Server“ (testid admin-push-server) mit Prüfliste (SQL 017, DB verbunden, Web-Schlüssel, Apple-Schlüssel) und Knopf „Push jetzt einrichten“ – nur in der LIVE-App tippen.

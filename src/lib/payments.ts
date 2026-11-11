@@ -2,25 +2,27 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+import { tr, locale } from "@/lib/i18n";
 export interface DonationTier { id: string; lookup_key: string; amount_cents: number; badge: string }
 export interface TiersResponse { tiers: DonationTier[]; custom_min_cents: number; custom_max_cents: number; test_mode: boolean }
 export interface CheckoutResponse { checkout_url: string; session_id: string }
 export interface StatusResponse { session_id: string; status: string; payment_status: string }
 export interface AdminDonation { session_id: string; user_id: string; amount_cents: number; currency: string; payment_status: string; credit_status: "open" | "crediting" | "credited"; created_at: string; credited_at: string | null }
 
-export const euro = (cents: number) => (cents / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR", minimumFractionDigits: cents % 100 ? 2 : 0 });
+export const euro = (cents: number) => (cents / 100).toLocaleString(locale(), { style: "currency", currency: "EUR", minimumFractionDigits: cents % 100 ? 2 : 0 });
 
-async function api<T>(path: string, init: RequestInit = {}, auth = false): Promise<T> {
+/** Aufruf des Leonida-Backends (/api/...), optional mit Supabase-Anmeldung. */
+export async function api<T>(path: string, init: RequestInit = {}, auth = false): Promise<T> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
-    if (!token) throw new Error("Bitte melde dich an");
+    if (!token) throw new Error(tr("Bitte melde dich an"));
     headers["Authorization"] = `Bearer ${token}`;
   }
   let res: Response;
-  try { res = await fetch(path, { ...init, headers, cache: "no-store" }); } catch { throw new Error("Keine Verbindung – bitte später erneut versuchen"); }
+  try { res = await fetch(path, { ...init, headers, cache: "no-store" }); } catch { throw new Error(tr("Keine Verbindung – bitte später erneut versuchen")); }
   const body = await res.json().catch(() => null) as { detail?: unknown } | null;
-  if (!res.ok) throw new Error(typeof body?.detail === "string" ? body.detail : "Das hat nicht geklappt – bitte später erneut versuchen");
+  if (!res.ok) throw new Error(typeof body?.detail === "string" ? body.detail : tr("Das hat nicht geklappt – bitte später erneut versuchen"));
   return body as T;
 }
 

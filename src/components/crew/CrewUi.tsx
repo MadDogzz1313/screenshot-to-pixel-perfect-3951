@@ -14,6 +14,7 @@ import {
   type CrewMember,
 } from "@/lib/crew";
 
+import { tr } from "@/lib/i18n";
 export const glassBtn =
   "grid h-12 w-12 place-items-center rounded-2xl border border-[#FF4FD8]/45 bg-[#1A0B2E]/70 text-white shadow-[0_0_16px_rgba(255,79,216,0.25)] backdrop-blur-md transition-[transform,background-color] duration-150 active:scale-95 hover:bg-[#2A1145]/80";
 export const neonPanel =
@@ -104,7 +105,7 @@ export function SlotsPill({ crew, size = "md" }: { crew: Crew; size?: "md" | "lg
         data-testid="crew-status-pill"
         className={`inline-flex items-center rounded-full border border-white/25 bg-white/10 font-bold text-white/80 ${cls}`}
       >
-        {crew.expired ? "Abgelaufen" : "Suche geschlossen"}
+        {crew.expired ? tr("Abgelaufen") : tr("Suche geschlossen")}
       </span>
     );
   return full ? (
@@ -113,14 +114,13 @@ export function SlotsPill({ crew, size = "md" }: { crew: Crew; size?: "md" | "lg
       className={`inline-flex items-center gap-2 rounded-full border-2 border-[#3BFF8A] bg-[#0D3B22]/80 font-bold text-white shadow-[0_0_18px_rgba(59,255,138,0.55)] ${cls}`}
     >
       <Check className={size === "lg" ? "h-6 w-6" : "h-4 w-4"} />
-      Crew vollständig
-    </span>
+      {tr("Crew vollständig")}</span>
   ) : (
     <span
       data-testid="crew-status-pill"
       className={`inline-flex items-center rounded-full border-2 border-[#3BFF8A] bg-[#0D3B22]/80 font-bold text-white shadow-[0_0_14px_rgba(59,255,138,0.45)] ${cls}`}
     >
-      {free} {free === 1 ? "Platz" : "Plätze"} frei
+      {tr("{0} {1} frei", free, free === 1 ? tr("Platz") : tr("Plätze"))}
     </span>
   );
 }
@@ -137,7 +137,7 @@ export function CrewMeta({ crew }: { crew: Crew }) {
       <span>{languageLabel(crew.language)}</span>
       <span className="text-white/40">·</span>
       <Headphones className="h-4 w-4 text-[#E9D5FF]" />
-      <span>{crew.headset_required ? "Mit Headset" : "Headset optional"}</span>
+      <span>{crew.headset_required ? tr("Mit Headset") : tr("Headset optional")}</span>
     </div>
   );
 }
@@ -178,7 +178,7 @@ export function MemberTile({
       )}
       <span
         data-testid={`crew-member-ready-${member.user_id}`}
-        aria-label={member.ready ? "bereit" : "nicht bereit"}
+        aria-label={member.ready ? tr("bereit") : tr("nicht bereit")}
         className={`absolute bottom-1.5 right-1.5 h-3.5 w-3.5 rounded-full border-2 border-[#12051F] ${member.ready ? "bg-[#3BFF8A] shadow-[0_0_8px_#3BFF8A]" : "bg-white/35"}`}
       />
     </span>
@@ -187,7 +187,7 @@ export function MemberTile({
     <div data-testid={`crew-member-${member.user_id}`} className="relative min-w-0">
       {leader && (
         <Crown
-          aria-label="Crew-Leader"
+          aria-label={tr("Crew-Leader")}
           className={`absolute left-1/2 z-10 -translate-x-1/2 fill-[#FFC83D] text-[#FFE08A] drop-shadow-[0_0_8px_rgba(255,200,61,0.9)] ${size === "lg" ? "-top-4 h-7 w-7" : "-top-3 h-5 w-5"}`}
         />
       )}
@@ -205,8 +205,7 @@ export function MemberTile({
       )}
       {leader && size === "lg" && (
         <span className="relative mx-auto -mt-2 block w-fit whitespace-nowrap rounded-md border border-[#FFC83D]/80 bg-[#3A2A05] px-1.5 text-[10px] font-bold leading-4 text-[#FFC83D]">
-          Crew-Leader
-        </span>
+          {tr("Crew-Leader")}</span>
       )}
     </div>
   );
@@ -220,8 +219,7 @@ export function ExternalTile() {
     >
       <span className="flex flex-col items-center gap-1 text-[10px] font-semibold">
         <User className="h-6 w-6" />
-        Mitspieler
-      </span>
+        {tr("Mitspieler")}</span>
     </div>
   );
 }
@@ -282,8 +280,7 @@ export function PlayerCount({ crew }: { crew: Crew }) {
       className="inline-flex items-center gap-2 text-[15px] font-semibold text-white/90"
     >
       <Users className="h-5 w-5 text-[#E9D5FF]" />
-      {occupied(crew)} von {crew.max_players} Spielern
-    </span>
+      {tr("{0} von {1} Spielern", occupied(crew), crew.max_players)}</span>
   );
 }
 
@@ -300,7 +297,5 @@ export const Disclaimer = () => (
     data-testid="crew-disclaimer"
     className="px-2 text-center text-[11px] leading-relaxed text-white/55"
   >
-    Der Crew Finder organisiert nur Mitspieler. Ihr trefft euch anschließend selbst im Spiel – die
-    App startet keine Aktivitäten in GTA VI.
-  </p>
+    {tr("Der Crew Finder organisiert nur Mitspieler. Ihr trefft euch anschließend selbst im Spiel – die App startet keine Aktivitäten in GTA VI.")}</p>
 );

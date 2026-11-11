@@ -69,16 +69,17 @@ import {
   type CrewMember,
 } from "@/lib/crew";
 
+import { tr, locale } from "@/lib/i18n";
 export const Route = createFileRoute("/crew/$id")({
   head: () => ({
-    meta: [{ title: "Crew-Lobby · Leonida Explorer" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: tr("Crew-Lobby · Leonida Explorer") }, { name: "robots", content: "noindex" }],
   }),
   component: CrewPage,
 });
 
 type Confirm = { title: string; text: string; action: string; run: () => void } | null;
 const hm = (iso: string) =>
-  new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+  new Intl.DateTimeFormat(locale(), { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 function CrewPage() {
   const { id } = Route.useParams();
@@ -87,7 +88,7 @@ function CrewPage() {
   const back = (
     <Link
       to="/crew"
-      aria-label="Zurück zum Crew Finder"
+      aria-label={tr("Zurück zum Crew Finder")}
       data-testid="crew-lobby-back-button"
       className={glassBtn}
     >
@@ -105,10 +106,9 @@ function CrewPage() {
   if (!user)
     return shell(
       <div className={`${neonPanel} p-5 text-center`}>
-        <p className="font-semibold">Melde dich an, um Crews zu sehen.</p>
+        <p className="font-semibold">{tr("Melde dich an, um Crews zu sehen.")}</p>
         <Link to="/" className={`${pinkButton} mt-3`}>
-          Anmelden
-        </Link>
+          {tr("Anmelden")}</Link>
       </div>,
     );
   if (detail.data === null)
@@ -122,8 +122,7 @@ function CrewPage() {
       <div data-testid="crew-not-found" className={`${neonPanel} p-5 text-center`}>
         <p className="font-semibold">{crewError(detail.error)}</p>
         <Link to="/crew" className={`${ghostButton} mt-3`}>
-          Zum Crew Finder
-        </Link>
+          {tr("Zum Crew Finder")}</Link>
       </div>,
     );
   return <CrewLobby crew={detail.data} me={user.id} back={back} />;
@@ -151,18 +150,18 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
     onError: (e: unknown) => toast.error(crewError(e)),
   });
   const status = crew.expired
-    ? "Abgelaufen – Lobby nur noch lesbar"
+    ? tr("Abgelaufen – Lobby nur noch lesbar")
     : crew.status === "closed"
-      ? "Suche geschlossen – Lobby bleibt offen"
+      ? tr("Suche geschlossen – Lobby bleibt offen")
       : full
-        ? "Team steht – Vorbereitung & Start"
-        : `Suche läuft – ${freeSlots(crew)} ${freeSlots(crew) === 1 ? "Platz" : "Plätze"} frei`;
+        ? tr("Team steht – Vorbereitung & Start")
+        : tr("Suche läuft – {0} {1} frei", freeSlots(crew), freeSlots(crew) === 1 ? tr("Platz") : tr("Plätze"));
   const readyCount = crew.members.filter((m) => m.ready).length;
 
   const menu = (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Crew-Aktionen"
+        aria-label={tr("Crew-Aktionen")}
         data-testid="crew-lobby-menu-button"
         className={glassBtn}
       >
@@ -174,23 +173,21 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
             data-testid="crew-menu-edit"
             onSelect={() => void nav({ to: "/crew/neu", search: { edit: crew.id } })}
           >
-            Suche bearbeiten
-          </DropdownMenuItem>
+            {tr("Suche bearbeiten")}</DropdownMenuItem>
         )}
         {leader && live && crew.status === "open" && (
           <DropdownMenuItem
             data-testid="crew-menu-close"
             onSelect={() =>
               setConfirm({
-                title: "Crew-Suche schließen?",
-                text: "Niemand kann mehr beitreten, offene Anfragen werden abgelehnt. Lobby und Chat bleiben für die Crew bis zum Ablauf offen.",
-                action: "Suche schließen",
-                run: () => actions.close.mutate(crew.id, ok("Crew-Suche geschlossen")),
+                title: tr("Crew-Suche schließen?"),
+                text: tr("Niemand kann mehr beitreten, offene Anfragen werden abgelehnt. Lobby und Chat bleiben für die Crew bis zum Ablauf offen."),
+                action: tr("Suche schließen"),
+                run: () => actions.close.mutate(crew.id, ok(tr("Crew-Suche geschlossen"))),
               })
             }
           >
-            Suche schließen
-          </DropdownMenuItem>
+            {tr("Suche schließen")}</DropdownMenuItem>
         )}
         {leader && (
           <DropdownMenuItem
@@ -198,43 +195,40 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
             className="text-[#FF7B9C]"
             onSelect={() =>
               setConfirm({
-                title: "Crew auflösen?",
-                text: "Die Crew, ihre Lobby und der Chat werden endgültig gelöscht. Alle Mitglieder werden benachrichtigt.",
-                action: "Crew auflösen",
+                title: tr("Crew auflösen?"),
+                text: tr("Die Crew, ihre Lobby und der Chat werden endgültig gelöscht. Alle Mitglieder werden benachrichtigt."),
+                action: tr("Crew auflösen"),
                 run: () =>
                   actions.remove.mutate(
                     crew.id,
-                    ok("Crew aufgelöst", () => void nav({ to: "/crew" })),
+                    ok(tr("Crew aufgelöst"), () => void nav({ to: "/crew" })),
                   ),
               })
             }
           >
-            Crew auflösen
-          </DropdownMenuItem>
+            {tr("Crew auflösen")}</DropdownMenuItem>
         )}
         {member && !leader && (
           <DropdownMenuItem
             data-testid="crew-menu-leave"
             onSelect={() =>
               setConfirm({
-                title: "Crew verlassen?",
-                text: "Du verlässt die Lobby und den Crew-Chat. Der Crew-Leader wird benachrichtigt.",
-                action: "Verlassen",
+                title: tr("Crew verlassen?"),
+                text: tr("Du verlässt die Lobby und den Crew-Chat. Der Crew-Leader wird benachrichtigt."),
+                action: tr("Verlassen"),
                 run: () =>
                   actions.leave.mutate(
                     crew.id,
-                    ok("Du hast die Crew verlassen", () => void nav({ to: "/crew" })),
+                    ok(tr("Du hast die Crew verlassen"), () => void nav({ to: "/crew" })),
                   ),
               })
             }
           >
-            Crew verlassen
-          </DropdownMenuItem>
+            {tr("Crew verlassen")}</DropdownMenuItem>
         )}
         {!leader && (
           <DropdownMenuItem data-testid="crew-menu-report" onSelect={() => setReport(true)}>
-            Crew-Suche melden
-          </DropdownMenuItem>
+            {tr("Crew-Suche melden")}</DropdownMenuItem>
         )}
         {admin && !leader && (
           <>
@@ -244,40 +238,38 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
                 data-testid="crew-menu-admin-close"
                 onSelect={() =>
                   setConfirm({
-                    title: "Als Admin schließen?",
-                    text: "Die Suche wird geschlossen und im Moderationsprotokoll vermerkt.",
-                    action: "Schließen",
+                    title: tr("Als Admin schließen?"),
+                    text: tr("Die Suche wird geschlossen und im Moderationsprotokoll vermerkt."),
+                    action: tr("Schließen"),
                     run: () =>
                       actions.adminClose.mutate(
-                        { id: crew.id, reason: "Moderation" },
-                        ok("Crew-Suche moderiert"),
+                        { id: crew.id, reason: tr("Moderation") },
+                        ok(tr("Crew-Suche moderiert")),
                       ),
                   })
                 }
               >
                 <ShieldAlert className="mr-2 h-4 w-4" />
-                Admin: Suche schließen
-              </DropdownMenuItem>
+                {tr("Admin: Suche schließen")}</DropdownMenuItem>
             )}
             <DropdownMenuItem
               data-testid="crew-menu-admin-delete"
               className="text-[#FF7B9C]"
               onSelect={() =>
                 setConfirm({
-                  title: "Als Admin löschen?",
-                  text: "Die Crew wird endgültig entfernt und im Moderationsprotokoll vermerkt.",
-                  action: "Löschen",
+                  title: tr("Als Admin löschen?"),
+                  text: tr("Die Crew wird endgültig entfernt und im Moderationsprotokoll vermerkt."),
+                  action: tr("Löschen"),
                   run: () =>
                     actions.remove.mutate(
                       crew.id,
-                      ok("Crew-Suche gelöscht", () => void nav({ to: "/admin" })),
+                      ok(tr("Crew-Suche gelöscht"), () => void nav({ to: "/admin" })),
                     ),
                 })
               }
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Admin: Crew löschen
-            </DropdownMenuItem>
+              {tr("Admin: Crew löschen")}</DropdownMenuItem>
           </>
         )}
       </DropdownMenuContent>
@@ -297,9 +289,7 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
               <h1
                 data-testid="crew-lobby-title"
                 className="text-[1.45rem] font-bold leading-tight text-white"
-              >
-                {crew.activity_label} – Crew-Lobby
-              </h1>
+              >{tr("{0} – Crew-Lobby", tr(crew.activity_label))}</h1>
               <p data-testid="crew-lobby-status" className="text-[15px] text-[#D9C2FF]">
                 {status}
               </p>
@@ -325,8 +315,7 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
               className="flex items-center gap-2 text-lg font-semibold"
             >
               <Users className="h-6 w-6 fill-[#C79BFF] text-[#C79BFF]" />
-              {occupied(crew)} / {crew.max_players} Spieler
-            </span>
+              {occupied(crew)} / {crew.max_players} {" "}{tr("Spieler")}</span>
             <span className="h-8 bg-white/20" />
             <span className="flex items-center justify-end gap-2 text-right text-[15px] font-semibold text-[#7FE9FF]">
               <Gamepad2 className="h-6 w-6" />
@@ -336,7 +325,7 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#CDB4F5]">
             <span className="flex items-center gap-1">
               <Headphones className="h-3.5 w-3.5" />
-              {crew.headset_required ? "Headset erforderlich" : "Headset optional"}
+              {crew.headset_required ? tr("Headset erforderlich") : tr("Headset optional")}
             </span>
             <StartLine crew={crew} />
             <span className="flex items-center gap-1">
@@ -345,7 +334,7 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
             </span>
             {member && (
               <span data-testid="crew-ready-count">
-                {readyCount}/{crew.members.length} bereit
+                {tr("{0}/{1} bereit", readyCount, crew.members.length)}
               </span>
             )}
           </div>
@@ -376,13 +365,12 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
               className={`flex min-h-[4.25rem] w-full items-center justify-center gap-3 rounded-full border-2 text-3xl font-bold transition-[transform,box-shadow,background-color] duration-150 active:scale-[0.98] disabled:opacity-50 ${mine.ready ? "border-[#3BFF8A] bg-[#0D3B22] text-white shadow-[0_0_26px_rgba(59,255,138,0.5)]" : "border-[#FF8BE8] bg-gradient-to-r from-[#FF2E97] to-[#D61CFF] text-white shadow-[0_0_30px_rgba(255,46,151,0.6)]"}`}
             >
               <Check className="h-9 w-9" strokeWidth={3} />
-              {mine.ready ? "Du bist bereit" : "Bereit"}
+              {mine.ready ? tr("Du bist bereit") : tr("Bereit")}
             </button>
           )}
           {member && mine?.ready && (
             <p className="-mt-2 text-center text-xs text-white/55">
-              Tippe erneut, um „nicht bereit“ zu setzen.
-            </p>
+              {tr("Tippe erneut, um „nicht bereit“ zu setzen.")}</p>
           )}
           <Disclaimer />
         </div>
@@ -395,18 +383,18 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
         onClose={() => setPicked(null)}
         onKick={(m) =>
           setConfirm({
-            title: `${m.username} entfernen?`,
-            text: "Der Spieler verlässt Lobby und Crew-Chat und wird benachrichtigt.",
-            action: "Entfernen",
+            title: tr("{0} entfernen?", m.username),
+            text: tr("Der Spieler verlässt Lobby und Crew-Chat und wird benachrichtigt."),
+            action: tr("Entfernen"),
             run: () =>
               actions.kick.mutate({ id: crew.id, userId: m.user_id }, ok(`${m.username} entfernt`)),
           })
         }
         onBlock={(m) =>
           setConfirm({
-            title: `${m.username} blockieren?`,
-            text: "Ihr seht gegenseitig keine Crew-Nachrichten mehr, Freundschaft und Anfragen werden entfernt.",
-            action: "Blockieren",
+            title: tr("{0} blockieren?", m.username),
+            text: tr("Ihr seht gegenseitig keine Crew-Nachrichten mehr, Freundschaft und Anfragen werden entfernt."),
+            action: tr("Blockieren"),
             run: () =>
               social.block.mutate(m.user_id, {
                 onSuccess: () => toast.success(`${m.username} blockiert`),
@@ -430,7 +418,7 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
             <AlertDialogDescription>{confirm?.text}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="crew-confirm-cancel">Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel data-testid="crew-confirm-cancel">{tr("Abbrechen")}</AlertDialogCancel>
             <AlertDialogAction
               data-testid="crew-confirm-ok"
               onClick={() => {
@@ -452,7 +440,7 @@ function CrewLobby({ crew, me, back }: { crew: Crew; me: string; back: React.Rea
           }}
           targetId={crew.id}
           mode="crew"
-          username={crew.activity_label}
+          username={tr(crew.activity_label)}
         />
       )}
     </AppShell>
@@ -467,33 +455,29 @@ function NonMemberPanel({ crew }: { crew: Crew }) {
     <div className={`${neonPanel} space-y-3 p-4 text-center`}>
       <p className="flex items-center justify-center gap-2 text-sm text-white/75">
         <Lock className="h-4 w-4 text-[#FF7BE5]" />
-        Lobby und Crew-Chat sind nur für Mitglieder sichtbar.
-      </p>
+        {tr("Lobby und Crew-Chat sind nur für Mitglieder sichtbar.")}</p>
       {crew.my_request === "pending" ? (
         <>
           <p data-testid="crew-request-pending" className="font-semibold text-[#FFC4F3]">
-            Deine Anfrage liegt beim Crew-Leader.
-          </p>
+            {tr("Deine Anfrage liegt beim Crew-Leader.")}</p>
           <button
             type="button"
             data-testid="crew-cancel-request-button"
             onClick={() =>
               actions.cancelJoin.mutate(crew.id, {
-                onSuccess: () => toast.success("Anfrage zurückgezogen"),
+                onSuccess: () => toast.success(tr("Anfrage zurückgezogen")),
                 onError: (e) => toast.error(crewError(e)),
               })
             }
             className={ghostButton}
           >
-            Anfrage zurückziehen
-          </button>
+            {tr("Anfrage zurückziehen")}</button>
         </>
       ) : !live ? (
-        <p className="font-semibold">Diese Crew-Suche nimmt keine Mitglieder mehr auf.</p>
+        <p className="font-semibold">{tr("Diese Crew-Suche nimmt keine Mitglieder mehr auf.")}</p>
       ) : full ? (
         <p data-testid="crew-full-note" className="font-semibold">
-          Crew vollständig – aktuell kein Platz frei.
-        </p>
+          {tr("Crew vollständig – aktuell kein Platz frei.")}</p>
       ) : (
         <button
           type="button"
@@ -502,14 +486,13 @@ function NonMemberPanel({ crew }: { crew: Crew }) {
           onClick={() =>
             actions.requestJoin.mutate(crew.id, {
               onSuccess: () =>
-                toast.success("Anfrage gesendet – der Crew-Leader wird benachrichtigt."),
+                toast.success(tr("Anfrage gesendet – der Crew-Leader wird benachrichtigt.")),
               onError: (e) => toast.error(crewError(e)),
             })
           }
           className={`${pinkButton} w-full text-lg`}
         >
-          Crew beitreten
-          <ChevronRight className="h-5 w-5" />
+          {tr("Crew beitreten")}<ChevronRight className="h-5 w-5" />
         </button>
       )}
     </div>
@@ -524,12 +507,12 @@ function JoinRequests({ crew }: { crew: Crew }) {
     <section data-testid="crew-requests" className={`${neonPanel} space-y-2 p-4`}>
       <h2 className="flex items-center gap-2 text-lg font-bold">
         <Users className="h-5 w-5 text-[#FF7BE5]" />
-        Beitrittsanfragen{" "}
+        {tr("Beitrittsanfragen")}{" "}
         {list.length > 0 && (
           <span className="rounded-full bg-[#FF2E97] px-2 text-xs">{list.length}</span>
         )}
       </h2>
-      {!list.length && <p className="text-sm text-white/60">Keine offenen Anfragen.</p>}
+      {!list.length && <p className="text-sm text-white/60">{tr("Keine offenen Anfragen.")}</p>}
       {list.map((r) => {
         const p = profiles.find((x) => x.id === r.user_id);
         return (
@@ -557,7 +540,7 @@ function JoinRequests({ crew }: { crew: Crew }) {
                 actions.respond.mutate(
                   { requestId: r.id, accept: true },
                   {
-                    onSuccess: () => toast.success(`${r.username} ist jetzt in der Crew`),
+                    onSuccess: () => toast.success(tr("{0} ist jetzt in der Crew", r.username)),
                     onError: (e) => toast.error(crewError(e)),
                   },
                 )
@@ -575,7 +558,7 @@ function JoinRequests({ crew }: { crew: Crew }) {
                 actions.respond.mutate(
                   { requestId: r.id, accept: false },
                   {
-                    onSuccess: () => toast.success("Anfrage abgelehnt"),
+                    onSuccess: () => toast.success(tr("Anfrage abgelehnt")),
                     onError: (e) => toast.error(crewError(e)),
                   },
                 )
@@ -589,9 +572,7 @@ function JoinRequests({ crew }: { crew: Crew }) {
       })}
       {isFull(crew) && list.length > 0 && (
         <p className="text-xs text-white/55">
-          Die Crew ist vollständig – Anfragen können erst angenommen werden, wenn ein Platz frei
-          wird.
-        </p>
+          {tr("Die Crew ist vollständig – Anfragen können erst angenommen werden, wenn ein Platz frei wird.")}</p>
       )}
     </section>
   );
@@ -622,8 +603,7 @@ function CrewChat({ crew, me }: { crew: Crew; me: string }) {
     <section data-testid="crew-chat" className={`${neonPanel} p-3`}>
       <h2 className="flex items-center gap-2 px-1 pb-2 text-xl font-bold">
         <MessageSquareMore className="h-7 w-7 text-[#FF7BE5]" />
-        Privater Crew-Chat
-      </h2>
+        {tr("Privater Crew-Chat")}</h2>
       <div
         ref={listRef}
         data-testid="crew-chat-list"
@@ -632,8 +612,7 @@ function CrewChat({ crew, me }: { crew: Crew; me: string }) {
         {msgs.isError && <p className="p-2 text-sm text-white/70">{crewError(msgs.error)}</p>}
         {msgs.isSuccess && !items.length && (
           <p data-testid="crew-chat-empty" className="py-8 text-center text-sm text-white/55">
-            Noch keine Nachrichten. Plant hier euer Treffen im Spiel.
-          </p>
+            {tr("Noch keine Nachrichten. Plant hier euer Treffen im Spiel.")}</p>
         )}
         {items.map((m) => {
           const p = profiles.find((x) => x.id === m.sender_id);
@@ -654,14 +633,14 @@ function CrewChat({ crew, me }: { crew: Crew; me: string }) {
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-sm font-semibold">
-                    {names.get(m.sender_id) ?? p?.username ?? "Ehemaliges Mitglied"}
+                    {names.get(m.sender_id) ?? p?.username ?? tr("Ehemaliges Mitglied")}
                   </span>
                   <time className="shrink-0 text-xs text-white/55">{hm(m.created_at)}</time>
                 </div>
                 <p
                   className={`whitespace-pre-wrap break-words text-[15px] ${m.deleted_at ? "italic text-white/45" : "text-white/90"}`}
                 >
-                  {m.deleted_at ? "Nachricht gelöscht" : m.body}
+                  {m.deleted_at ? tr("Nachricht gelöscht") : m.body}
                 </p>
                 {own && !m.deleted_at && (
                   <button
@@ -674,8 +653,7 @@ function CrewChat({ crew, me }: { crew: Crew; me: string }) {
                     }
                     className="mt-0.5 text-[11px] text-white/45 hover:text-[#FF9BEA]"
                   >
-                    Löschen
-                  </button>
+                    {tr("Löschen")}</button>
                 )}
               </div>
             </div>
@@ -696,12 +674,12 @@ function CrewChat({ crew, me }: { crew: Crew; me: string }) {
               send();
             }
           }}
-          placeholder={crew.expired ? "Lobby abgelaufen" : "Nachricht an die Crew …"}
+          placeholder={crew.expired ? tr("Lobby abgelaufen") : tr("Nachricht an die Crew …")}
           className="max-h-28 min-h-12 min-w-0 flex-1 resize-none rounded-2xl border-2 border-[#FF7BE5]/40 bg-[#140822]/90 px-3 py-2.5 text-base outline-none placeholder:text-white/40 focus:border-[#FF7BE5] disabled:opacity-50"
         />
         <button
           type="button"
-          aria-label="Nachricht senden"
+          aria-label={tr("Nachricht senden")}
           data-testid="crew-chat-send"
           disabled={!body.trim() || actions.send.isPending || crew.expired}
           onClick={send}
@@ -753,8 +731,8 @@ function MemberSheet({
           <div>
             <p className="font-bold">{member.username}</p>
             <p className="text-xs text-white/60">
-              {member.role === "leader" ? "Crew-Leader" : "Mitglied"} ·{" "}
-              {member.ready ? "bereit" : "noch nicht bereit"} · {crew.activity_label}
+              {member.role === "leader" ? tr("Crew-Leader") : tr("Mitglied")} ·{" "}
+              {member.ready ? tr("bereit") : tr("noch nicht bereit")} · {tr(crew.activity_label)}
             </p>
           </div>
         </div>
@@ -764,8 +742,7 @@ function MemberSheet({
           data-testid="crew-member-profile"
           className={`${ghostButton} w-full`}
         >
-          Profil ansehen
-        </Link>
+          {tr("Profil ansehen")}</Link>
         {leader && member.role !== "leader" && (
           <button
             type="button"
@@ -776,8 +753,7 @@ function MemberSheet({
             }}
             className={`${ghostButton} w-full`}
           >
-            Aus der Crew entfernen
-          </button>
+            {tr("Aus der Crew entfernen")}</button>
         )}
         <button
           type="button"
@@ -788,16 +764,14 @@ function MemberSheet({
           }}
           className={`${ghostButton} w-full text-[#FF9BB5]`}
         >
-          Blockieren
-        </button>
+          {tr("Blockieren")}</button>
         <button
           type="button"
           data-testid="crew-member-sheet-close"
           onClick={onClose}
           className="w-full py-2 text-sm text-white/60"
         >
-          Schließen
-        </button>
+          {tr("Schließen")}</button>
       </div>
     </div>
   );

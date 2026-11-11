@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { BADGES, badgeById, badgeImg, progressOf, type BadgeDef, type Progress } from "@/lib/badges";
 
+import { tr } from "@/lib/i18n";
 /** Galerie: freigeschaltet = farbig, gesperrt = grau; Antippen zeigt Name, Bedingung, Fortschritt. */
 export function BadgeGallery({ unlocked, progress, featured, onFeature }: {
   unlocked: string[]; progress?: Progress | undefined; featured?: string[] | null | undefined; onFeature?: ((ids: string[]) => Promise<string | null>) | undefined;
@@ -16,8 +17,8 @@ export function BadgeGallery({ unlocked, progress, featured, onFeature }: {
   const toggleFav = async (id: string) => {
     if (!onFeature) return;
     const next = fav.includes(id) ? fav.filter((x) => x !== id) : [...fav, id];
-    if (next.length > 3) { toast.error("Du kannst höchstens 3 Abzeichen hervorheben"); return; }
-    const err = await onFeature(next); if (err) toast.error(err); else toast.success(fav.includes(id) ? "Nicht mehr hervorgehoben" : "Hervorgehoben");
+    if (next.length > 3) { toast.error(tr("Du kannst höchstens 3 Abzeichen hervorheben")); return; }
+    const err = await onFeature(next); if (err) toast.error(err); else toast.success(fav.includes(id) ? tr("Nicht mehr hervorgehoben") : tr("Hervorgehoben"));
   };
   const section = (kind: "community" | "donation", title: string) => (
     <div className="space-y-2">
@@ -39,8 +40,8 @@ export function BadgeGallery({ unlocked, progress, featured, onFeature }: {
   const pr = open ? progressOf(open, progress) : null; const isOn = !!open && unlocked.includes(open.id);
   return (
     <div className="space-y-4">
-      {section("community", "COMMUNITY-ABZEICHEN")}
-      {section("donation", "UNTERSTÜTZER")}
+      {section("community", tr("COMMUNITY-ABZEICHEN"))}
+      {section("donation", tr("UNTERSTÜTZER"))}
       <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
         <DialogContent className="max-w-xs text-center">
           {open && <>
@@ -48,11 +49,11 @@ export function BadgeGallery({ unlocked, progress, featured, onFeature }: {
             <DialogHeader><DialogTitle data-testid="badge-dialog-name" className="text-center">{open.name}</DialogTitle>
               <DialogDescription data-testid="badge-dialog-requirement" className="text-center">{open.requirement}</DialogDescription></DialogHeader>
             <p data-testid="badge-dialog-status" className={`text-sm font-semibold ${isOn ? "text-neon" : "text-muted-foreground"}`}>
-              {isOn ? "Freigeschaltet" : open.kind === "donation" ? "Wird von einem Admin nach geprüfter Spende vergeben" : pr ? `Fortschritt: ${pr.label}` : "Gesperrt"}
+              {isOn ? tr("Freigeschaltet") : open.kind === "donation" ? tr("Wird von einem Admin nach geprüfter Spende vergeben") : pr ? tr("Fortschritt: {0}", pr.label) : tr("Gesperrt")}
             </p>
-            {!isOn && onFeature && open.kind === "donation" && !isNativeApp() && <Link to="/spenden" data-testid="badge-donate-link" className="inline-block rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">Jetzt unterstützen</Link>}
+            {!isOn && onFeature && open.kind === "donation" && !isNativeApp() && <Link to="/spenden" data-testid="badge-donate-link" className="inline-block rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">{tr("Jetzt unterstützen")}</Link>}
             {isOn && onFeature && <Button variant="outline" data-testid="badge-feature-button" onClick={() => toggleFav(open.id)}>
-              <Star className="h-4 w-4" />{fav.includes(open.id) ? "Nicht mehr hervorheben" : "Im Profil hervorheben"}</Button>}
+              <Star className="h-4 w-4" />{fav.includes(open.id) ? tr("Nicht mehr hervorheben") : tr("Im Profil hervorheben")}</Button>}
           </>}
         </DialogContent>
       </Dialog>
