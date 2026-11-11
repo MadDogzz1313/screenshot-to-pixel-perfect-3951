@@ -1,0 +1,68 @@
+{
+  "iteration": 14,
+  "mode": "generate",
+  "summary": "New acceptance_matrix (8 criteria) for the German Datenschutzerklärung page, re-focused on controller identity without a home address, app-feature coverage, technical/storage transparency, marked open legal points, account-deletion description, the profile settings link, and combined iPhone/auth-link readability. The page (src/routes/datenschutz.tsx, src/components/LegalPage.tsx) already implements all of this; verified with 6 new browser checks against the public preview URL plus one code-based route check for the profile link (no test account exists, as noted in the briefing). All 7 artifacts passed; no bugs found.",
+  "passed": 7,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Öffentliche HTTPS-Datenschutzseite",
+      "name": "datenschutz-public-https-title",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Direct goto of https://leonida-karte--6tt5kohx.preview.emergentagent.com/datenschutz without auth returned status <400, privacy-page testid visible, document.title contains 'Datenschutz'."
+    },
+    {
+      "criterion": "Verantwortlicher ohne Wohnadresse",
+      "name": "datenschutz-controller-no-address",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "privacy-controller-details contains 'Nico Etterer', privacy-controller-email contains 'n.etterer@outlook.de', privacy-controller-address-note states no private home address is published; no placeholder address text found in page body."
+    },
+    {
+      "criterion": "Nachweisbare App-Funktionen",
+      "name": "datenschutz-app-features-sections",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "All 9 expected sections visible: privacy-account-section (Supabase Auth), privacy-profile-section (XP/Level/Abzeichen), privacy-spots-section (Fundorte/Fotos), privacy-community-section (Chat), privacy-direct-messages-section (DM/Freunde), privacy-crew-section (Crew Finder), privacy-arcade-section (Neon Arcade/Bestenlisten), privacy-push-section (Push), privacy-payments-section (Stripe)."
+    },
+    {
+      "criterion": "Technische Dienste und Speicher transparent",
+      "name": "datenschutz-tech-services-storage",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "privacy-provider-supabase/-emergent/-stripe/-push mention Supabase, Emergent, Stripe, APNs; privacy-cookies-text mentions sidebar_state cookie; privacy-technical-text states no recognizable analytics/ad SDKs in project code; privacy-technical-missing keeps server/infra logs marked BITTE PRÜFEN."
+    },
+    {
+      "criterion": "Rechtlich/technisch ungeklärte Punkte markiert",
+      "name": "datenschutz-unresolved-points-marked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "privacy-legal-bases-missing, privacy-rights-missing contain BITTE PRÜFEN; privacy-hosting-missing, privacy-retention-missing, privacy-transfer-missing contain BITTE ERGÄNZEN; no fabricated provider location/retention strings found in page text."
+    },
+    {
+      "criterion": "Kontolöschung korrekt beschrieben",
+      "name": "datenschutz-account-deletion-description",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "privacy-retention-account text references 'Konto löschen', 'delete_my_account', 'best-effort' file deletion and an Admin-account restriction; does not claim unrestricted deletion."
+    },
+    {
+      "criterion": "Profil/Einstellungen-Link",
+      "name": "profile-privacy-settings-link (code/route check)",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "No test account exists (per briefing) so verified via source: src/routes/profil.tsx line 76 renders `<Link to=\"/datenschutz\" data-testid=\"profile-privacy-settings-link\" ...>Datenschutzerklärung</Link>` inside the profile settings/privacy block (after profile-privacy switches section)."
+    },
+    {
+      "criterion": "iPhone-Lesbarkeit und Auth-Link",
+      "name": "auth-form-privacy-link-iphone-readable",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844 on the public preview, auth-privacy-footer-link visible on login page; click navigates to /datenschutz (privacy-page visible, url contains /datenschutz); document.documentElement.scrollWidth <= clientWidth+2 confirming no horizontal scroll on the privacy page."
+    }
+  ]
+}

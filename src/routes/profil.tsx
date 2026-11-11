@@ -73,12 +73,13 @@ function Profil() {
             <p className="text-[11px] text-muted-foreground">Deine E-Mail-Adresse und Spendeninformationen sind nie öffentlich.</p>
           </div>
           <PushSettings />
+          <Link to="/datenschutz" data-testid="profile-privacy-settings-link" className="block border-t border-border pt-3 text-center text-xs font-semibold text-neon underline">Datenschutzerklärung</Link>
         </section>
         {!isNativeApp() && <Link to="/spenden" data-testid="profile-donate-link" className="neon-card flex items-center gap-2 p-4 font-semibold"><Heart className="h-5 w-5 text-accent" />Leonida Explorer unterstützen</Link>}
         {user.isAdmin && <Link to="/admin" data-testid="profile-admin-link" className="neon-card flex items-center gap-2 p-4 font-semibold"><Shield className="h-5 w-5 text-accent" />Admin-Bereich</Link>}
         <Button variant="outline" data-testid="profile-logout-button" className="w-full" onClick={async () => { await signOut(); nav({ to: "/", replace: true }); }}>Abmelden</Button>
         <DeleteAccount userId={user.id} />
-        <p className="text-center text-[11px] text-muted-foreground"><Link to="/nutzungsbedingungen" data-testid="profile-terms-link" className="underline">Nutzungsbedingungen</Link> · <Link to="/datenschutz" data-testid="profile-privacy-link" className="underline">Datenschutz</Link></p>
+        <p className="text-center text-[11px] text-muted-foreground"><Link to="/nutzungsbedingungen" data-testid="profile-terms-link" className="underline">Nutzungsbedingungen</Link></p>
       </div>
     </AppShell>
   );

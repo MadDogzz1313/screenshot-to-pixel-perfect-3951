@@ -9,7 +9,7 @@ export const Route = createFileRoute("/nutzungsbedingungen")({
 function Terms() {
   return (
     <LegalPage title="Nutzungsbedingungen" testId="terms-page">
-      <p>Diese Bedingungen gelten für die Nutzung von Leonida Explorer (Website, Home-Bildschirm-App und iPhone-App). Betreiber: {OPERATOR.name}, {OPERATOR.address}, {OPERATOR.email}.</p>
+      <p>Diese Bedingungen gelten für die Nutzung von Leonida Explorer (Website, Home-Bildschirm-App und iPhone-App). Betreiber: {OPERATOR.name}, Kontakt: {OPERATOR.email}.</p>
       <h2>1. Fan-Projekt</h2>
       <p>Leonida Explorer ist ein inoffizielles Community-Projekt von Fans. Es steht in keiner Verbindung zu Rockstar Games oder Take-Two Interactive und wird von diesen weder unterstützt noch geprüft. Alle Marken gehören ihren jeweiligen Inhabern.</p>
       <h2>2. Konto</h2>

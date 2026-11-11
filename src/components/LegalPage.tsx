@@ -3,12 +3,11 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
-/** Betreiberangaben für Nutzungsbedingungen und Datenschutz – BITTE AUSFÜLLEN (Pflicht für App Store + DSGVO) */
+/** Betreiberangaben für Nutzungsbedingungen und Datenschutz. Keine private Wohnadresse ausgeben. */
 export const OPERATOR = {
-  name: "[Name des Betreibers]",
-  address: "[Straße, PLZ Ort, Land]",
-  email: "[Kontakt-E-Mail]",
-  updated: "Stand: Juni 2026",
+  name: "Nico Etterer",
+  email: "n.etterer@outlook.de",
+  updated: "Stand: 11. November 2026",
 };
 
 export function LegalPage({ title, testId, children }: { title: string; testId: string; children: ReactNode }) {
