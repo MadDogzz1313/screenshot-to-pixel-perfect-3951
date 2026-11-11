@@ -109,3 +109,7 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Anzeigename unter dem Symbol: „Leonida Explorer“ (Info.plist CFBundleDisplayName, capacitor.config.ts appName). CFBundleName bleibt $(PRODUCT_NAME) (= Target „App“, nicht sichtbar; Umbenennen würde App.app-Pfade brechen). Bundle-ID unverändert de.leonida.explorer.
 - codemagic.yaml: Schritt „App-Namen unter dem Symbol festlegen“ (beide Workflows, nach cap sync) setzt CFBundleDisplayName + ggf. InfoPlist.strings und bricht ab, wenn „GTA VI“ im Namen steht.
 - Hinweis: App-Symbol enthält ein großes „VI“ im Stil des GTA-VI-Logos (Risiko App-Review 5.2.1) – nur auf Wunsch ändern.
+
+## Codemagic Yarn-Lockfile-Fix
+- Root `package.json` pinnt Yarn 1.22.22. Der frühere Commit enthielt die aktualisierte Dependency-Liste im `package.json`, aber nicht die dazugehörigen 659 Yarn-1-Lockfile-Einträge; Codemagic mit `--frozen-lockfile` brach deshalb bei „Your lockfile needs to be updated“ ab.
+- `yarn.lock` ist jetzt mit Yarn 1.22.22 synchronisiert. Beide Codemagic-Installationsbefehle (`--frozen-lockfile`) laufen in einem sauberen Verzeichnis erfolgreich. Keine Runtime-/App-Funktion geändert.
