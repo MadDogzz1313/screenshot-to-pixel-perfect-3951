@@ -1,0 +1,38 @@
+{
+  "iteration": 23,
+  "mode": "generate",
+  "summary": "Verified single-scope text change on /karte: subtitle now reads 'COMMUNITY MAP' (no GTA VI), centered, with no regressions to other map controls or TypeScript build.",
+  "passed": 3,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "The map subtitle no longer includes GTA VI; label text is exactly 'COMMUNITY MAP'",
+      "name": "karte-community-map-label",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On public preview https://leonida-karte--6tt5kohx.preview.emergentagent.com/karte at 390x844, [data-testid=map-community-label] textContent === 'COMMUNITY MAP', does not include 'GTA VI', computed text-align === 'center'. Screenshot: karte-community-map-label-label-visible.png"
+    },
+    {
+      "criterion": "Only the requested visible label changed; /karte route remains functional with existing controls present",
+      "name": "core-routes-regression-no-crash",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran existing persisted check covering /karte, /profil, /community routes on public preview — all loaded without crash. Screenshots: core-routes-regression-no-crash-karte-ok.png, -profil-ok.png, -community-ok.png"
+    },
+    {
+      "criterion": "No regression from the text-only change (controls intact, no console errors/4xx/5xx); TS build succeeds",
+      "name": "map-search-and-filter-accessible",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran existing persisted check: map search input and filter panel open/close correctly, no console errors. Additionally `yarn exec tsc --noEmit` exited 0 (clean TypeScript check)."
+    }
+  ],
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "notes": [
+    "Backend API (/api/health) confirmed healthy at localhost:8001 (200) prior to browser checks; no API-bearing criteria in this matrix so no new backend test file was needed.",
+    "src/routes/karte.tsx confirmed to contain data-testid=map-community-label with text 'COMMUNITY MAP' only, no other GTA-VI text was touched (matches spec_deviations note).",
+    "Large pre-existing check suite (80+ checks) for this app was not fully re-run since the 4-item acceptance matrix for this change is narrowly scoped to the /karte subtitle; two broader existing checks (core-routes-regression-no-crash, map-search-and-filter-accessible) were re-run to confirm no regression."
+  ]
+}

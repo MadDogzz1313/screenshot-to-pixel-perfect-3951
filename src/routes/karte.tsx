@@ -37,7 +37,7 @@ function Karte() {
               LEONIDA<br />EXPLORER
               <TreePalm aria-hidden className="absolute -right-7 -top-3 h-10 w-10 skew-x-6 text-neon drop-shadow-[0_0_8px_var(--neon)]" />
             </h1>
-            <p className="mt-1.5 text-[10px] font-bold tracking-[0.32em] text-foreground/90 [text-shadow:0_0_8px_oklch(0.7_0.3_345/0.8)]">GTA VI COMMUNITY MAP</p>
+            <p data-testid="map-community-label" className="mt-1.5 text-center text-[10px] font-bold tracking-[0.32em] text-foreground/90 [text-shadow:0_0_8px_oklch(0.7_0.3_345/0.8)]">COMMUNITY MAP</p>
           </div>
           <Link to={bellTo} aria-label={pending ? `${pending} wartende Beiträge` : "Hinweise"} data-testid="map-bell-button" className={`${roundBtn} mt-3`}>
             <Bell className="h-6 w-6" />

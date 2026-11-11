@@ -124,3 +124,6 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Tatsächliche Struktur: einziges maßgebliches Projekt ist `/app` bzw. der Git-Checkout-Root: `/app/package.json` (60 Dependencies), `/app/yarn.lock` (Yarn lockfile v1), `/app/capacitor.config.ts`, `/app/ios/App/App.xcodeproj`. `frontend/package.json` ist nur ein Emergent-Wrapper ohne Dependencies und ohne eigenen Lockfile; dort darf kein zusätzlicher Lockfile angelegt werden.
 - Ursache der wiederholten CI-Meldung: Der `HEAD`-Lockfile des zuvor gespeicherten Branches war nach der Dependency-Aktualisierung veraltet. Repro mit `git show HEAD:yarn.lock` schlägt reproduzierbar fehl; der synchronisierte Arbeitsstand läuft erfolgreich.
 - Beide Yarn-Schritte in `codemagic.yaml` wechseln jetzt explizit mit `CM_BUILD_DIR` bzw. `git rev-parse --show-toplevel` in den Projekt-Root, prüfen dort die maßgeblichen Dateien und führen dort Yarn 1.22.22 mit `--frozen-lockfile --non-interactive --ignore-engines` aus. Keine zusätzlichen Lockfiles, App-Funktionen oder Designs geändert.
+
+## Kartenüberschrift
+- Nur `src/routes/karte.tsx` geändert: Unter „LEONIDA EXPLORER“ steht jetzt zentriert „COMMUNITY MAP“ statt „GTA VI COMMUNITY MAP“. Andere GTA-VI-Texte, Funktionen und Designs bleiben unverändert.
