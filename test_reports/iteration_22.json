@@ -1,0 +1,51 @@
+{
+  "iteration": 22,
+  "mode": "retest",
+  "scope": "Codemagic frozen-lockfile fix verification (retest of iteration_21 artifacts)",
+  "passed": 5,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "The reported Codemagic frozen-lockfile failure is fixed in the repository state",
+      "name": "yarn-lockfile-frozen-install",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app && yarn install --frozen-lockfile --non-interactive --ignore-engines -> 'success Already up-to-date.' Done in 0.17s, EXIT=0. Yarn 1.22.22 confirmed. Root package.json + yarn.lock present; frontend/package.json has no dependencies field and no frontend/yarn.lock exists."
+    },
+    {
+      "criterion": "Codemagic still uses the correct directory without bypassing the check",
+      "name": "codemagic-scripts-root-resolution",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "grep of /app/codemagic.yaml lines 26-38 and 111-126: both dependency steps set REPO_ROOT=\"${CM_BUILD_DIR:-$(git rev-parse --show-toplevel)}\"; cd \"$REPO_ROOT\"; then run yarn install --frozen-lockfile --non-interactive --ignore-engines. No frontend lockfile or non-frozen workaround present."
+    },
+    {
+      "criterion": "No application regression - backend",
+      "name": "backend-pytest-suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q -p no:cacheprovider -> '24 passed, 1 warning in 3.92s'."
+    },
+    {
+      "criterion": "No application regression - app loads without errors",
+      "name": "app-loads-no-errors",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted browser check against public preview URL https://leonida-karte--6tt5kohx.preview.emergentagent.com: PASSED (reran-persisted mode), screenshot app-loads-no-errors-home.png, no thrown errors."
+    },
+    {
+      "criterion": "Capacitor paths and bundle id remain intact (carried from iteration_21, re-verified by inspection)",
+      "name": "capacitor-paths-and-bundle-id",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "find confirms /app/capacitor.config.ts and /app/ios/App/App.xcodeproj still exist at repo root (unchanged since iteration_21)."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "GitHub is not connected in this job (per briefing); the corrected yarn.lock exists only locally (git status shows yarn.lock modified relative to HEAD). User must push/sync to the remote branch for the Codemagic fix to take effect remotely.",
+    "The remote Codemagic macOS job itself cannot be executed from this Linux workspace; verification remains a local proxy (exact frozen-install command + root-resolution script inspection)."
+  ],
+  "retest_needed": false,
+  "notes": "Retest of iteration_21's CI-only fix. All previously-passing checks re-verified green: frozen yarn install exits 0, codemagic.yaml root-resolution + --frozen-lockfile intact on both workflows, backend suite (24 tests) and the public-preview browser smoke check both pass with no regression. No new criteria introduced in this briefing beyond iteration_21's matrix, so no new artifacts were authored."
+}
