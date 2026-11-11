@@ -1,0 +1,68 @@
+{
+  "iteration": 15,
+  "mode": "retest",
+  "summary": "Retest of the updated Datenschutzerklärung (red warning boxes and BITTE-markers removed, controller stays without home address). Re-ran prior browser checks by name; 2 of them (controller-no-address, tech-services-storage) failed because they asserted on testids/text (privacy-controller-address-note, privacy-technical-missing BITTE PRÜFEN) that were intentionally removed from the page per the new spec. Updated those 2 checks to match the new content and added 1 new check for the 'no red boxes / no BITTE text' criterion. All 8 criteria now verified: 7 browser checks pass plus 1 code/route check for the profile privacy link (no test account available).",
+  "passed": 8,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Öffentliche HTTPS-Datenschutzseite",
+      "name": "datenschutz-public-https-title",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run (reran-persisted) against public preview URL: unauthenticated GET /datenschutz returns <400, privacy-page testid visible, document.title contains 'Datenschutz'."
+    },
+    {
+      "criterion": "Verantwortlicher ohne Wohnadresse",
+      "name": "datenschutz-controller-no-address",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Initial rerun FAILED: old assertion expected testid privacy-controller-address-note (removed from src/routes/datenschutz.tsx per spec_deviations). Updated check to assert privacy-controller-details contains 'Nico Etterer', privacy-controller-email contains 'n.etterer@outlook.de', and page body has no placeholder or street/postal-code-like address pattern. Re-ran and PASSED."
+    },
+    {
+      "criterion": "Nachweisbare App-Funktionen",
+      "name": "datenschutz-app-features-sections",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run (reran-persisted): all 9 sections visible (privacy-account/-profile/-spots/-community/-direct-messages/-crew/-arcade/-push/-payments-section) covering Supabase Auth, XP/Level/Abzeichen, Fundorte/Fotos, Chat, DM/Freunde, Crew Finder, Neon Arcade/Bestenlisten, Push, Stripe."
+    },
+    {
+      "criterion": "Technische Dienste und Speicher transparent",
+      "name": "datenschutz-tech-services-storage",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Initial rerun FAILED: old assertion expected testid privacy-technical-missing containing 'BITTE PRÜFEN' (removed from page). Updated check to assert privacy-provider-supabase/-emergent/-stripe/-push mention Supabase/Emergent/Stripe/APNs, privacy-provider-libraries visible, privacy-cookies-text mentions sidebar_state, and privacy-technical-text states no recognizable analytics/ad SDKs. Re-ran and PASSED."
+    },
+    {
+      "criterion": "Keine roten Hinweis-Kästen",
+      "name": "datenschutz-no-red-warning-boxes",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "New check: privacy-page body text contains no 'BITTE ERGÄNZEN' or 'BITTE PRÜFEN', and no descendant elements have class names matching bg-accent/border-accent (count=0). Confirmed by source grep: no BITTE/accent matches in src/routes/datenschutz.tsx or src/components/LegalPage.tsx."
+    },
+    {
+      "criterion": "Kontolöschung korrekt beschrieben",
+      "name": "datenschutz-account-deletion-description",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run (reran-persisted): privacy-retention-account text references 'Konto löschen', 'delete_my_account', best-effort file deletion, SQL-011 dependency and the admin-account restriction."
+    },
+    {
+      "criterion": "Profil/Einstellungen-Link",
+      "name": "profile-privacy-settings-link (code/route check)",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "No test account exists (per briefing), verified via source: src/routes/profil.tsx line 76 renders `<Link to=\"/datenschutz\" data-testid=\"profile-privacy-settings-link\" ...>Datenschutzerklärung</Link>` inside the profile settings section."
+    },
+    {
+      "criterion": "iPhone-Lesbarkeit und Auth-Link",
+      "name": "auth-form-privacy-link-iphone-readable",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run (reran-persisted) at 390x844 on public preview: auth-privacy-footer-link visible on login page, click navigates to /datenschutz (privacy-page visible), no horizontal scroll (scrollWidth <= clientWidth+2)."
+    }
+  ]
+}
