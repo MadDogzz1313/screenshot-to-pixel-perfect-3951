@@ -79,5 +79,15 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 ## Öffentliche Datenschutzerklärung
 - Route `/datenschutz` ist ohne Anmeldung erreichbar und beschreibt die implementierten Verarbeitungen von Supabase Auth, Profile, Fundorten/Fotos, Community-Chat, Direktnachrichten/Freunden, Crew Finder, Neon Arcade/Bestenlisten, Push, Stripe-Spenden und technische lokale Speicher. Verantwortlicher Nico Etterer und E-Mail n.etterer@outlook.de; keine private Wohn-/Postanschrift wird angezeigt. Die zuvor sichtbaren roten Hinweis-Kästen und BITTE-ERGÄNZEN-Hinweise wurden auf Nutzerwunsch entfernt. Link ist im Auth-Formular sowie unter Profil/Einstellungen sichtbar.
 
+
 ## Codemagic-Yarn-Buildfix
 - Ursache des fehlgeschlagenen iOS-Produktionsbuilds: Der Branch enthielt ein veraltetes Yarn-1-Lockfile, in dem mehrere inzwischen in `package.json` verwendete Capacitor-/Ionic-Abhängigkeiten fehlten; deshalb brach `yarn install --frozen-lockfile` mit „Your lockfile needs to be updated“ ab. Zusätzlich konnte Codemagic zuvor eine Yarn-Berry-Version mit veralteten Flags verwenden. `package.json` pinnt jetzt `yarn@1.22.22`, `yarn.lock` ist synchronisiert, und beide Codemagic-Workflows aktivieren Corepack und installieren deterministisch mit Yarn Classic und `--frozen-lockfile`. Keine App-Funktion geändert.
+
+## Fundort-Freischaltung – SQL 015 Fix
+- Ursache im Frontend: Fundortfehler wurden durch `arcadeError()` als „Arcade-Aktion“ ausgegeben, obwohl die Route korrekt `unlock_spot` aufruft. Zusätzlich war die vorhandene SQL-013-RPC bei parallelen Aufrufen nicht ausreichend idempotent serialisiert.
+- `src/lib/arcade.ts` hat jetzt `spotUnlockError()` mit verständlichen Meldungen für fehlende SQL-013-Funktion, zu wenige Coins, fehlende Anmeldung, fehlenden Fundort und Berechtigungsfehler. `src/routes/fundort.$id.tsx` verwendet diese Fundort-spezifische Fehlerbehandlung.
+- `docs/migrations/015_spot_unlock_fix.sql` ersetzt `unlock_spot` atomar: Wallet-Zeile wird pro Benutzer gesperrt, vorhandene Freischaltungen werden nicht gezählt oder erneut berechnet, die ersten zehn unterschiedlichen Fundorte kosten 0, ab dem elften exakt 150 Coins, und parallele Aufrufe können keine doppelte Abbuchung erzeugen. Die Migration muss manuell in Lovable/Supabase nach SQL 013 ausgeführt werden.
+
+## Fundort-Freischaltung – Fix (SQL 015 – vom Nutzer in Lovable auszuführen)
+- Ursache des Fehlers „Die Arcade-Aktion konnte nicht abgeschlossen werden“: `unlock_spot` (013) gibt `returns table(... cost, balance ...)` zurück; unqualifizierte Spalte `balance` kollidierte mit der PL/pgSQL-Ausgabevariable -> `column reference "balance" is ambiguous` bei jedem Aufruf.
+- 015 ersetzt die Funktion (gleiche Signatur) mit Tabellen-Aliassen + `#variable_conflict use_column`, idempotent, Wallet-`FOR UPDATE`, 10 kostenlose verschiedene Fundorte, danach genau 150 Coins, Wiederholung kostenlos. Lokal gegen PG15-Mocks geprüft (10× gratis, 11. ohne Coins -> INSUFFICIENT_COINS, mit 200 -> 50 Rest, Wiederholung 0, unbekannt -> SPOT_NOT_FOUND).

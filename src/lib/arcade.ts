@@ -25,6 +25,18 @@ export function arcadeError(error: { code?: string; message?: string } | null | 
   return "Die Arcade-Aktion konnte nicht abgeschlossen werden.";
 }
 
+export function spotUnlockError(error: { code?: string; message?: string; details?: string } | null | undefined): string {
+  if (!error) return "Die Fundort-Freischaltung konnte nicht abgeschlossen werden.";
+  if (isMissing(error)) return "Die Fundort-Freischaltung ist in der Datenbank noch nicht eingerichtet. Bitte SQL 013 in Lovable ausführen.";
+  const text = [error.message, error.details].filter(Boolean).join(" ");
+  if (text.includes("AUTH_REQUIRED")) return "Bitte melde dich an, um Fundorte freizuschalten.";
+  if (text.includes("INSUFFICIENT_COINS")) return "Du hast nicht genug Leonida Coins. Ab dem 11. Fundort brauchst du genau 150 Coins.";
+  if (text.includes("SPOT_NOT_FOUND")) return "Dieser Fundort ist nicht mehr verfügbar.";
+  if (error.code === "23505") return "Dieser Fundort ist bereits freigeschaltet. Lade die Seite kurz neu.";
+  if (error.code === "42501") return "Du hast keine Berechtigung, diesen Fundort freizuschalten.";
+  return "Die Fundort-Freischaltung konnte nicht abgeschlossen werden.";
+}
+
 export async function startArcadeRound(game: ArcadeGameId): Promise<ArcadeRoundStart | null> {
   const { data, error } = await sb.rpc("start_arcade_round", { _game: game });
   if (error) { if (isMissing(error)) return null; throw error; }
@@ -76,12 +88,20 @@ export function useSpotAccess(spotId: string | undefined, enabled: boolean) {
 }
 export function useUnlockSpot() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: async (spotId: string) => {
-    const { data, error } = await sb.rpc("unlock_spot", { _spot: spotId });
-    if (error) throw error;
-    return (data as { unlocked: boolean; cost: number; balance: number; free_unlock_number: number | null }[])[0];
-  }, onSettled: (_data, _error, spotId) => {
-    void qc.invalidateQueries({ queryKey: ["coin-balance"] });
-    void qc.invalidateQueries({ queryKey: ["spot-access", spotId] });
-  } });
+  return useMutation({
+    mutationFn: async (spotId: string) => {
+      const { data, error } = await sb.rpc("unlock_spot", { _spot: spotId });
+      if (error) throw error;
+      return (data as { unlocked: boolean; cost: number; balance: number; free_unlock_number: number | null }[])[0];
+    },
+    onSuccess: (result, spotId) => {
+      // Sofort Details zeigen; die anschließende Abfrage bestätigt den dauerhaften DB-Stand.
+      qc.setQueryData(["spot-access", spotId], true);
+      if (typeof result?.balance === "number") qc.setQueryData(["coin-balance"], result.balance);
+    },
+    onSettled: (_data, _error, spotId) => {
+      void qc.invalidateQueries({ queryKey: ["coin-balance"] });
+      void qc.invalidateQueries({ queryKey: ["spot-access", spotId] });
+    },
+  });
 }
