@@ -115,7 +115,7 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - `yarn.lock` ist jetzt mit Yarn 1.22.22 synchronisiert. Beide Codemagic-Installationsbefehle (`--frozen-lockfile`) laufen in einem sauberen Verzeichnis erfolgreich. Keine Runtime-/App-Funktion geändert.
 
 ## iOS-App-Icon – Leonida-Neon-Logo
-- Quelle: hochgeladenes Asset `C26CBF82-24D7-438D-ABE4-0B65DEDD01D0.png`; als RGB-PNG ohne Alpha auf 1024×1024 skaliert, ohne Crop und ohne Änderung von Schrift, Farben oder Motiv.
+- Quelle: angehängtes Asset `C26CBF82-24D7-438D-ABE4-0B65DEDD01D0.png`; auf Nutzerwunsch mittig um ca. 10 % vergrößert (zentraler Ausschnitt 1140×1140 aus 1254×1254), anschließend als RGB-PNG ohne Alpha auf 1024×1024 skaliert. Schriftzug und Motiv bleiben erhalten; der äußere Rahmen wird dabei bewusst leicht beschnitten.
 - Ersetzt: `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png`; `Contents.json` referenziert weiterhin ausschließlich dieses Asset. Das Xcode-Projekt nutzt unverändert `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.
 - Unverändert: `appId`/Bundle-ID `de.leonida.explorer`, App-Name `Leonida Explorer`, Funktionen und Webdesign. Capacitor benötigt für das native Icon keine zusätzliche Konfiguration.
 - Beide Codemagic-Workflows prüfen künftig Datei, 1024×1024-Abmessungen, Deckkraft und AssetCatalog-Verweis vor dem Build.

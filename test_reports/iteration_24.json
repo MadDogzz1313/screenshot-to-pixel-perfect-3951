@@ -1,0 +1,36 @@
+{
+  "iteration": 24,
+  "mode": "generate",
+  "summary": "iOS app icon replacement (Leonida Explorer Neon image). All criteria are static native-config/asset checks (no backend API surface, no new UI screen) plus a regression check of the existing web app.",
+  "passed": 2,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "Attached image is the native iOS app icon / meets iOS requirements (1024x1024, opaque RGB, ~10% centered zoom crop, lettering visible)",
+      "name": "static-icon-file-verification",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "AppIcon-512@2x.png verified via PIL: 1024x1024 RGB (no alpha). Visual inspection confirms centered crop of Leonida Explorer neon artwork with 'Leonida Explorer' lettering fully visible and not cropped out."
+    },
+    {
+      "criterion": "Xcode asset catalog selects new icon / app identity unchanged (bundle ID, display name)",
+      "name": "static-xcode-config-verification",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Contents.json references only AppIcon-512@2x.png (universal ios 1024x1024). project.pbxproj: ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon (both Debug/Release), PRODUCT_BUNDLE_IDENTIFIER=de.leonida.explorer. Info.plist CFBundleDisplayName='Leonida Explorer'."
+    },
+    {
+      "criterion": "No application regression (cap sync, tsc, build, existing web app)",
+      "name": "web-app-loads-no-regression",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Loaded https://leonida-karte--6tt5kohx.preview.emergentagent.com, page rendered with non-empty body content, screenshot captured. `yarn exec tsc --noEmit` clean. `yarn build` succeeded (prerendered 1 page, 18 routes). `npx cap sync ios` (run from /app, correct capacitor.config.ts location) completed successfully: copied web assets, updated iOS plugins, sync finished in 0.173s."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "A signed Xcode/TestFlight build cannot be executed in this Linux workspace - confirmed by briefing as expected spec deviation, not a defect.",
+    "Note: `npx cap sync ios` must be run from /app (where capacitor.config.ts lives), not /app/frontend - running from frontend/ errors 'ios platform has not been added yet'. This is just a working-directory note, not a bug."
+  ],
+  "retest_needed": false
+}
