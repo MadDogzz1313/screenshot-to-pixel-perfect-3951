@@ -12,10 +12,22 @@ import pinkRearUrl from "@/assets/highway/pink-rear.webp";
 import pinkHighUrl from "@/assets/highway/pink-high.webp";
 import skylineUrl from "@/assets/highway/skyline.webp";
 import palmUrl from "@/assets/highway/palm.webp";
+import {
+  CAMERA,
+  CAR_W,
+  ROAD_HALF,
+  SHAPES,
+  laneX,
+  zOf,
+  type CarVariant,
+  type HighwayView,
+} from "./geometry";
 
-export type HighwayView = "chase" | "high";
+export type { HighwayView } from "./geometry";
 export type HighwayFrame = {
   lane: number;
+  /** tatsächliche Querposition (Spur-Einheiten) aus der Spiellogik; ohne Angabe gleitet die Grafik selbst zur Spur */
+  x?: number;
   obstacles: readonly { lane: number; y: number; color: string }[];
   elapsed: number;
 };
@@ -26,49 +38,28 @@ export interface HighwayRenderer {
   dispose(): void;
 }
 
-// Abbildung der Spiel-Koordinaten (y 0 = Horizont-Spawn, Kollision bei y .82–1.02) auf die 3D-Straße.
-const LANE_W = 3.2;
-const ROAD_HALF = 5.4;
-const DEPTH = 46;
-const PLAYER_Y = 0.92;
-const CAR_W = 2.3;
+// Abbildung der Spiel-Koordinaten auf die 3D-Straße: gemeinsame Werte in ./geometry (auch für die Hitboxen).
 const SCROLL_PER_MS = 0.03;
 const FOG = "#9e216e";
-const laneX = (lane: number) => (lane - 1) * LANE_W;
-const zOf = (y: number) => -(PLAYER_Y - y) * DEPTH;
 
-type Variant = "player" | "cyan" | "pink";
+type Variant = CarVariant;
 type Asset = { url: string; aspect: number; lean: number };
 // aspect = Höhe/Breite des Bildes, lean = Blickwinkel des Bildes (Grad über dem Boden).
 const ASSETS: Record<Variant, Record<HighwayView, Asset>> = {
   player: {
-    chase: { url: playerRearUrl, aspect: 326 / 512, lean: 12 },
-    high: { url: playerHighUrl, aspect: 509 / 512, lean: 52 },
+    chase: { url: playerRearUrl, ...SHAPES.player.chase },
+    high: { url: playerHighUrl, ...SHAPES.player.high },
   },
   cyan: {
-    chase: { url: cyanRearUrl, aspect: 264 / 384, lean: 12 },
-    high: { url: cyanHighUrl, aspect: 616 / 384, lean: 72 },
+    chase: { url: cyanRearUrl, ...SHAPES.cyan.chase },
+    high: { url: cyanHighUrl, ...SHAPES.cyan.high },
   },
   pink: {
-    chase: { url: pinkRearUrl, aspect: 266 / 384, lean: 12 },
-    high: { url: pinkHighUrl, aspect: 697 / 384, lean: 80 },
+    chase: { url: pinkRearUrl, ...SHAPES.pink.chase },
+    high: { url: pinkHighUrl, ...SHAPES.pink.high },
   },
 };
 const GLOW: Record<Variant, string> = { player: "#ff2e97", cyan: "#22e4f2", pink: "#ff6aa9" };
-
-const CAMERA: Record<
-  HighwayView,
-  {
-    fov: number;
-    halfW: number;
-    height: (d: number) => number;
-    back: (d: number) => number;
-    pitch: number;
-  }
-> = {
-  chase: { fov: 60, halfW: 5.0, height: (d) => 0.32 * d + 1.2, back: (d) => d, pitch: 8 },
-  high: { fov: 64, halfW: 6.8, height: (d) => 0.78 * d, back: (d) => 0.95 * d, pitch: 24 },
-};
 
 const groundVert = /* glsl */ `
 varying vec3 vW; varying float vDepth;
@@ -369,7 +360,12 @@ export function createHighwayRenderer(
       const gap = now - lastRender;
       lastRender = now;
       const goal = laneX(frame.lane);
-      visualX = gap > 200 ? goal : goal + (visualX - goal) * Math.exp(-18 * (gap / 1000));
+      visualX =
+        frame.x !== undefined
+          ? laneX(frame.x)
+          : gap > 200
+            ? goal
+            : goal + (visualX - goal) * Math.exp(-18 * (gap / 1000));
       const scroll = frame.elapsed * SCROLL_PER_MS;
       groundScroll.value = scroll;
       skyTime.value = now / 1000;
