@@ -99,3 +99,8 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Steuerung: pro Finger genau ein Spurwechsel (Wischen ≥22 px waagrecht, Flick ≥12 px schnell, senkrecht ignoriert), Antippen links/rechts bleibt, Pfeiltasten/A/D, Pointer-Capture, nicht-passiver touchmove-Blocker. Canvas `data-lane` = Zielspur (für Tests).
 - Punkte unverändert (0,035/ms), Coins/XP/Highscore über dieselben RPCs.
 - Tests: `highway/engine.test.ts` + `gestures.test.ts` (39 Tests, u. a. Bot mit 200 ms Reaktion überlebt 5 min in 40 Läufen). Hinweis: Projekt-`vitest.config.ts` scheitert an fehlendem `@testing-library/dom`; Highway-Tests laufen mit node-Umgebung.
+
+## Arcade-Rundenwertung – Fix (SQL 016, vom Nutzer in Lovable auszuführen)
+- Ursache „zu kurz, zu lang oder unterbrochen“: 013 setzte neon_highway auf max_duration 60 s (+10 s) -> jede Runde > 70 s abgelehnt; Score > max_score (6000) abgelehnt; Server-Zeitfenster Spielzeit+30 s (Pausen!); server_ms auf ganze Sekunden.
+- 016: Lange Runden nie abgelehnt (Zeit für Prüfung auf max_duration 3600 s gedeckelt), Highscore = echter Score, Belohnung gedeckelt über max_score + Tageslimits (300 Coins / 600 XP). Schutz: Spielzeit ≤ Serverzeit+5 s (ROUND_DURATION_INVALID), Score ≤ Dauer·score_per_second+120 (highway 36/s, real 35/s; ROUND_SCORE_INVALID), < 1 s ROUND_TOO_SHORT, > 6 h offen ROUND_EXPIRED, Round-ID idempotent. Rückgabe zusätzlich `daily_limit_reached`.
+- Frontend (`src/lib/arcade.ts`): eigene Meldung je Code, bis zu 3 Versuche bei Netzfehlern (idempotent), Score als floor (wie angezeigt). Spiele zeigen bei Ablehnung „Diese Runde wurde nicht gewertet.“ statt endlos „Wertung wird gespeichert …“ und „· Tageslimit erreicht“. Tests: `src/lib/arcade.test.ts`.

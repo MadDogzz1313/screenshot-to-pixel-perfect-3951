@@ -3,7 +3,7 @@ import { isMissing, sb } from "./db";
 
 export type ArcadeGameId = "neon_highway" | "leonida_fishing";
 export type ArcadeRoundStart = { round_id: string; seed: string; started_at: string; max_duration_seconds: number; max_score: number };
-export type ArcadeRoundResult = { round_id: string; score: number; coins: number; xp: number; new_high_score: boolean; already_processed?: boolean };
+export type ArcadeRoundResult = { round_id: string; score: number; coins: number; xp: number; new_high_score: boolean; already_processed?: boolean; daily_limit_reached?: boolean };
 export type LeaderboardEntry = { rank: number; user_id: string; username: string | null; score: number };
 export type ArcadeStats = { high_score: number | null; rank: number | null; xp_earned: number };
 
@@ -18,7 +18,10 @@ export function arcadeError(error: { code?: string; message?: string } | null | 
   if (isMissing(error)) return "Arcade-Belohnungen werden nach dem Datenbank-Update (SQL 013) aktiv.";
   const msg = error.message ?? "";
   if (msg.includes("AUTH_REQUIRED")) return "Bitte melde dich an, um gewertete Runden zu spielen.";
-  if (msg.includes("ROUND_DURATION_INVALID")) return "Diese Runde war zu kurz, zu lang oder wurde unterbrochen und wurde nicht gewertet.";
+  if (msg.includes("ROUND_TOO_SHORT")) return "Diese Runde war zu kurz und wurde nicht gewertet.";
+  if (msg.includes("ROUND_EXPIRED")) return "Diese Runde war über 6 Stunden offen und ist verfallen.";
+  if (msg.includes("ROUND_DURATION_INVALID")) return "Die gemeldete Spielzeit war nicht plausibel – die Runde wurde nicht gewertet.";
+  if (msg.includes("ROUND_NOT_FOUND") || msg.includes("ROUND_CLOSED")) return "Diese Runde ist nicht mehr offen und konnte nicht gewertet werden.";
   if (msg.includes("ROUND_SCORE_INVALID")) return "Das Ergebnis war serverseitig nicht plausibel und wurde nicht gewertet.";
   if (msg.includes("INSUFFICIENT_COINS")) return "Du hast nicht genug Leonida Coins.";
   if (msg.includes("SPOT_NOT_FOUND")) return "Dieser Fundort ist nicht mehr verfügbar.";
@@ -42,10 +45,18 @@ export async function startArcadeRound(game: ArcadeGameId): Promise<ArcadeRoundS
   if (error) { if (isMissing(error)) return null; throw error; }
   return data as ArcadeRoundStart;
 }
+/** Serverseitige Ablehnungsgründe – alles andere (z. B. kurzer Netzabbruch) wird automatisch erneut versucht. */
+const FINAL_ARCADE_ERRORS = /AUTH_REQUIRED|ROUND_|GAME_UNAVAILABLE/;
 export async function finishArcadeRound(roundId: string, score: number, durationMs: number): Promise<ArcadeRoundResult | null> {
-  const { data, error } = await sb.rpc("finish_arcade_round", { _round: roundId, _score: Math.max(0, Math.round(score)), _duration_ms: Math.max(0, Math.round(durationMs)) });
-  if (error) { if (isMissing(error)) return null; throw error; }
-  return data as ArcadeRoundResult;
+  const args = { _round: roundId, _score: Math.max(0, Math.floor(score)), _duration_ms: Math.max(0, Math.round(durationMs)) };
+  // Die Wertung ist serverseitig idempotent (Round-ID): eine Wiederholung kann nie doppelt Coins gutschreiben.
+  for (let attempt = 1; ; attempt++) {
+    const { data, error } = await sb.rpc("finish_arcade_round", args);
+    if (!error) return data as ArcadeRoundResult;
+    if (isMissing(error)) return null;
+    if (attempt >= 3 || FINAL_ARCADE_ERRORS.test(error.message ?? "")) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 900 * attempt));
+  }
 }
 
 export function useCoinBalance(enabled: boolean) {
