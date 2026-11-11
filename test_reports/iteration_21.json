@@ -1,0 +1,51 @@
+{
+  "iteration": 21,
+  "mode": "generate",
+  "scope": "CI-only change: root package.json/yarn.lock as single dependency source, Codemagic frozen-lockfile scripts, Capacitor paths/bundle id, no app regression",
+  "passed": 5,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "The actual repository structure is used for iOS CI",
+      "name": "repo-structure-single-dependency-source",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "bash: /app/package.json has 60 deps, packageManager yarn@1.22.22, workspaces=None; /app/yarn.lock present; /app/frontend/package.json has no dependencies field (only dev/build/start scripts delegating to root); /app/frontend/yarn.lock absent (ls: cannot access 'frontend/yarn.lock': No such file or directory)."
+    },
+    {
+      "criterion": "Yarn lockfile matches the root package.json",
+      "name": "yarn-lockfile-frozen-install",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app && yarn install --non-interactive --ignore-engines -> 'success Already up-to-date.' Done in 0.16s; yarn install --frozen-lockfile --non-interactive --ignore-engines -> 'success Already up-to-date.' Done in 0.16s, exit 0. Yarn version confirmed 1.22.22."
+    },
+    {
+      "criterion": "Codemagic stays frozen and uses the root",
+      "name": "codemagic-scripts-root-resolution",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Read /app/codemagic.yaml: both 'Abhängigkeiten installieren' scripts (ios-testflight and ios-build-check workflows) contain REPO_ROOT=\"${CM_BUILD_DIR:-$(git rev-parse --show-toplevel)}\"; cd \"$REPO_ROOT\"; test -f package.json; test -f yarn.lock; test -f capacitor.config.ts; test -d ios/App/App.xcodeproj; followed by corepack prepare yarn@1.22.22 --activate and yarn install --frozen-lockfile --non-interactive --ignore-engines."
+    },
+    {
+      "criterion": "Capacitor paths remain intact",
+      "name": "capacitor-paths-and-bundle-id",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "find confirms /app/capacitor.config.ts and /app/ios/App/App.xcodeproj exist at repo root. grep: capacitor.config.ts line 8 appId: \"de.leonida.explorer\"; project.pbxproj lines 313/335 PRODUCT_BUNDLE_IDENTIFIER = de.leonida.explorer;"
+    },
+    {
+      "criterion": "No app regression from the CI-only change",
+      "name": "app-loads-no-errors",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "cd /app && yarn build completed successfully ('✓ built in 641ms', nitro output generated, 'Done in 4.15s', exit 0). Browser check against public preview URL https://leonida-karte--6tt5kohx.preview.emergentagent.com loaded the app, body visible, no thrown errors. Screenshot: app-loads-no-errors-home.png. Additionally existing backend pytest suite (24 tests, unrelated app features) still passes: '24 passed, 1 warning in 3.78s', confirming no collateral backend regression."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "GitHub is not connected in this job (per briefing), so the updated yarn.lock and codemagic.yaml exist only in the local workspace; user must save them to Branch Emergent to persist the fix.",
+    "The remote Codemagic macOS job itself could not be executed (Linux workspace); verification was done by replicating the exact root-resolution and frozen-install commands locally, which is the best available proxy."
+  ],
+  "retest_needed": false,
+  "notes": "This briefing is a CI/build-tooling change with no new application UI or API surface, so all 5 acceptance-matrix items were verified via direct file/structure inspection and command execution (yarn install --frozen-lockfile, build) rather than new backend HTTP tests or UI flows (none apply). One browser check was run against the public preview URL to confirm no app regression. Pre-existing backend pytest suite (payments, health, chat migration - unrelated to this CI change) was also re-run and remains green. git diff shows yarn.lock has pending uncommitted changes relative to last commit, consistent with seed_facts describing the lockfile as freshly synchronized but not yet pushed."
+}
