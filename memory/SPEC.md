@@ -104,3 +104,8 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Ursache „zu kurz, zu lang oder unterbrochen“: 013 setzte neon_highway auf max_duration 60 s (+10 s) -> jede Runde > 70 s abgelehnt; Score > max_score (6000) abgelehnt; Server-Zeitfenster Spielzeit+30 s (Pausen!); server_ms auf ganze Sekunden.
 - 016: Lange Runden nie abgelehnt (Zeit für Prüfung auf max_duration 3600 s gedeckelt), Highscore = echter Score, Belohnung gedeckelt über max_score + Tageslimits (300 Coins / 600 XP). Schutz: Spielzeit ≤ Serverzeit+5 s (ROUND_DURATION_INVALID), Score ≤ Dauer·score_per_second+120 (highway 36/s, real 35/s; ROUND_SCORE_INVALID), < 1 s ROUND_TOO_SHORT, > 6 h offen ROUND_EXPIRED, Round-ID idempotent. Rückgabe zusätzlich `daily_limit_reached`.
 - Frontend (`src/lib/arcade.ts`): eigene Meldung je Code, bis zu 3 Versuche bei Netzfehlern (idempotent), Score als floor (wie angezeigt). Spiele zeigen bei Ablehnung „Diese Runde wurde nicht gewertet.“ statt endlos „Wertung wird gespeichert …“ und „· Tageslimit erreicht“. Tests: `src/lib/arcade.test.ts`.
+
+## iOS-App-Name
+- Anzeigename unter dem Symbol: „Leonida Explorer“ (Info.plist CFBundleDisplayName, capacitor.config.ts appName). CFBundleName bleibt $(PRODUCT_NAME) (= Target „App“, nicht sichtbar; Umbenennen würde App.app-Pfade brechen). Bundle-ID unverändert de.leonida.explorer.
+- codemagic.yaml: Schritt „App-Namen unter dem Symbol festlegen“ (beide Workflows, nach cap sync) setzt CFBundleDisplayName + ggf. InfoPlist.strings und bricht ab, wenn „GTA VI“ im Namen steht.
+- Hinweis: App-Symbol enthält ein großes „VI“ im Stil des GTA-VI-Logos (Risiko App-Review 5.2.1) – nur auf Wunsch ändern.

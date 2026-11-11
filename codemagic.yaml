@@ -28,6 +28,25 @@ workflows:
           yarn install --frozen-lockfile --non-interactive --ignore-engines
       - name: iOS-Projekt synchronisieren
         script: npx cap sync ios
+      - name: App-Namen unter dem Symbol festlegen
+        # Name auf dem Home-Bildschirm = CFBundleDisplayName. Bundle-ID, Symbol und Funktionen bleiben unverändert.
+        script: |
+          set -e
+          PLIST=ios/App/App/Info.plist
+          plutil -replace CFBundleDisplayName -string "Leonida Explorer" "$PLIST"
+          # lokalisierte Anzeigenamen (falls vorhanden) angleichen
+          find ios/App -name "InfoPlist.strings" -not -path "*/Pods/*" | while read -r f; do
+            plutil -convert xml1 "$f" -o /tmp/ips.plist 2>/dev/null || continue
+            plutil -replace CFBundleDisplayName -string "Leonida Explorer" /tmp/ips.plist
+            if plutil -extract CFBundleName raw -o - /tmp/ips.plist >/dev/null 2>&1; then plutil -replace CFBundleName -string "Leonida Explorer" /tmp/ips.plist; fi
+            plutil -convert binary1 /tmp/ips.plist -o "$f"
+          done
+          test "$(plutil -extract CFBundleDisplayName raw -o - "$PLIST")" = "Leonida Explorer"
+          grep -q "PRODUCT_BUNDLE_IDENTIFIER = de.leonida.explorer;" ios/App/App.xcodeproj/project.pbxproj
+          if grep -rIl "GTA VI" ios/App/App/Info.plist ios/App/App/capacitor.config.json $(find ios/App -name "InfoPlist.strings" -not -path "*/Pods/*"); then
+            echo "❌ App-Name enthält noch „GTA VI“"; exit 1
+          fi
+          echo "✅ App-Name: $(plutil -extract CFBundleDisplayName raw -o - "$PLIST")"
       - name: Signierprofile anwenden
         script: xcode-project use-profiles
       - name: Build-Nummer erhöhen
@@ -87,6 +106,25 @@ workflows:
           npx cap sync ios
           test -f ios/App/App/capacitor.config.json
           grep -q '"appId": "de.leonida.explorer"' ios/App/App/capacitor.config.json
+      - name: App-Namen unter dem Symbol festlegen
+        # Name auf dem Home-Bildschirm = CFBundleDisplayName. Bundle-ID, Symbol und Funktionen bleiben unverändert.
+        script: |
+          set -e
+          PLIST=ios/App/App/Info.plist
+          plutil -replace CFBundleDisplayName -string "Leonida Explorer" "$PLIST"
+          # lokalisierte Anzeigenamen (falls vorhanden) angleichen
+          find ios/App -name "InfoPlist.strings" -not -path "*/Pods/*" | while read -r f; do
+            plutil -convert xml1 "$f" -o /tmp/ips.plist 2>/dev/null || continue
+            plutil -replace CFBundleDisplayName -string "Leonida Explorer" /tmp/ips.plist
+            if plutil -extract CFBundleName raw -o - /tmp/ips.plist >/dev/null 2>&1; then plutil -replace CFBundleName -string "Leonida Explorer" /tmp/ips.plist; fi
+            plutil -convert binary1 /tmp/ips.plist -o "$f"
+          done
+          test "$(plutil -extract CFBundleDisplayName raw -o - "$PLIST")" = "Leonida Explorer"
+          grep -q "PRODUCT_BUNDLE_IDENTIFIER = de.leonida.explorer;" ios/App/App.xcodeproj/project.pbxproj
+          if grep -rIl "GTA VI" ios/App/App/Info.plist ios/App/App/capacitor.config.json $(find ios/App -name "InfoPlist.strings" -not -path "*/Pods/*"); then
+            echo "❌ App-Name enthält noch „GTA VI“"; exit 1
+          fi
+          echo "✅ App-Name: $(plutil -extract CFBundleDisplayName raw -o - "$PLIST")"
       - name: iOS-Konfiguration prüfen
         script: |
           plutil -lint ios/App/App/Info.plist ios/App/App/App.entitlements
