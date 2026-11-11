@@ -46,7 +46,14 @@ workflows:
           if grep -rIl "GTA VI" ios/App/App/Info.plist ios/App/App/capacitor.config.json $(find ios/App -name "InfoPlist.strings" -not -path "*/Pods/*"); then
             echo "❌ App-Name enthält noch „GTA VI“"; exit 1
           fi
+          ICON=ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+          test -f "$ICON"
+          sips -g pixelWidth -g pixelHeight "$ICON" | grep -q "pixelWidth: 1024"
+          sips -g pixelWidth -g pixelHeight "$ICON" | grep -q "pixelHeight: 1024"
+          if sips -g hasAlpha "$ICON" | grep -qi "yes"; then echo "❌ App-Icon darf keine Transparenz enthalten"; exit 1; fi
+          grep -q '"filename" : "AppIcon-512@2x.png"' ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json
           echo "✅ App-Name: $(plutil -extract CFBundleDisplayName raw -o - "$PLIST")"
+          echo "✅ App-Icon: 1024x1024, deckend, AppIcon.appiconset"
       - name: Signierprofile anwenden
         script: xcode-project use-profiles
       - name: Build-Nummer erhöhen
@@ -124,7 +131,14 @@ workflows:
           if grep -rIl "GTA VI" ios/App/App/Info.plist ios/App/App/capacitor.config.json $(find ios/App -name "InfoPlist.strings" -not -path "*/Pods/*"); then
             echo "❌ App-Name enthält noch „GTA VI“"; exit 1
           fi
+          ICON=ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+          test -f "$ICON"
+          sips -g pixelWidth -g pixelHeight "$ICON" | grep -q "pixelWidth: 1024"
+          sips -g pixelWidth -g pixelHeight "$ICON" | grep -q "pixelHeight: 1024"
+          if sips -g hasAlpha "$ICON" | grep -qi "yes"; then echo "❌ App-Icon darf keine Transparenz enthalten"; exit 1; fi
+          grep -q '"filename" : "AppIcon-512@2x.png"' ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json
           echo "✅ App-Name: $(plutil -extract CFBundleDisplayName raw -o - "$PLIST")"
+          echo "✅ App-Icon: 1024x1024, deckend, AppIcon.appiconset"
       - name: iOS-Konfiguration prüfen
         script: |
           plutil -lint ios/App/App/Info.plist ios/App/App/App.entitlements

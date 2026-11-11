@@ -1,0 +1,45 @@
+{
+  "passed": 5,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Existing web app remains unaffected by the native icon replacement",
+      "name": "preview-login-unaffected",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Loaded https://leonida-karte--6tt5kohx.preview.emergentagent.com/ at 390x844, title asserted 'Anmelden · Leonida Explorer', no assertion failures, screenshot captured."
+    },
+    {
+      "criterion": "Native AppIcon asset is correctly configured for iOS",
+      "name": "static-check-appicon-contents-json",
+      "lane": "static-file",
+      "status": "passed",
+      "evidence": "Contents.json: images=[{filename:'AppIcon-512@2x.png', idiom:'universal', platform:'ios', size:'1024x1024'}]. project.pbxproj contains ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon (both build configs)."
+    },
+    {
+      "criterion": "New icon meets requested file requirements",
+      "name": "static-check-appicon-png-properties",
+      "lane": "static-file",
+      "status": "passed",
+      "evidence": "file + PIL on /app/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png -> PNG 1024x1024, 8-bit RGB, non-interlaced, mode='RGB' (no alpha channel)."
+    },
+    {
+      "criterion": "App identity remains unchanged",
+      "name": "static-check-app-identity",
+      "lane": "static-file",
+      "status": "passed",
+      "evidence": "Info.plist CFBundleDisplayName='Leonida Explorer'. project.pbxproj PRODUCT_BUNDLE_IDENTIFIER = de.leonida.explorer (both Debug/Release configs)."
+    },
+    {
+      "criterion": "Production web build remains valid",
+      "name": "frontend-yarn-build",
+      "lane": "build",
+      "status": "passed",
+      "evidence": "`cd /app/frontend && yarn build` completed: '[prerender] Prerendered 1 pages: - /', 'Emergent SPA build ready: frontend/dist (18 routes)', 'Done in 4.73s.' exit 0."
+    }
+  ],
+  "notes": "Native icon replacement task (no API/backend surface changed). Backend root '/api/' returning 404 is pre-existing/expected (no root API route defined) and unrelated to this icon criterion set; not reported as a bug. Signed iOS/TestFlight build cannot be produced in this Linux workspace per spec_deviations; verified via static file/config inspection instead."
+}
