@@ -1,0 +1,63 @@
+{
+  "iteration": 16,
+  "mode": "generate",
+  "summary": "Verified the Codemagic/Yarn pinning fix for the iOS CI workflows. All CLI-reproducible criteria (Yarn version, install, tsc, web build, Capacitor sync/config) were run directly in this workspace exactly as the codemagic.yaml scripts do; the two Codemagic-specific dependency-step criteria were verified by reading the committed codemagic.yaml content since no macOS CI runner is available here. One browser check verifies no web regression on the public /datenschutz route. 7 of 7 criteria covered, all passed.",
+  "passed": 7,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [
+    "spec_deviation (from briefing): a real Codemagic macOS signing/TestFlight build could not be executed inside this workspace; user must rerun the ios-testflight workflow on Codemagic after pushing these changes to confirm the red 'Abhängigkeiten installieren' step and YN0050 Yarn Berry messages are gone."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Yarn-Version reproduzierbar",
+      "name": "yarn-version-pin-check",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "package.json has \"packageManager\": \"yarn@1.22.22\"; yarn.lock is a Yarn-1 lockfile (# yarn lockfile v1 header, no __metadata). `corepack enable && corepack prepare yarn@1.22.22 --activate && yarn --version` in this workspace printed exactly `1.22.22`."
+    },
+    {
+      "criterion": "TestFlight-Workflow Dependency Step",
+      "name": "codemagic-testflight-dependency-step-review",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "codemagic.yaml ios-testflight 'Abhängigkeiten installieren' step: `corepack enable`, `corepack prepare yarn@1.22.22 --activate`, `yarn --version`, then `yarn install --frozen-lockfile --non-interactive --ignore-engines`. No global/unpinned Yarn Berry invocation remains before this step."
+    },
+    {
+      "criterion": "Simulator-Workflow Dependency Step",
+      "name": "codemagic-simulator-dependency-step-review",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "codemagic.yaml ios-build-check 'Abhängigkeiten installieren' step: enables corepack to a custom install dir, `corepack prepare yarn@1.22.22 --activate`, `yarn install --frozen-lockfile`, then `test -d node_modules/@capacitor/ios` to assert the package exists. Local rerun of `test -d /app/node_modules/@capacitor/ios` after `yarn install` succeeded (exit 0)."
+    },
+    {
+      "criterion": "Install and TypeScript",
+      "name": "yarn-install-and-tsc",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`yarn install --frozen-lockfile --non-interactive --ignore-engines` -> exit 0 ('success Already up-to-date. Done in 0.13s'). `yarn exec tsc --noEmit` -> exit 0 ('Done in 5.83s') with no TS errors printed."
+    },
+    {
+      "criterion": "Web Build",
+      "name": "yarn-build-output",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`yarn build` exited 0 ('✓ built in 609ms' ... 'Done in 4.10s'); build output lists `.output/server/_ssr/datenschutz-CNg9DmNX.mjs` (21.80 kB) confirming the datenschutz route chunk is produced."
+    },
+    {
+      "criterion": "Capacitor Sync",
+      "name": "capacitor-sync-ios-config",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`npx cap sync ios` exited 0 ('[info] Sync finished in 0.19s'). Resulting ios/App/App/capacitor.config.json contains \"appId\": \"de.leonida.explorer\" and server.url \"https://leonida-preview-2.emergent.host\"."
+    },
+    {
+      "criterion": "No Web Regression",
+      "name": "datenschutz-public-smoke",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Navigated to https://leonida-karte--6tt5kohx.preview.emergentagent.com/datenschutz unauthenticated: navigation response status <400, document title matched /Datenschutz · Leonida Explorer/, zero HTTP>=400 responses captured, zero console/page errors captured during load."
+    }
+  ]
+}

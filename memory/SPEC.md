@@ -78,3 +78,6 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 
 ## Öffentliche Datenschutzerklärung
 - Route `/datenschutz` ist ohne Anmeldung erreichbar und beschreibt die implementierten Verarbeitungen von Supabase Auth, Profile, Fundorten/Fotos, Community-Chat, Direktnachrichten/Freunden, Crew Finder, Neon Arcade/Bestenlisten, Push, Stripe-Spenden und technische lokale Speicher. Verantwortlicher Nico Etterer und E-Mail n.etterer@outlook.de; keine private Wohn-/Postanschrift wird angezeigt. Die zuvor sichtbaren roten Hinweis-Kästen und BITTE-ERGÄNZEN-Hinweise wurden auf Nutzerwunsch entfernt. Link ist im Auth-Formular sowie unter Profil/Einstellungen sichtbar.
+
+## Codemagic-Yarn-Buildfix
+- Ursache des fehlgeschlagenen iOS-Produktionsbuilds: Codemagic konnte für `ios-testflight` eine Yarn-Berry-Version verwenden, obwohl das Repository ein Yarn-1-Lockfile besitzt; die roten YN0050-Zeilen betrafen veraltete Yarn-Berry-Flags. `package.json` pinnt jetzt `yarn@1.22.22`; beide Codemagic-Workflows aktivieren Corepack und installieren deterministisch mit Yarn Classic und `--frozen-lockfile`. Keine App-Funktion geändert.

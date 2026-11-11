@@ -15,11 +15,17 @@ workflows:
         bundle_identifier: de.leonida.explorer
       node: 22
       xcode: latest
+      vars:
+        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
     triggering:
       events: []          # nur manuell starten ("Start new build")
     scripts:
       - name: Abhängigkeiten installieren
-        script: yarn install --non-interactive --ignore-engines
+        script: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+          yarn --version
+          yarn install --frozen-lockfile --non-interactive --ignore-engines
       - name: iOS-Projekt synchronisieren
         script: npx cap sync ios
       - name: Signierprofile anwenden
@@ -63,15 +69,15 @@ workflows:
           node -v
           xcodebuild -version
       - name: Abhängigkeiten installieren
-        # Yarn-Version aus package.json ("packageManager") per Corepack; ohne Feld nimmt Corepack Yarn 1.
-        # (npm scheitert hier an einem npm-10-Fehler mit "overrides": "Cannot read properties of null (reading 'edgesOut')")
+        # Yarn Classic ist absichtlich festgelegt: yarn.lock ist ein Yarn-1-Lockfile und Capacitor benötigt node_modules.
         script: |
           mkdir -p "$HOME/.corepack-bin"
           corepack enable --install-directory "$HOME/.corepack-bin"
           export PATH="$HOME/.corepack-bin:$PATH"
           echo "PATH=$PATH" >> "$CM_ENV"
+          corepack prepare yarn@1.22.22 --activate
           yarn --version
-          yarn install
+          yarn install --frozen-lockfile
           test -d node_modules/@capacitor/ios
       - name: Web-App bauen (React/Vite)
         script: npx vite build
