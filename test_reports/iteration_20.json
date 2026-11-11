@@ -1,0 +1,48 @@
+{
+  "iteration": 20,
+  "mode": "generate",
+  "summary": "Codemagic/Yarn root-resolution fix (CI/build config task, no new UI surface). Verified both install scripts resolve CM_BUILD_DIR/git-toplevel and check required files, verified frozen Yarn 1.22.22 install from /app root with no frontend lockfile created, and ran one public-preview smoke check for app-regression coverage.",
+  "passed": 5,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Codemagic identifies the actual iOS project root",
+      "name": "codemagic-root-resolution-static-check",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Inspected codemagic.yaml: both 'Abhängigkeiten installieren' scripts (ios-testflight and ios-build-check workflows) set REPO_ROOT=${CM_BUILD_DIR:-$(git rev-parse --show-toplevel)}, cd there, then run `test -f package.json`, `test -f yarn.lock`, `test -f capacitor.config.ts`, `test -d ios/App/App.xcodeproj` before any yarn command."
+    },
+    {
+      "criterion": "Yarn 1.22.22 frozen install works from the actual root",
+      "name": "yarn-frozen-install-from-root",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "With CM_BUILD_DIR=/app, corepack prepare yarn@1.22.22 --activate -> `yarn --version` printed 1.22.22; `yarn install --frozen-lockfile --non-interactive --ignore-engines` -> 'success Already up-to-date. Done in 0.13s.' exit 0. Confirmed no frontend/yarn.lock existed before or after (`ls frontend/yarn.lock` -> not found both times)."
+    },
+    {
+      "criterion": "The stale branch state is understood and prevented from recurring",
+      "name": "stale-lockfile-state-verification",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "git status --short shows yarn.lock (root) modified/staged as part of working changes; frontend/package.json confirmed to be a dependency-free wrapper (scripts only: dev/build/start, no dependencies block) with no frontend/yarn.lock present. No alternative lockfile (npm/pnpm) found anywhere under /app root or frontend/."
+    },
+    {
+      "criterion": "Capacitor build paths remain unchanged",
+      "name": "capacitor-paths-and-bundle-id-check",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "capacitor.config.ts at repo root has appId: \"de.leonida.explorer\"; ios/App/App.xcodeproj exists at repo root; after yarn install, node_modules/@capacitor/ios present and ios/App/App/capacitor.config.json contains '\"appId\": \"de.leonida.explorer\"' matching config."
+    },
+    {
+      "criterion": "App remains unaffected",
+      "name": "preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "`yarn build` at /app completed successfully ('[nitro] You can preview this build...', 'Done in 4.55s.', exit 0). Browser check against public preview URL https://leonida-karte--6tt5kohx.preview.emergentagent.com navigated and rendered non-empty body; screenshot saved. No regression observed."
+    }
+  ],
+  "notes": "This iteration's briefing covers a CI/build-configuration fix (Codemagic script root resolution + Yarn lockfile sync), not an app feature; there was no new UI surface to add a browser check for beyond the standard app-health smoke check. All verification was done via direct shell execution simulating the Codemagic script steps (Codemagic itself cannot run inside this Linux workspace, consistent with spec_deviations) plus one public-preview browser smoke check. A large pre-existing library of ~70 browser checks from prior iterations exists in /app/.emergent/scripts/checks/ and was not re-run since none of those criteria were touched by this change."
+}

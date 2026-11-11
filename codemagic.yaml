@@ -22,6 +22,16 @@ workflows:
     scripts:
       - name: Abhängigkeiten installieren
         script: |
+          set -e
+          REPO_ROOT="${CM_BUILD_DIR:-$(git rev-parse --show-toplevel)}"
+          cd "$REPO_ROOT"
+          test -f package.json
+          test -f yarn.lock
+          test -f capacitor.config.ts
+          test -d ios/App/App.xcodeproj
+          echo "📁 iOS-Yarn-Projekt: $PWD"
+          echo "📦 package.json: $PWD/package.json"
+          echo "🔒 yarn.lock: $PWD/yarn.lock"
           corepack enable
           corepack prepare yarn@1.22.22 --activate
           yarn --version
@@ -97,13 +107,23 @@ workflows:
       - name: Abhängigkeiten installieren
         # Yarn Classic ist absichtlich festgelegt: yarn.lock ist ein Yarn-1-Lockfile und Capacitor benötigt node_modules.
         script: |
+          set -e
+          REPO_ROOT="${CM_BUILD_DIR:-$(git rev-parse --show-toplevel)}"
+          cd "$REPO_ROOT"
+          test -f package.json
+          test -f yarn.lock
+          test -f capacitor.config.ts
+          test -d ios/App/App.xcodeproj
+          echo "📁 iOS-Yarn-Projekt: $PWD"
+          echo "📦 package.json: $PWD/package.json"
+          echo "🔒 yarn.lock: $PWD/yarn.lock"
           mkdir -p "$HOME/.corepack-bin"
           corepack enable --install-directory "$HOME/.corepack-bin"
           export PATH="$HOME/.corepack-bin:$PATH"
           echo "PATH=$PATH" >> "$CM_ENV"
           corepack prepare yarn@1.22.22 --activate
           yarn --version
-          yarn install --frozen-lockfile
+          yarn install --frozen-lockfile --non-interactive --ignore-engines
           test -d node_modules/@capacitor/ios
       - name: Web-App bauen (React/Vite)
         script: npx vite build

@@ -119,3 +119,8 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Ersetzt: `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png`; `Contents.json` referenziert weiterhin ausschließlich dieses Asset. Das Xcode-Projekt nutzt unverändert `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.
 - Unverändert: `appId`/Bundle-ID `de.leonida.explorer`, App-Name `Leonida Explorer`, Funktionen und Webdesign. Capacitor benötigt für das native Icon keine zusätzliche Konfiguration.
 - Beide Codemagic-Workflows prüfen künftig Datei, 1024×1024-Abmessungen, Deckkraft und AssetCatalog-Verweis vor dem Build.
+
+## Codemagic-Verzeichnis-Fix (Yarn erneut)
+- Tatsächliche Struktur: einziges maßgebliches Projekt ist `/app` bzw. der Git-Checkout-Root: `/app/package.json` (60 Dependencies), `/app/yarn.lock` (Yarn lockfile v1), `/app/capacitor.config.ts`, `/app/ios/App/App.xcodeproj`. `frontend/package.json` ist nur ein Emergent-Wrapper ohne Dependencies und ohne eigenen Lockfile; dort darf kein zusätzlicher Lockfile angelegt werden.
+- Ursache der wiederholten CI-Meldung: Der `HEAD`-Lockfile des zuvor gespeicherten Branches war nach der Dependency-Aktualisierung veraltet. Repro mit `git show HEAD:yarn.lock` schlägt reproduzierbar fehl; der synchronisierte Arbeitsstand läuft erfolgreich.
+- Beide Yarn-Schritte in `codemagic.yaml` wechseln jetzt explizit mit `CM_BUILD_DIR` bzw. `git rev-parse --show-toplevel` in den Projekt-Root, prüfen dort die maßgeblichen Dateien und führen dort Yarn 1.22.22 mit `--frozen-lockfile --non-interactive --ignore-engines` aus. Keine zusätzlichen Lockfiles, App-Funktionen oder Designs geändert.
