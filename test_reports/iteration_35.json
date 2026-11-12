@@ -1,0 +1,61 @@
+{
+  "iteration": 35,
+  "mode": "retest",
+  "summary": "Retest of in-app fullscreen map control on /karte (MapCanvas.tsx) per updated briefing, which removed the out-of-scope auth-gated /beitrag card-variant lane from this run. Backend suite (49 tests) passed, frontend typecheck passed, and all 6 browser checks for the 6 in-scope acceptance criteria re-ran clean (by name, no script changes) including the public preview ingress smoke. No regressions found.",
+  "passed": 7,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Fullscreen control opens the map in an in-app fullscreen view",
+      "name": "map-fullscreen-opens-inapp-layer",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844 on /karte, map-fullscreen-button aria-pressed toggled false->true on click; map-floating gained fixed/inset-0/z-50 classes; route stayed /karte (no navigation)."
+    },
+    {
+      "criterion": "Fullscreen map shows map content and controls",
+      "name": "map-fullscreen-shows-content-and-controls",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "After opening fullscreen: map-image, map-layers-button, map-zoom-in-button, map-zoom-out-button all visible; no horizontal scroll (scrollWidth <= clientWidth)."
+    },
+    {
+      "criterion": "Fullscreen can be closed cleanly",
+      "name": "map-fullscreen-closes-cleanly",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Opened fullscreen (body.style.overflow='hidden'), toggled again: aria-pressed='false', map-floating lost fixed/z-50 classes, body overflow restored, route remained /karte."
+    },
+    {
+      "criterion": "Zoom/pan and map data are not changed",
+      "name": "map-fullscreen-zoom-pins-unchanged",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Inside fullscreen, map-zoom-in-button changed --pin-scale CSS var; seeded pins remained visible after zoom."
+    },
+    {
+      "criterion": "Mobile-safe visual behavior",
+      "name": "map-fullscreen-mobile-safe-viewport",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844, fullscreen button bounding box >= 44x44px and within viewport bounds; no horizontal scroll; zero >=400 HTTP responses and zero non-favicon console errors."
+    },
+    {
+      "criterion": "No regressions",
+      "name": "core-routes-no-regression-390",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest flow /, /karte, /entdecken loaded at 390x844 with zero >=400 responses and zero non-favicon console errors. Also: `yarn typecheck` -> tsc --noEmit exit 0; backend pytest -> 49 passed, 0 failed."
+    },
+    {
+      "criterion": "Cross-cutting: public preview ingress smoke",
+      "name": "public-preview-map-fullscreen",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Ran against https://leonida-karte--6tt5kohx.preview.emergentagent.com: guest->/karte, fullscreen toggled aria-pressed true/false, map-floating gained/lost fixed class, zero >=400 responses."
+    }
+  ]
+}

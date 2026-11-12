@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { TransformWrapper, TransformComponent, type ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
-import { Plus, Minus, Maximize, Layers } from "lucide-react";
+import { Plus, Minus, Maximize, Minimize2, Layers } from "lucide-react";
 import mapImg from "@/assets/leonida-map.jpg";
 import { categoryById, type Spot } from "@/lib/demo-data";
 
@@ -29,6 +29,7 @@ function fitSize(box: { w: number; h: number }) {
 export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = "card" }: Props) {
   const floating = variant === "floating";
   const [showPins, setShowPins] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<ReactZoomPanPinchRef>(null);
@@ -50,7 +51,14 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
   // Neue Fläche -> wieder vollständige Ansicht.
   useEffect(() => { if (fit) zoomRef.current?.centerView(1, 0); }, [fit?.w, fit?.h]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const resetView = () => zoomRef.current?.centerView(1, 250);
+  const toggleFullscreen = () => setFullscreen((value) => !value);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [fullscreen]);
 
   const map = fit && (
     <TransformWrapper ref={zoomRef} minScale={1} maxScale={MAX_SCALE} initialScale={1} centerOnInit centerZoomedOut limitToBounds
@@ -87,10 +95,10 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
             </div>
           </TransformComponent>
           {floating ? (
-            <div className="absolute right-0 top-2 flex flex-col items-center gap-3">
+            <div className="absolute right-0 top-[max(env(safe-area-inset-top),0.5rem)] flex flex-col items-center gap-3">
               <button type="button" aria-label={showPins ? tr("Fundorte ausblenden") : tr("Fundorte einblenden")} aria-pressed={!showPins} data-testid="map-layers-button"
                 onClick={() => setShowPins((v) => !v)} className={`${CTRL} ${showPins ? "" : "!bg-primary/60"}`}><Layers className="h-5 w-5" /></button>
-              <button type="button" aria-label={tr("Ganze Karte anzeigen")} data-testid="map-locate-button" onClick={resetView} className={CTRL}><Maximize className="h-5 w-5" /></button>
+              <button type="button" aria-label={fullscreen ? tr("Vollbild schließen") : tr("Karte im Vollbild öffnen")} aria-pressed={fullscreen} data-testid="map-fullscreen-button" onClick={toggleFullscreen} className={`${CTRL} ${fullscreen ? "!bg-primary/50" : ""}`}><>{fullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}</></button>
               <div className="flex flex-col overflow-hidden rounded-2xl border border-neon/60 bg-background/70 shadow-[0_0_14px_oklch(0.7_0.3_345/0.35)] backdrop-blur-md">
                 <button type="button" aria-label={tr("Vergrößern")} data-testid="map-zoom-in-button" onClick={() => zoomIn(0.6)} className="grid h-11 w-11 place-items-center transition-colors duration-150 active:bg-primary/40"><Plus className="h-5 w-5" /></button>
                 <span className="mx-2 h-px bg-neon/50" />
@@ -99,9 +107,9 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
             </div>
           ) : (
             <div className="absolute right-3 top-3 flex flex-col gap-2">
-              {[{ i: Plus, f: () => zoomIn(0.6), l: tr("Vergrößern") }, { i: Minus, f: () => zoomOut(0.6), l: tr("Verkleinern") }, { i: Maximize, f: resetView, l: tr("Ganze Karte anzeigen") }].map(({ i: I, f, l }) => (
-                <button key={l} type="button" aria-label={l} onClick={f} className="neon-card grid h-11 w-11 place-items-center !rounded-xl"><I className="h-5 w-5" /></button>
-              ))}
+              <button type="button" aria-label={tr("Vergrößern")} data-testid="map-zoom-in-button" onClick={() => zoomIn(0.6)} className="neon-card grid h-11 w-11 place-items-center !rounded-xl"><Plus className="h-5 w-5" /></button>
+              <button type="button" aria-label={tr("Verkleinern")} data-testid="map-zoom-out-button" onClick={() => zoomOut(0.6)} className="neon-card grid h-11 w-11 place-items-center !rounded-xl"><Minus className="h-5 w-5" /></button>
+              <button type="button" aria-label={fullscreen ? tr("Vollbild schließen") : tr("Karte im Vollbild öffnen")} aria-pressed={fullscreen} data-testid="map-fullscreen-button" onClick={toggleFullscreen} className="neon-card grid h-11 w-11 place-items-center !rounded-xl"><>{fullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}</></button>
             </div>
           )}
         </>
@@ -110,7 +118,7 @@ export function MapCanvas({ spots, onSelect, pick, onPick, className, variant = 
   );
 
   return floating ? (
-    <div data-testid="map-floating" data-map-gesture className={`relative min-h-0 ${className ?? ""}`}>
+    <div data-testid="map-floating" data-map-gesture className={`${fullscreen ? "fixed inset-0 z-50 overflow-hidden bg-[#0B0418]" : "relative min-h-0"} ${className ?? ""}`}>
       <div aria-hidden className="pointer-events-none absolute inset-[8%] -z-10 rounded-[40%] bg-[radial-gradient(ellipse_at_center,oklch(0.6_0.2_240/0.5),oklch(0.7_0.3_345/0.3)_55%,transparent_75%)] blur-2xl" />
       <div ref={boxRef} className="absolute inset-0">{map}</div>
     </div>

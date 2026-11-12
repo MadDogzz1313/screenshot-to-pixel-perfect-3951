@@ -177,3 +177,9 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Änderung: Bei angemeldeten Nutzern rendert die Karten-Glocke jetzt `NotificationBell` mit `data-testid="map-bell-button"`; Tippen öffnet direkt den bestehenden `notification-panel`. Gäste behalten den bisherigen Profil-Fallback mit Glocken-Symbol.
 - `src/components/social/NotificationBell.tsx`: optionaler `testId`-Prop, Standard bleibt `notification-bell-button` für Profil/Crew. Keine Benachrichtigungslogik oder Datenabfrage verändert.
 - 12.11.2026: Karten-Glocken-Bug durch Deployer bestätigt: Production/Preview hatten denselben reinen Link `/profil` bzw. `/admin` statt NotificationBell. Preview-Fix rendert für eingeloggte Nutzer direkt `NotificationBell testId="map-bell-button"` (öffnet bestehenden Sheet auf `/karte`); Gäste behalten Bell-Link zu `/profil`. Deployer bestätigt Source-RCA; Production braucht erneute Veröffentlichung. Testiteration 33: Authenticated-Codepfad, Guest/Layout und Public-Preview geprüft; 3 kombinierte Kriterien bestanden, keine Bugs. Alter notification-bell-unread Check hat nur Locale-Hardcoding (Deutschtext bei englischem Browser), keine Funktionsregression.
+
+## Karten-Fullscreen
+- Nutzer meldet: Fullscreen-Button rechts auf der Karte öffnete nicht Vollbild (Preview + Production). RCA: `MapCanvas` verwendete `Maximize` nur als `centerView(1)`/Locate.
+- `src/components/MapCanvas.tsx`: `fullscreen`-State für beide Map-Varianten; `map-fullscreen-button` toggelt eine fixed, z-index-50, safe-area-kompatible Vollbild-Kartenansicht, sperrt währenddessen Body-Scroll und wechselt zwischen Maximize/Minimize2. Zoom/Pan, Pins und Daten bleiben unverändert. Bestehende Zoom-Buttons bleiben erhalten.
+- `src/lib/i18n-en.ts`: `Karte im Vollbild öffnen` → `Open map fullscreen`, `Vollbild schließen` → `Exit fullscreen`.
+- Preview-Fix steht bereit; Production benötigt erneute Veröffentlichung nach Abschluss der Tests.
