@@ -9,7 +9,19 @@ declare
   a uuid := gen_random_uuid(); b uuid := gen_random_uuid(); c uuid := gen_random_uuid(); d uuid := gen_random_uuid();
   sfx text := substr(md5(random()::text), 1, 8);
   req uuid; pm uuid; cm uuid; cm2 uuid; spot_ok uuid; spot_wait uuid; old_report uuid; n int; err text; out text := ''; res jsonb; txt text;
+  fehlt text;
 begin
+  -- Vorprüfung: läuft nur, wenn 020 vollständig eingerichtet ist (sonst klare Meldung statt Spaltenfehler)
+  fehlt := concat_ws(', ',
+    case when not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'chat_reports' and column_name = 'message_excerpt') then 'Teil C (Chat-Meldung mit Text)' end,
+    case when coalesce((select attnotnull from pg_attribute where attrelid = 'public.spots'::regclass and attname = 'author_id'), true) then 'Teil A (anonyme Fundorte)' end,
+    case when not exists (select 1 from pg_trigger where tgname = 'gdpr_before_profile_delete') then 'Teil B (Aufräumen beim Löschen)' end,
+    case when coalesce(pg_get_function_result(to_regprocedure('public.delete_my_account()')), '') <> 'jsonb' then 'Teil B (Konto löschen)' end,
+    case when to_regprocedure('public.purge_expired_moderation_data()') is null then 'Teil E (Speicherdauer 6 Monate)' end);
+  if fehlt <> '' then
+    raise exception E'SELBSTTEST 020 NICHT GESTARTET: Die Datei 020_dsgvo_chat_dm_konto.sql ist in dieser Datenbank noch nicht (vollständig) ausgeführt.\nFehlt: %.\nBitte zuerst 020 komplett einfügen und ausführen (Ergebnis: "020 erfolgreich eingerichtet"), danach diesen Selbsttest erneut starten.', fehlt;
+  end if;
+
   execute $f$create function pg_temp.t(_ok boolean, _label text) returns text language sql as
     $q$ select E'\n' || case when coalesce(_ok, false) then 'OK     | ' else 'FEHLER | ' end || _label $q$$f$;
   execute $f$create function pg_temp.as_user(_u uuid) returns void language plpgsql as $q$

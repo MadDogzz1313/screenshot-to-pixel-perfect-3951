@@ -27,8 +27,13 @@ begin
   loop
     execute format('alter table public.spots drop constraint %I', c.conname);
   end loop;
-  alter table public.spots add constraint spots_author_id_fkey
-    foreign key (author_id) references public.profiles(id) on delete set null;
+  begin
+    alter table public.spots add constraint spots_author_id_fkey
+      foreign key (author_id) references public.profiles(id) on delete set null;
+  exception when foreign_key_violation then  -- Altdaten ohne Profil: Regel gilt dann nur für neue/geänderte Zeilen
+    alter table public.spots add constraint spots_author_id_fkey
+      foreign key (author_id) references public.profiles(id) on delete set null not valid;
+  end;
 end $$;
 
 -- A2) Fundort-Fotos: bestätigte Fotos freigegebener Fundorte bleiben ebenfalls anonym erhalten
@@ -43,8 +48,13 @@ begin
   loop
     execute format('alter table public.spot_photos drop constraint %I', c.conname);
   end loop;
-  alter table public.spot_photos add constraint spot_photos_uploader_id_fkey
-    foreign key (uploader_id) references public.profiles(id) on delete set null;
+  begin
+    alter table public.spot_photos add constraint spot_photos_uploader_id_fkey
+      foreign key (uploader_id) references public.profiles(id) on delete set null;
+  exception when foreign_key_violation then  -- Altdaten ohne Profil: Regel gilt dann nur für neue/geänderte Zeilen
+    alter table public.spot_photos add constraint spot_photos_uploader_id_fkey
+      foreign key (uploader_id) references public.profiles(id) on delete set null not valid;
+  end;
 end $$;
 
 -- A3) Chat-Einschränkungen: "on delete restrict" auf den Admin hätte das Löschen ehemaliger Admins blockiert
@@ -59,8 +69,13 @@ begin
   loop
     execute format('alter table public.chat_restrictions drop constraint %I', c.conname);
   end loop;
-  alter table public.chat_restrictions add constraint chat_restrictions_created_by_fkey
-    foreign key (created_by) references public.profiles(id) on delete set null;
+  begin
+    alter table public.chat_restrictions add constraint chat_restrictions_created_by_fkey
+      foreign key (created_by) references public.profiles(id) on delete set null;
+  exception when foreign_key_violation then  -- Altdaten ohne Profil: Regel gilt dann nur für neue/geänderte Zeilen
+    alter table public.chat_restrictions add constraint chat_restrictions_created_by_fkey
+      foreign key (created_by) references public.profiles(id) on delete set null not valid;
+  end;
 end $$;
 
 -- A4) Alle "on delete set null"-Verweise auf Profile/Konten dürfen wirklich leer werden
