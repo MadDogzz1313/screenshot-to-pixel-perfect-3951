@@ -38,6 +38,8 @@ export function spotUnlockError(error: { code?: string; message?: string; detail
   if (text.includes("SPOT_NOT_FOUND")) return tr("Dieser Fundort ist nicht mehr verfügbar.");
   if (error.code === "23505") return tr("Dieser Fundort ist bereits freigeschaltet. Lade die Seite kurz neu.");
   if (error.code === "42501") return tr("Du hast keine Berechtigung, diesen Fundort freizuschalten.");
+  if (error.code === "42702" || text.toLowerCase().includes("ambiguous") || text.includes("column reference")) return tr("Die Datenbank benötigt das Fundort-Update SQL 018 in Lovable.");
+  if (error.code === "57014" || text.toLowerCase().includes("network") || text.toLowerCase().includes("fetch")) return tr("Die Verbindung wurde unterbrochen. Dein Coin-Guthaben wurde nicht verändert. Bitte versuche es erneut.");
   return tr("Die Fundort-Freischaltung konnte nicht abgeschlossen werden.");
 }
 
@@ -98,22 +100,42 @@ export function useSpotAccess(spotId: string | undefined, enabled: boolean) {
     return data === true;
   } });
 }
+
+export type SpotUnlockPreview = { unlocked: boolean; unlocked_count: number; free_remaining: number; cost: number; balance: number };
+
+/** UI-Vorschau; unlock_spot bleibt die alleinige serverseitige Autorität für Preis und Abbuchung. */
+export function useSpotUnlockPreview(spotId: string | undefined, enabled: boolean) {
+  return useQuery({ queryKey: ["spot-unlock-preview", spotId], enabled: enabled && !!spotId, queryFn: async (): Promise<SpotUnlockPreview | null> => {
+    const { data, error } = await sb.rpc("my_spot_unlock_preview", { _spot: spotId });
+    if (error) { if (isMissing(error)) return null; throw error; }
+    return (data as SpotUnlockPreview[] | null)?.[0] ?? null;
+  } });
+}
+
+const FINAL_UNLOCK_ERRORS = /AUTH_REQUIRED|INSUFFICIENT_COINS|SPOT_NOT_FOUND|23505|42501|42702|column reference|ambiguous|PGRST202|PGRST205|42P01/;
+
+async function unlockSpotWithRetry(spotId: string) {
+  for (let attempt = 1; ; attempt++) {
+    const { data, error } = await sb.rpc("unlock_spot", { _spot: spotId });
+    if (!error) return (data as { unlocked: boolean; cost: number; balance: number; free_unlock_number: number | null }[])[0];
+    if (attempt >= 3 || FINAL_UNLOCK_ERRORS.test(`${error.code ?? ""} ${error.message ?? ""} ${error.details ?? ""}`)) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 700 * attempt));
+  }
+}
+
 export function useUnlockSpot() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (spotId: string) => {
-      const { data, error } = await sb.rpc("unlock_spot", { _spot: spotId });
-      if (error) throw error;
-      return (data as { unlocked: boolean; cost: number; balance: number; free_unlock_number: number | null }[])[0];
-    },
+    // Die RPC ist atomar und idempotent: ein Retry nach einem Netzfehler kann keine zweite Abbuchung erzeugen.
+    mutationFn: unlockSpotWithRetry,
     onSuccess: (result, spotId) => {
-      // Sofort Details zeigen; die anschließende Abfrage bestätigt den dauerhaften DB-Stand.
       qc.setQueryData(["spot-access", spotId], true);
       if (typeof result?.balance === "number") qc.setQueryData(["coin-balance"], result.balance);
     },
     onSettled: (_data, _error, spotId) => {
       void qc.invalidateQueries({ queryKey: ["coin-balance"] });
       void qc.invalidateQueries({ queryKey: ["spot-access", spotId] });
+      void qc.invalidateQueries({ queryKey: ["spot-unlock-preview", spotId] });
     },
   });
 }

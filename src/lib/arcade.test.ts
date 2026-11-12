@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
 vi.mock("./db", () => ({ sb: { rpc: (...args: unknown[]) => rpc(...args) }, isMissing: (e: { code?: string }) => e?.code === "PGRST202" }));
-const { arcadeError, finishArcadeRound } = await import("./arcade");
+const { arcadeError, spotUnlockError, finishArcadeRound } = await import("./arcade");
 
 describe("Arcade-Wertung", () => {
   beforeEach(() => { rpc.mockReset(); vi.useRealTimers(); });
@@ -39,11 +39,17 @@ describe("Arcade-Wertung", () => {
     expect(rpc).toHaveBeenCalledTimes(3);
   });
 
+  it("übersetzt Fundortfehler aus der Datenbank verständlich", () => {
+    expect(spotUnlockError({ code: "42702", message: 'column reference "balance" is ambiguous' })).toContain("SQL 018");
+    expect(spotUnlockError({ message: "INSUFFICIENT_COINS" })).toMatch(/nicht genug|don't have enough/);
+    expect(spotUnlockError({ message: "Failed to fetch" })).toMatch(/Guthaben wurde nicht verändert|coin balance was not changed/);
+  });
+
   it("eindeutige Meldungen je Ablehnungsgrund", () => {
-    expect(arcadeError({ message: "ROUND_TOO_SHORT" })).toContain("zu kurz");
-    expect(arcadeError({ message: "ROUND_EXPIRED" })).toContain("verfallen");
-    expect(arcadeError({ message: "ROUND_DURATION_INVALID" })).toContain("Spielzeit war nicht plausibel");
-    expect(arcadeError({ message: "ROUND_SCORE_INVALID" })).toContain("nicht plausibel");
-    expect(arcadeError({ message: "ROUND_DURATION_INVALID" })).not.toContain("zu lang");
+    expect(arcadeError({ message: "ROUND_TOO_SHORT" })).toMatch(/zu kurz|too short/);
+    expect(arcadeError({ message: "ROUND_EXPIRED" })).toMatch(/verfallen|expired/);
+    expect(arcadeError({ message: "ROUND_DURATION_INVALID" })).toMatch(/Spielzeit war nicht plausibel|play time was not plausible/);
+    expect(arcadeError({ message: "ROUND_SCORE_INVALID" })).toMatch(/nicht plausibel|plausibility check/);
+    expect(arcadeError({ message: "ROUND_DURATION_INVALID" })).not.toMatch(/zu lang|too long/);
   });
 });

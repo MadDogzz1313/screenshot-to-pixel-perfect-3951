@@ -1,0 +1,70 @@
+{
+  "iteration": 28,
+  "mode": "retest",
+  "summary": "Retest of SQL-018 spot-unlock hardening after @testing-library/dom@10.4.2 was added and frontend restarted. Full backend pytest suite (39 passed), full root `yarn test` vitest suite (6 files, 55 passed, including arcade.test.ts which was previously blocked), frontend typecheck, root yarn install --frozen-lockfile, health/public-key/admin-401 curls, and all 5 previously-created named browser checks (reran by name only, no script changes) all passed. No regressions, no new bugs. The only remaining gap is unchanged from iteration_27: real Supabase SQL 018 execution and a real test account are still not available to this environment.",
+  "passed": 8,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "Locked spot UI shows server-derived price and balance",
+      "name": "locked-spot-shows-server-price-free-and-paid",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check unchanged: Scenario A (unlocked_count<10) -> spot-unlock-price text exactly 'Free unlock', coin-balance-display shows balance, spot-unlock-button visible. Scenario B (11th spot) -> spot-unlock-price text exactly 'Unlock for 150 Coins'. 2 screenshots captured."
+    },
+    {
+      "criterion": "Unlock is idempotent and immediate",
+      "name": "unlock-button-disabled-pending-reveals-details",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check unchanged: after first click spot-unlock-button has aria-busy='true' and disabled; forced second click recorded no extra RPC call; after resolve spot-locked-panel disappears and details render; unlockCalls===1."
+    },
+    {
+      "criterion": "Unlock errors are bilingual and specific",
+      "name": "src/lib/arcade.test.ts (root yarn test / vitest)",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "`cd /app && yarn test` -> vitest run: Test Files 6 passed (6), Tests 55 passed (55), including src/lib/arcade.test.ts (6 tests, 8ms) which asserts the 42702/ambiguous -> SQL 018 guidance, INSUFFICIENT_COINS -> clear bilingual message, and network failure -> 'coin balance was not changed' / 'Guthaben wurde nicht verändert' mappings. Previously blocked in iteration_27 by missing @testing-library/dom; now resolved and passing, no longer a gap."
+    },
+    {
+      "criterion": "SQL 018 enforces exact atomic rules",
+      "name": "test_tscheck_sql018_migration_rules.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Included in full backend suite run: `cd /app/backend && python -m pytest -q` -> 39 passed in 3.67s (includes the 9 static-file assertions against docs/migrations/018_spot_unlock_hardening.sql: security definer, restricted EXECUTE grants, wallet FOR UPDATE, 10-free/150-paid formula, INSUFFICIENT_COINS raise, idempotent ON CONFLICT DO NOTHING insert, insert->debit->ledger ordering, no RLS-disable statement)."
+    },
+    {
+      "criterion": "Guest and invalid-route smoke remains clean",
+      "name": "guest-map-no-unlock-panel-no-errors + invalid-spot-route-shows-not-found",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Both re-ran persisted checks unchanged and passed: guest /karte shows map-logo with spot-locked-panel/spot-unlock-button count 0, no >=400 responses, no console errors. /fundort/tscheck-does-not-exist-999 shows 'Not found.' with no locked panel/unlock button, no >=400 responses, no console errors."
+    },
+    {
+      "criterion": "Build and API gate",
+      "name": "frontend-test-typecheck-install-health-admin401",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`cd /app && yarn test` -> 55/55 passed (vitest). `cd /app/frontend && yarn typecheck` -> tsc --noEmit, Done, exit 0. `cd /app && yarn install --frozen-lockfile` -> 'success Already up-to-date.' exit 0. curl :8001/api/health -> 200 {\"status\":\"ok\"}. curl :8001/api/push/public-key -> 200 {\"publicKey\":\"BEN6V2jC...\"}. curl -o /dev/null -w '%{http_code}' :8001/api/push/admin/status (no auth) -> 401."
+    },
+    {
+      "criterion": "Production diagnosis is accurately documented",
+      "name": "public-preview-health-and-guest-map",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check against https://leonida-karte--6tt5kohx.preview.emergentagent.com/karte: map-logo visible, spot-locked-panel count 0 for logged-out visitor, no crash, no console errors. Consistent with briefing: shared project daxzwbkacxllrejaghym was not migrated with SQL 018, old SQL 013 + PostgreSQL 42702 is the documented production root cause, and no real-account mutation occurred."
+    },
+    {
+      "criterion": "Full backend regression suite",
+      "name": "backend-pytest-full-suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`cd /app/backend && python -m pytest -q -p no:cacheprovider` -> 39 passed, 1 warning in 3.67s. No regressions across community-chat, payments (admin/checkout/status/tiers/webhook), push-admin-protected, and sql018-migration-rules test files."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "test_credentials_missing (carried over, unchanged): no real Supabase user account/session is available to this environment, and SQL 018 has not been executed against the shared production/preview Supabase project daxzwbkacxllrejaghym. End-to-end 0/16/10th/11th/149/150-coin real-RPC cases and the physical iPhone/Capacitor live-unlock verification remain blocked until the user runs the migration in Lovable and supplies/creates a real test account. All UI criteria in this report were exercised via mocked Supabase session + RPC interception, proving frontend wiring only."
+  ],
+  "retest_needed": false
+}
