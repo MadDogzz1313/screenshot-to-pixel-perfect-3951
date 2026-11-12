@@ -1,0 +1,56 @@
+{
+  "iteration": 32,
+  "mode": "retest",
+  "summary": "Retested the new Exit Game control on the Neon Highway Game Over screen (mobile, /arcade -> /arcade/highway). Backend pytest suite (49 passed) and frontend typecheck pass unchanged. The main generated check highway-exit-button-gameover-navigation covers all six acceptance criteria in one real play-through at 390x844: natural collision -> Game Over shows restart+leaderboard+exit buttons with exit positioned last in DOM order, labeled 'Exit Game'/'Spiel verlassen', >=48px tall, neon pink/purple classes present, no horizontal scroll; leaderboard modal opens/closes; restart hides Game Over and resumes the canvas; after a second natural loss, tapping Exit navigates in-SPA to /arcade and shows data-testid=arcade-hub (no app exit). Re-ran highway-lane-boundaries-and-alt-controls and arcade-hub-shows-two-playable-games/arcade-hub-public-preview as regression guards - all passed, confirming gameplay/gesture code is unchanged. One pre-existing, unrelated check (neon-highway-collision-gameover-restart) failed because it asserts a hard-coded German-language Game Over string without forcing locale, and this run's browser defaulted to English (unrelated to NeonHighwayGame.tsx/i18n-en.ts edits for this feature - i18n-en.ts only adds translations, it does not change locale defaulting, and lang-follows-device-locale-de-default still passes). Cross-checked the underlying engine behavior (score reset on restart) with locale forced to German in a new ad-hoc check (highway-restart-score-reset-de-locale) - passed, confirming no real regression in restart/score logic. Classified as a note/stale-check issue, not a product bug introduced by this change.",
+  "passed": 6,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "No regressions (backend pytest + yarn typecheck)",
+      "name": "backend pytest + yarn typecheck",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q -p no:cacheprovider -> 49 passed. cd /app/frontend && yarn typecheck -> tsc --noEmit exit 0."
+    },
+    {
+      "criterion": "Exit Game appears on Game Over below existing actions + Existing actions still work + Exit returns to /arcade + Neon mobile UI",
+      "name": "highway-exit-button-gameover-navigation",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844: natural collision shows highway-game-over with restart/leaderboard/exit all visible, DOM order exit after restart+leaderboard; label matches /Spiel verlassen|Exit Game/; boundingBox height>=48px; class contains neon pink/purple hex (FF2E97/2A1448/FFB3D9); no horizontal scroll (scrollWidth<=clientWidth+1); leaderboard-modal-neon_highway opens/closes via leaderboard button+Escape; restart hides game-over and shows highway-canvas; second loss -> exit click navigates to URL /\\/arcade$/ and shows data-testid=arcade-hub."
+    },
+    {
+      "criterion": "No gameplay/scoring regressions - lane boundaries and alt controls",
+      "name": "highway-lane-boundaries-and-alt-controls",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Reran persisted check: swipe/arrow-key lane changes at boundary lanes 0/2 behave as before (4 screenshots captured, no assertion failures)."
+    },
+    {
+      "criterion": "Minigame selection page /arcade unaffected",
+      "name": "arcade-hub-shows-two-playable-games",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Reran persisted check: /arcade still lists both playable games for guest with no console errors."
+    },
+    {
+      "criterion": "No regressions on public ingress path",
+      "name": "arcade-hub-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Reran against https://leonida-karte--6tt5kohx.preview.emergentagent.com: /arcade and /arcade/highway load for guest, start overlay reachable, no >=400 responses/console errors."
+    },
+    {
+      "criterion": "Cross-check: restart/score-reset engine unaffected (locale-independent)",
+      "name": "highway-restart-score-reset-de-locale (new, ad-hoc verification)",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With localStorage leonida-lang forced to 'de': natural collision -> highway-game-over visible with numeric score; highway-restart-button click hides game-over, shows highway-canvas, and highway-score resets to <10."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "note (not a bug from this change): the pre-existing persisted check neon-highway-collision-gameover-restart hard-codes the German Game Over string ('Nur Trainingsrunde...') without forcing locale; this run's default browser locale rendered English ('Practice round only...'), so the check fails on a locale assumption, not on app behavior. lang-follows-device-locale-de-default (which does force/verify German) still passes, and the equivalent restart/score-reset behavior was independently confirmed passing with locale forced to German (see highway-restart-score-reset-de-locale). Recommend the main agent (or a future testing pass) update neon-highway-collision-gameover-restart to force locale='de' like the newer highway-exit-button-gameover-navigation check does, or assert on a locale-agnostic marker; left unmodified here per retest-mode rules since it is not one of this briefing's named criteria."
+  ],
+  "retest_needed": false
+}

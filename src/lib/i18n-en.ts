@@ -243,7 +243,7 @@ export const EN: Record<string, string> = {
   "Unbekannter Fehler": "Unknown error",
   // Legal / Karte / Profil
   "Stand: 11. November 2026": "Last updated: November 11, 2026",
-  "Stand: 12. November 2026": "Last updated: November 12, 2026",
+  "Spiel verlassen": "Exit Game",
   "Gelöschter Nutzer": "Deleted user",
   "Du hast diese Nachricht bereits gemeldet.": "You have already reported this message.",
   "Zu viele Meldungen. Bitte versuche es später erneut.": "Too many reports. Please try again later.",

@@ -1,168 +1,140 @@
 {
-  "theme": {
-    "mode": "dark",
-    "aesthetic": "Synthwave Miami Vice Neon Arcade",
-    "primary_character": "Electric Magenta & Laser Cyan Glow on Deep Purple Obsidian",
-    "device_optimization": "iPhone Mobile-First (Safe Areas, 60fps Canvas, Touch Gestures, Prevent Pull-to-Refresh & Scroll in Games)"
-  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "Leonida Explorer - Neon Highway Minigame Exit Action",
+  "context": "mobile_web_app",
+  "archetype": "ELECTRIC & NEON / RETRO SYNTHWAVE GAMING",
+  "design_principles": [
+    "Precise addition over broad refactoring: only add the requested 'Exit Game' action below existing Game Over action buttons without altering physics, scoring, canvas loops, or rewards",
+    "Neon Pink & Cyan/Purple Cyber-Retro Harmony: maintain the exact #FF2E97 (neon pink), #22E4F2 (cyan), #21113B / #120A24 (deep synthwave violet/obsidian) palette",
+    "Ergonomic Mobile Touch Sizing: minimum 48px touch target height (min-h-12) with full width, rounded pill styling, and clear contrast for iOS Safari, Android Chrome, and Desktop Web",
+    "Predictable in-app navigation: cleanly route back to '/arcade' (the minigame selection hub) via TanStack Router without reloading or exiting the main Leonida Explorer app"
+  ],
   "colors": {
+    "palette": {
+      "neon_pink": "#FF2E97",
+      "neon_cyan": "#22E4F2",
+      "neon_gold": "#FFD12A",
+      "deep_violet": "#21113B",
+      "void_obsidian": "#120A24",
+      "canvas_background": "#0B0418",
+      "text_lavender": "#BFAAD9",
+      "pure_white": "#FFFFFF",
+      "exit_border": "rgba(255, 46, 151, 0.45)",
+      "exit_hover_border": "rgba(255, 46, 151, 0.9)",
+      "exit_bg": "rgba(255, 46, 151, 0.08)",
+      "exit_active_bg": "rgba(255, 46, 151, 0.2)"
+    },
     "surfaces": [
       {
-        "name": "page",
+        "name": "game_over_modal",
         "kind": "solid",
-        "bg": "#120A24",
-        "on_bg": "#F6EEFF",
+        "bg": "#21113B",
+        "on_bg": "#FFFFFF",
         "on_bg_muted": "#BFAAD9",
         "roles": {
-          "link": "#22E4F2",
-          "error": "#FF4466",
-          "success": "#39FF14",
-          "accent_pink": "#FF2E97",
+          "primary_action": "#FFFFFF",
+          "secondary_action": "#22E4F2",
+          "exit_action": "#FFB3D9",
           "accent_gold": "#FFD12A"
         }
       },
       {
-        "name": "arcade_card",
-        "kind": "solid",
-        "bg": "#21113B",
-        "on_bg": "#F6EEFF",
-        "on_bg_muted": "#B59FCF",
-        "roles": {
-          "border_glow": "#FF2E97",
-          "badge_coin": "#FFD12A",
-          "badge_xp": "#22E4F2"
-        }
+        "name": "game_over_backdrop",
+        "kind": "glass",
+        "contrast_against": "#120A24",
+        "guarantee": "backdrop-blur-md bg-[#120A24]/85",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#BFAAD9"
       },
       {
-        "name": "modal_overlay",
+        "name": "exit_button_surface",
         "kind": "solid",
-        "bg": "#120A24",
-        "on_bg": "#FFFFFF",
-        "on_bg_muted": "#D2C2EB",
-        "roles": {
-          "border_neon": "#22E4F2"
-        }
-      },
-      {
-        "name": "game_canvas_backdrop",
-        "kind": "solid",
-        "bg": "#0B0418",
-        "on_bg": "#FFFFFF",
-        "on_bg_muted": "#A28AC4",
-        "roles": {
-          "hud_score": "#FF2E97",
-          "hud_coins": "#FFD12A",
-          "hud_speed": "#22E4F2"
-        }
-      },
-      {
-        "name": "hero_sunset",
-        "kind": "gradient",
-        "contrast_against": "#180C30",
-        "guarantee": "scrim: linear-gradient(180deg, rgba(18,10,36,0.3) 0%, rgba(18,10,36,0.85) 100%)",
-        "on_bg": "#FFFFFF",
-        "on_bg_muted": "#E0D0FF",
-        "roles": {
-          "title": "#FFFFFF",
-          "pill_active": "#FF2E97"
-        }
+        "bg": "#2A1448",
+        "on_bg": "#FF80BF",
+        "on_bg_muted": "#E0C8F8"
       }
     ],
     "accent": "#FF2E97",
-    "on_accent": "#FFFFFF",
-    "secondary_accent": "#22E4F2",
-    "on_secondary_accent": "#0A0418",
-    "coin_accent": "#FFD12A",
-    "on_coin_accent": "#1A0E00"
+    "on_accent": "#FFFFFF"
   },
   "typography": {
-    "fonts": {
-      "display": "Russo One, sans-serif",
-      "sans": "Outfit, sans-serif",
-      "mono": "JetBrains Mono, monospace"
-    },
+    "font_display": "'Russo One', system-ui, sans-serif",
+    "font_sans": "'Outfit', system-ui, sans-serif",
     "scale_px": {
-      "display": 48,
-      "h1": 36,
-      "h2": 28,
+      "display": 36,
+      "h1": 30,
+      "h2": 24,
       "h3": 20,
       "body": 16,
       "caption": 14
     },
-    "tracking": {
-      "display": "tracking-tight",
-      "overline": "tracking-[0.18em]",
-      "body": "tracking-normal"
+    "button_typography": {
+      "primary": "text-sm sm:text-base font-bold tracking-normal",
+      "secondary": "text-sm sm:text-base font-semibold tracking-normal",
+      "exit": "text-sm sm:text-base font-semibold tracking-wide"
     }
   },
   "entry_surfaces": {
-    "/": "split hero — Leonida community feed & map quickstart with Neon Arcade prominent feature banner",
-    "/arcade": "arcade hub — hero coin/XP status bar top, 10 minigame bento cards with play status, fishing & highway playable badges",
-    "/arcade/highway": "full-screen canvas arcade view — mobile safe HUD, touch controls, pause overlay, highscore modal",
-    "/arcade/fishing": "full-screen canvas fishing view — bobber tension bar, timing gauge, catch showcase dialog"
+    "/arcade": "arcade hub with neon game cards, live coin balance, and high score indicators",
+    "/arcade/highway": "immersive 2.5D neon highway canvas with top HUD and centered Game Over modal stack"
   },
-  "visual_enhancers": {
-    "neon_glows": "box-shadow: 0 0 16px rgba(255, 46, 151, 0.45), inset 0 0 12px rgba(34, 228, 242, 0.2)",
-    "scanlines": "subtle SVG repeating pattern with 4% opacity over game frames",
-    "glass_panels": "backdrop-blur-xl bg-[#21113B]/85 border border-[#FF2E97]/40 shadow-2xl rounded-2xl",
-    "retro_grid": "perspective 3D road lines with cyan wireframe and magenta sunset skyline for Neon Highway"
-  },
-  "grids_and_layouts": {
-    "arcade_hub": "grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto px-4 pb-28 pt-2",
-    "game_container": "fixed inset-0 z-50 flex flex-col bg-[#0B0418] select-none touch-none overscroll-none overflow-hidden",
-    "game_hud": "flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-2 bg-[#120A24]/90 backdrop-blur-md border-b border-[#FF2E97]/30",
-    "leaderboard_drawer": "max-h-[85vh] rounded-t-3xl bg-[#1A0C33] border-t-2 border-[#22E4F2] p-5 shadow-2xl"
+  "layout_and_components": {
+    "game_over_modal_stack": {
+      "container_classes": "w-full max-w-sm rounded-3xl border border-[#FF2E97]/70 bg-[#21113B] p-5 text-center shadow-[0_0_30px_rgba(255,46,151,0.32)]",
+      "button_group_layout": "mt-5 grid gap-2.5",
+      "button_order": [
+        {
+          "index": 1,
+          "name": "Play Again / Erneut spielen",
+          "element": "button",
+          "test_id": "highway-restart-button",
+          "classes": "min-h-12 w-full rounded-full bg-primary font-bold text-primary-foreground shadow-[0_0_16px_rgba(255,46,151,0.35)] transition-transform duration-100 active:scale-95 flex items-center justify-center gap-2",
+          "icon": "RotateCcw"
+        },
+        {
+          "index": 2,
+          "name": "Show Top 5 / Top 5 anzeigen",
+          "element": "button",
+          "test_id": "highway-leaderboard-button",
+          "classes": "min-h-12 w-full rounded-full border border-[#22E4F2]/60 font-semibold text-[#22E4F2] shadow-[0_0_12px_rgba(34,228,242,0.15)] transition-transform duration-100 active:scale-95 flex items-center justify-center gap-2",
+          "icon": "Trophy"
+        },
+        {
+          "index": 3,
+          "name": "Exit Game / Spiel verlassen",
+          "element": "Link (to='/arcade')",
+          "test_id": "highway-exit-button",
+          "classes": "min-h-12 w-full rounded-full border border-[#FF2E97]/50 bg-[#2A1448]/80 font-semibold text-[#FFB3D9] hover:border-[#FF2E97] hover:text-white hover:bg-[#FF2E97]/20 shadow-[0_0_12px_rgba(255,46,151,0.15)] transition-all duration-150 active:scale-95 flex items-center justify-center gap-2",
+          "icon": "LogOut or ArrowLeft",
+          "destination": "/arcade"
+        }
+      ]
+    }
   },
   "motion": {
-    "page_transitions": "transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease",
-    "button_press": "active:scale-[0.96] transition-transform duration-100",
-    "coin_earn_animation": "scale and particle burst using requestAnimationFrame or lightweight framer motion pop",
-    "reduced_motion": "if prefers-reduced-motion is enabled, replace particle bursts with instant badge pulse"
+    "transitions": "transition-transform 0.1s ease, transition-colors 0.15s ease, transition-shadow 0.15s ease",
+    "active_state": "active:scale-95 active:brightness-110",
+    "hover_state": "hover:shadow-[0_0_18px_rgba(255,46,151,0.4)]"
   },
   "accessibility": {
-    "contrast_check": "All text tokens pass WCAG AA (>= 4.5:1 against respective surface backgrounds)",
-    "touch_targets": "Minimum 48x48px on mobile for all buttons, touch steering pads, and modal actions",
-    "aria_roles": "aria-live for live score updates, aria-modal for game-over dialogs, data-testid on every interactive element"
+    "minimum_touch_target": "48px height across all mobile viewports (min-h-12)",
+    "contrast_ratio": "Text '#FFB3D9' against '#21113B' exceeds 7.5:1 (well above WCAG AAA 7:1)",
+    "keyboard_focus": "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E97] focus-visible:ring-offset-2 focus-visible:ring-offset-[#120A24]",
+    "aria_roles": "role='dialog' on the Game Over container, descriptive labels and data-testid on every interactive button"
   },
-  "image_urls": [
-    {
-      "category": "hero_and_arcade_banner",
-      "description": "Miami night skyline with neon lit palm trees and vintage sports cars",
-      "url": "https://images.unsplash.com/photo-1589066724013-06f34f2cc17c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwxfHxuZW9uJTIwbWlhbWklMjByZXRybyUyMGFyY2FkZSUyMHBhbG0lMjB0cmVlJTIwc3Vuc2V0fGVufDB8fHx8MTc5NDMxMjk5OHww&ixlib=rb-4.1.0&q=85"
-    },
-    {
-      "category": "neon_highway_thumbnail",
-      "description": "Miami Ocean Drive palm trees at night with neon lights",
-      "url": "https://images.unsplash.com/photo-1593052289983-6c123686662c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHw0fHxuZW9uJTIwbWlhbWklMjByZXRybyUyMGFyY2FkZSUyMHBhbG0lMjB0cmVlJTIwc3Vuc2V0fGVufDB8fHx8MTc5NDMxMjk5OHww&ixlib=rb-4.1.0&q=85"
-    },
-    {
-      "category": "sunset_ocean_drive",
-      "description": "Sunset palm tree silhouette with purple orange twilight sky",
-      "url": "https://images.unsplash.com/photo-1670349218709-1c246063c319?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwyfHxuZW9uJTIwbWlhbWklMjByZXRybyUyMGFyY2FkZSUyMHBhbG0lMjB0cmVlJTIwc3Vuc2V0fGVufDB8fHx8MTc5NDMxMjk5OHww&ixlib=rb-4.1.0&q=85"
-    }
-  ],
-  "components_and_paths": {
-    "arcade_route": "/app/src/routes/arcade.tsx",
-    "arcade_hub_view": "/app/src/components/arcade/ArcadeHub.tsx",
-    "neon_highway_game": "/app/src/components/arcade/games/NeonHighwayGame.tsx",
-    "leonida_fishing_game": "/app/src/components/arcade/games/LeonidaFishingGame.tsx",
-    "leaderboard_modal": "/app/src/components/arcade/LeaderboardModal.tsx",
-    "coin_unlock_dialog": "/app/src/components/arcade/SpotUnlockDialog.tsx",
-    "arcade_store_and_api": "/app/src/lib/arcade.ts"
+  "i18n_support": {
+    "german_label": "Spiel verlassen",
+    "english_label": "Exit Game",
+    "implementation_syntax": "{tr('Spiel verlassen')}"
   },
   "instructions_to_main_agent": [
-    "Retain existing Leonida Explorer theme (Russo One + Outfit font, dark synthwave oklch tokens in styles.css).",
-    "Build the dedicated Arcade section with all 10 game tiles, marking 'Leonida Fishing' and 'Neon Highway' as fully playable with interactive 60fps HTML5 Canvas engines.",
-    "Implement rock-solid touch controls for iPhone: touch-action: none on game canvas, prevent body scrolling, support touch drag / left-right buttons.",
-    "Ensure server-side validation/recording of completed game sessions (session verification, anti-cheat score validation, XP & Coin payout).",
-    "Implement 150-Leonida-Coins unlock for locked secret spots on the map/spots list, keeping the first 10 spots free as requested.",
-    "Separate Highscores (game performance) from XP (profile progress) and Coins (currency).",
-    "Provide clear Start, Instruction, Pause, Game Over, and Top-5 Leaderboard screens for each minigame with high-contrast neon styling and test attributes (data-testid)."
-  ],
-  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
-    "no_ai_slop": "Avoid generic flat gray layouts or generic center alignments; embrace high-energy Synthwave neon cards with glowing borders and deep purple glass panels.",
-    "performance": "Games must use requestAnimationFrame with delta-time physics and canvas double-buffering. Never trigger React state updates inside the 60fps render loop (keep game state in refs).",
-    "iphone_safeguards": "Handle iOS safe area insets via env(safe-area-inset-top) and env(safe-area-inset-bottom). Use touch-action: none on game screens to eliminate rubber-banding and pull-to-refresh.",
-    "test_attributes": "All buttons, game tiles, modals, coin counters, and rank items must include data-testid (e.g. data-testid='arcade-nav-button', data-testid='game-tile-neon-highway', data-testid='coin-balance-display')."
-  }
+    "Locate '/app/src/components/arcade/games/NeonHighwayGame.tsx'.",
+    "Inside the Game Over modal block (screen === 'over'), locate the button stack container containing 'highway-restart-button' and 'highway-leaderboard-button'.",
+    "Add the 'Exit Game' action directly below 'highway-leaderboard-button' using TanStack Router's `<Link to=\"/arcade\">` (or an explicit button navigating to `/arcade`).",
+    "Use data-testid='highway-exit-button' for clear automated testing.",
+    "Use `{tr(\"Spiel verlassen\")}` for bilingual translation (German default with English 'Exit Game' fallback in i18n-en.ts).",
+    "Apply styled neon pink/purple aesthetic with `min-h-12 w-full rounded-full border border-[#FF2E97]/50 bg-[#2A1448]/80 font-semibold text-[#FFB3D9] hover:border-[#FF2E97] hover:text-white hover:bg-[#FF2E97]/20 active:scale-95 flex items-center justify-center gap-2`.",
+    "Include a matching Lucide icon such as `<ArrowLeft className=\"mr-2 inline h-4 w-4\" />` or `<LogOut className=\"mr-2 inline h-4 w-4\" />`.",
+    "DO NOT touch the game physics, canvas loops, reward submission API, or start/stop logic. Ensure everything else continues functioning smoothly."
+  ]
 }
