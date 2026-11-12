@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -19,7 +19,7 @@ import { BanGate } from "../components/social/BanGate";
 import { useViewportGuard } from "../lib/useViewportGuard";
 import { UsernameReminder } from "../components/UsernameReminder";
 
-import { lang, tr } from "@/lib/i18n";
+import { initLanguage, lang, tr } from "@/lib/i18n";
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -139,11 +139,16 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useViewportGuard();
+  const [, refreshLanguage] = useState(0);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { if (initLanguage()) refreshLanguage((v) => v + 1); }, 100);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <StoreProvider>
+      <StoreProvider key={lang}>
         <UsernameReminder />
         <BanGate><Outlet /></BanGate>
         <Toaster />

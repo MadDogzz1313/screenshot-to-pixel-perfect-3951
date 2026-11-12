@@ -5,12 +5,12 @@ import bg from "@/assets/bg-sunset.jpg";
 
 import { tr } from "@/lib/i18n";
 const NAV = [
-  { to: "/karte", label: tr("Karte"), icon: Map },
-  { to: "/entdecken", label: tr("Entdecken"), icon: Compass },
+  { to: "/karte", label: "Karte", icon: Map },
+  { to: "/entdecken", label: "Entdecken", icon: Compass },
   { to: "/arcade", label: "Arcade", icon: Gamepad2 },
-  { to: "/beitrag", label: tr("Beitrag"), icon: PlusCircle },
+  { to: "/beitrag", label: "Beitrag", icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
-  { to: "/profil", label: tr("Profil"), icon: User },
+  { to: "/profil", label: "Profil", icon: User },
 ] as const;
 
 export function AppShell({ children, title, vividBg, headerRight }: { children: ReactNode; title?: string; vividBg?: boolean; headerRight?: ReactNode }) {
@@ -28,9 +28,9 @@ export function AppShell({ children, title, vividBg, headerRight }: { children: 
       <div data-testid="app-bottom-nav" className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-3xl">
         <nav className="safe-bottom grid grid-cols-6 border-t border-neon bg-background/95 pt-2 backdrop-blur">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <Link key={to} to={to} data-testid={`app-nav-${label.toLowerCase()}`} className="flex flex-col items-center gap-0.5 text-xs text-muted-foreground"
+            <Link key={to} to={to} data-testid={`app-nav-${to.slice(1)}`} className="flex flex-col items-center gap-0.5 text-xs text-muted-foreground"
               activeProps={{ className: "text-neon [&_svg]:drop-shadow-[0_0_6px_var(--neon)]" }}>
-              <Icon className="h-6 w-6" />{label}
+              <Icon className="h-6 w-6" />{tr(label)}
             </Link>
           ))}
         </nav>

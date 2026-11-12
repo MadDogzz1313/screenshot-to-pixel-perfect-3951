@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "cd .. && yarn dev",
     "build": "node build.mjs",
+    "typecheck": "cd .. && yarn typecheck",
     "start": "cd .. && yarn dev"
   }
 }

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, OPERATOR } from "@/components/LegalPage";
+import { EnglishPrivacyPolicy } from "@/components/EnglishPrivacyPolicy";
 
 export const Route = createFileRoute("/datenschutz")({
   head: () => ({ meta: [{ title: "Datenschutz · Leonida Explorer" }, { name: "description", content: "Deutschsprachige Datenschutzerklärung für Leonida Explorer." }] }),
@@ -8,7 +9,7 @@ export const Route = createFileRoute("/datenschutz")({
 
 function Privacy() {
   return (
-    <LegalPage title="Datenschutz" testId="privacy-page">
+    <LegalPage title="Datenschutz" testId="privacy-page" englishChildren={<EnglishPrivacyPolicy />}>
       <p data-testid="privacy-intro">Diese Datenschutzerklärung beschreibt die Datenverarbeitungen, die in der unabhängig entwickelten Community- und Begleit-App Leonida Explorer für Fans von GTA VI tatsächlich vorgesehen sind. Die Seite ist ohne Anmeldung öffentlich unter <b>/datenschutz</b> erreichbar.</p>
 
       <section data-testid="privacy-controller-section" className="space-y-2">

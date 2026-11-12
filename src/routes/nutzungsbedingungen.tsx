@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, OPERATOR } from "@/components/LegalPage";
+import { EnglishTerms } from "@/components/EnglishTerms";
 
 export const Route = createFileRoute("/nutzungsbedingungen")({
   head: () => ({ meta: [{ title: "Nutzungsbedingungen · Leonida Explorer" }, { name: "description", content: "Nutzungsbedingungen und Community-Regeln von Leonida Explorer." }] }),
@@ -8,7 +9,7 @@ export const Route = createFileRoute("/nutzungsbedingungen")({
 
 function Terms() {
   return (
-    <LegalPage title="Nutzungsbedingungen" testId="terms-page">
+    <LegalPage title="Nutzungsbedingungen" testId="terms-page" englishChildren={<EnglishTerms />}>
       <p>Diese Bedingungen gelten für die Nutzung von Leonida Explorer (Website, Home-Bildschirm-App und iPhone-App). Betreiber: {OPERATOR.name}, Kontakt: {OPERATOR.email}.</p>
       <h2>1. Fan-Projekt</h2>
       <p>Leonida Explorer ist ein inoffizielles Community-Projekt von Fans. Es steht in keiner Verbindung zu Rockstar Games oder Take-Two Interactive und wird von diesen weder unterstützt noch geprüft. Alle Marken gehören ihren jeweiligen Inhabern.</p>
