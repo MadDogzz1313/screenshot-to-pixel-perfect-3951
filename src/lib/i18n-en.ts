@@ -674,6 +674,7 @@ export const EN: Record<string, string> = {
   "Fundort freischalten?": "Unlock spot?",
   "Schalte die vollständigen Details dieses Fundorts dauerhaft frei. Die ersten zehn unterschiedlichen Fundorte sind kostenlos, danach kostet jeder weitere exakt 150 Leonida Coins.": "Permanently unlock the full details of this spot. Your first ten different spots are free, after that each one costs exactly 150 Leonida Coins.",
   "Fundort freischalten? Die ersten zehn sind kostenlos, danach werden exakt 150 Leonida Coins abgezogen.": "Unlock spot? The first ten are free, after that exactly 150 Leonida Coins are deducted.",
+  "Coins": "Coins",
   "Freischaltstatus wird geprüft …": "Checking unlock status …",
   "Kostenlos freischalten": "Free unlock",
   "Freischaltung für 150 Coins": "Unlock for 150 Coins",

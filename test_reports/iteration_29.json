@@ -1,0 +1,71 @@
+{
+  "iteration": 29,
+  "mode": "generate",
+  "summary": "Verified SQL 019 (coin_balance_unlimited) migration that removes the artificial daily 300-coin reward cap (root cause of the 308 ceiling) while preserving existing balances. Full backend pytest suite (43 passed incl. new test_tscheck_sql019_coin_limit_rules.py static checks), root `yarn test` (55 passed), frontend typecheck, root `yarn install --frozen-lockfile`, one new browser check for large-balance locale formatting, and re-ran existing arcade/coin browser checks. Two pre-existing browser checks (spot-unlock-150-coin-rule-mocked, arcade-reward-contracts-mocked-rpc) were found to hard-depend on an environment default of German locale that this Chromium instance does not actually provide (navigator.language is en-US here) and on a since-renamed RPC (my_spot_access preview helper is now called via my_spot_unlock_preview) - both were test-script issues, not app bugs; fixed by forcing leonida-lang=de in the check fixtures and adding the missing my_spot_unlock_preview mock, then both pass again. No application code was changed and no live Supabase mutation occurred.",
+  "passed": 8,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "Coin migration removes the artificial daily cap without changing existing balances",
+      "name": "test_tscheck_sql019_coin_limit_rules.py::test_migration_preserves_existing_balances_and_expands_storage",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Static assertion on docs/migrations/019_coin_balance_unlimited.sql: contains 'alter column balance type bigint using balance::bigint' and 'alter column delta type bigint using delta::bigint'; absence of DELETE/TRUNCATE/DROP TABLE on coin_wallets/coin_ledger confirmed. Part of `cd /app/backend && python -m pytest -q -p no:cacheprovider` -> 43 passed."
+    },
+    {
+      "criterion": "Arcade rewards can grow the balance beyond 308",
+      "name": "test_tscheck_sql019_coin_limit_rules.py::test_daily_coin_cap_is_removed_but_round_reward_cap_remains + arcade-reward-contracts-mocked-rpc",
+      "lane": "backend+browser",
+      "status": "passed",
+      "evidence": "Backend static check: finish_arcade_round body has no 'day_coins'/'300 - day_coins' text, still computes coins via g.max_coins/g.score_per_second, still has SECURITY DEFINER, FOR UPDATE, ROUND_NOT_FOUND/EXPIRED/DURATION_INVALID/SCORE_INVALID, arcade_round_id, ON CONFLICT, xp_cap (daily XP protection retained). Browser check (fixed to force de locale): mocked start/finish_arcade_round RPC on /arcade/highway shows game-over dialog with '+18 coins · +9 XP · Neuer Highscore!', exactly one start_arcade_round + one finish_arcade_round call with matching round id, leaderboard modal shows rank/score/xp."
+    },
+    {
+      "criterion": "Large balances display correctly",
+      "name": "coin-balance-large-numbers-locale-format",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "New check: mocked my_coin_balance RPC returning 10000 on /profil -> coin-balance-display shows '10,000'; 500 and 1000 on /arcade -> shows '500' and '1,000' respectively (toLocaleString grouping confirmed); no console/page errors during the flow."
+    },
+    {
+      "criterion": "Coin spend remains safe",
+      "name": "spot-unlock-150-coin-rule-mocked + unlock-button-disabled-pending-reveals-details + test_tscheck_sql018_migration_rules.py",
+      "lane": "backend+browser",
+      "status": "passed",
+      "evidence": "spot-unlock-150-coin-rule-mocked (fixed: added missing my_spot_unlock_preview mock + forced de locale) -> shows 'Die ersten zehn ... 150 Leonida Coins', balance 65, single unlock_spot call with correct spot id, and SQL-013-missing compatibility fallback still renders the public spot view without the locked gate. unlock-button-disabled-pending-reveals-details -> button aria-busy/disabled on click, no duplicate RPC on forced second click, panel disappears after resolve. Backend SQL018 static suite (part of the 43-test run) still asserts wallet FOR UPDATE, 10-free/150-paid formula, INSUFFICIENT_COINS, idempotent ON CONFLICT DO NOTHING, insert->debit->ledger ordering, no RLS-disable. SQL 019 only touches column types + finish_arcade_round/my_coin_balance, leaving unlock_spot (015/018) untouched."
+    },
+    {
+      "criterion": "Coin UI and app smoke remain clean",
+      "name": "bottom-nav-and-profile-coins-guest + profil-route-mobile-no-crash + arcade-hub-shows-two-playable-games",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran all three persisted checks unchanged: guest /profil shows coin balance + unchanged 6-tab bottom nav with no console/page errors or >=400 responses; /profil mobile route renders without crash for guest fallback; /arcade hub still shows exactly the two playable games (Neon Highway, Leonida Fishing) with coin balance visible."
+    },
+    {
+      "criterion": "All local regression/build checks pass",
+      "name": "backend-pytest-full-suite + yarn-test + yarn-typecheck + yarn-install-frozen-lockfile",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`cd /app/backend && python -m pytest -q -p no:cacheprovider` -> 43 passed, 1 warning in 4.40s. `cd /app && yarn test` (vitest) -> 6 files, 55 passed. `cd /app/frontend && yarn typecheck` -> tsc --noEmit exit 0. `cd /app && yarn install --frozen-lockfile` -> 'success Already up-to-date.' exit 0."
+    },
+    {
+      "criterion": "Production diagnosis and external migration dependency are explicit",
+      "name": "public-preview-health-and-guest-map + arcade-hub-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted checks against https://leonida-karte--6tt5kohx.preview.emergentagent.com: /karte shows map-logo, no locked panel for guest, no console errors; /arcade public preview loads with highway start overlay. Consistent with briefing/seed_facts: shared Supabase project daxzwbkacxllrejaghym still runs old SQL 016/013 (300/day reward cap, existing balance ~8 + 300 = 308); no total wallet cap exists; SQL 019 is drafted in docs/migrations/ but has not been executed against that project in this environment, so production/preview behavior is unchanged until the user runs it in Lovable."
+    },
+    {
+      "criterion": "Unlock/reward contract idempotency and auth checks remain (cross-cutting, static)",
+      "name": "test_tscheck_sql019_coin_limit_rules.py::test_security_and_idempotency_checks_remain + test_coin_balance_rpc_is_authenticated_and_bigint",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Static checks confirm finish_arcade_round block keeps SECURITY DEFINER, FOR UPDATE, all round-guard exceptions, arcade_round_id, ON CONFLICT, xp_cap; my_coin_balance() is dropped/recreated returning bigint with REVOKE from public/anon and GRANT to authenticated only."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "test_credentials_missing (carried over, unchanged): SQL 019 has not been executed against the shared production/preview Supabase project daxzwbkacxllrejaghym, and no real Supabase user account is available to this environment. Real 308->309/308->500/999->1,000/9,999->10,000 balance transitions, a real arcade round reward, a real 150-coin spend, restart/re-login persistence, and the physical Capacitor iPhone check remain blocked until the user runs the migration in Lovable and supplies/creates a real test account/device. All criteria in this report were exercised via mocked Supabase session + RPC interception (frontend) and static SQL-file assertions (backend), proving code/migration-contract correctness only, not live production behavior.",
+    "test_script_maintenance (self-fixed, informational only): two pre-existing browser checks (spot-unlock-150-coin-rule-mocked, arcade-reward-contracts-mocked-rpc) silently depended on an unforced German browser locale and on a stale RPC name; both were updated in this iteration to force leonida-lang=de and mock the current my_spot_unlock_preview RPC. No application code was touched."
+  ],
+  "retest_needed": false
+}

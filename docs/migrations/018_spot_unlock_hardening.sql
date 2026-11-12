@@ -5,14 +5,18 @@
 
 alter table public.profiles add column if not exists premium_until timestamptz;
 
+-- Die Rückgabe bleibt numerisch kompatibel, unterstützt aber auch sehr große Wallets.
+drop function if exists public.unlock_spot(uuid);
+drop function if exists public.my_spot_unlock_preview(uuid);
+
 create or replace function public.unlock_spot(_spot uuid)
-returns table(unlocked boolean, cost integer, balance integer, free_unlock_number integer)
+returns table(unlocked boolean, cost integer, balance bigint, free_unlock_number integer)
 language plpgsql security definer
 set search_path = public, pg_temp
 as $$
 declare
   uid uuid := auth.uid();
-  wallet_balance integer;
+  wallet_balance bigint;
   unlocked_count integer;
   charge integer;
   is_premium boolean;
@@ -74,14 +78,14 @@ end;
 $$;
 
 create or replace function public.my_spot_unlock_preview(_spot uuid)
-returns table(unlocked boolean, unlocked_count integer, free_remaining integer, cost integer, balance integer)
+returns table(unlocked boolean, unlocked_count integer, free_remaining integer, cost integer, balance bigint)
 language plpgsql security definer stable
 set search_path = public, pg_temp
 as $$
 declare
   uid uuid := auth.uid();
   n integer;
-  b integer;
+  b bigint;
   already boolean;
   privileged boolean;
 begin

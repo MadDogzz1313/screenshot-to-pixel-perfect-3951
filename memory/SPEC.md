@@ -151,3 +151,9 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - SQL 017: `push_admin_setup(url, secret)` + `push_admin_status(secret)` (nur Admins via has_role, Schlüssel wird nie zurückgegeben, nur `secret_matches`).
 - Backend: GET `/api/push/admin/status`, POST `/api/push/admin/setup` (Supabase-Token + require_admin). Adresse = `https://<x-forwarded-host>/api/push/dispatch`, Schlüssel = PUSH_WEBHOOK_SECRET des Servers. Modelle `PushServerStatus` (backend/models/push.py) ↔ Interface in `src/components/social/PushServerAdmin.tsx`.
 - Admin-Bereich: Karte „Push-Server“ (testid admin-push-server) mit Prüfliste (SQL 017, DB verbunden, Web-Schlüssel, Apple-Schlüssel) und Knopf „Push jetzt einrichten“ – nur in der LIVE-App tippen.
+
+## Coin-Guthaben – künstliche 308-Grenze entfernt (SQL 019, vom Nutzer in Lovable auszuführen)
+- Produktionsdiagnose: Die Freischaltung nutzt direkte Supabase-RPCs. Die Grenze 308 entsteht aus dem täglichen Arcade-Coin-Limit 300 in der aktiven SQL-016-RPC plus einem bestehenden Guthaben von 8; derselbe Cap steht auch in SQL 013. Es ist keine iOS-, FastAPI-, RLS- oder Frontend-Synchronisationsgrenze.
+- `docs/migrations/019_coin_balance_unlimited.sql` ersetzt `finish_arcade_round`: kein tägliches Coin-Limit mehr, aber weiterhin Auth, `FOR UPDATE`/Round-ID-Idempotenz, Serverzeit-/Score-Prüfung, `arcade_games.max_coins` pro Runde, XP-Tageslimit und Ledger. Bestehende Guthaben werden nicht verändert.
+- `coin_wallets.balance` und `coin_ledger.delta` werden verlustfrei auf BIGINT erweitert; `my_coin_balance()` gibt BIGINT zurück. Das UI formatiert große Guthaben per `toLocaleString` (z. B. 1.000).
+- Reihenfolge in Lovable: SQL 018 (falls noch nicht ausgeführt) und danach SQL 019. Keine Datenlöschung, kein Reset. Echter Live-RPC-/iPhone-Test benötigt die manuelle Migration und ein eigenes Testkonto.
