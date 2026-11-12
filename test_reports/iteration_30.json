@@ -1,0 +1,70 @@
+{
+  "iteration": 30,
+  "mode": "generate",
+  "summary": "Verified SQL 020 (DSGVO: chat/DM/account deletion hardening) via the local PG15 Supabase-mock harness plus its 021 self-test, a new pytest that re-runs that exact harness and asserts on the real psql output, the German/English /datenschutz content it mandates, frontend typecheck + i18n vitest, code review of DeleteAccount.tsx (photo_paths with fallback) and chat.ts (message_excerpt retry), and a public-pages regression pass at 390x844. No application code was changed; SQL 020/021 are drafts in docs/migrations/ and were only applied to the throwaway local leonida_sqltest database, never to the live Supabase project.",
+  "passed": 8,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "SQL 020 applies cleanly and idempotently on the local Supabase mock",
+      "name": "scripts/sqltest/run.sh docs/migrations/020_dsgvo_chat_dm_konto.sql (x2)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "bash scripts/sqltest/run.sh docs/migrations/020_dsgvo_chat_dm_konto.sql docs/migrations/020_dsgvo_chat_dm_konto.sql exits 0; both runs print '020 erfolgreich eingerichtet | t | t | t | t |' after re-creating leonida_sqltest and applying core + 003..014."
+    },
+    {
+      "criterion": "Two-account simulation (A,B + bystander C + admin D) of private messages, reporting, public chat, blocking, report retention and account deletion",
+      "name": "021_selbsttest_dsgvo.sql direct run + test_tscheck_sql020_dsgvo_selbsttest.py::test_selbsttest_reports_45_of_45_ok_and_no_fehler",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "sudo -u postgres psql -X -q -d leonida_sqltest -f docs/migrations/021_selbsttest_dsgvo.sql prints 'SELBSTTEST 020: 45 von 45 OK' with zero 'FEHLER' lines (expected final RAISE rollback, exit via ERROR context is by design). Same assertion re-verified by pytest driving the identical harness+selftest over subprocess."
+    },
+    {
+      "criterion": "Private messages only visible to participants, blocked users cannot DM, deletion wipes whole conversation, approved spots stay anonymised",
+      "name": "test_tscheck_sql020_dsgvo_selbsttest.py::test_selbsttest_contains_required_ok_line[...]",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "021 output contains 'OK | Admin D kann Privatnachrichten NICHT pauschal lesen', 'OK | Blockierter A kann B keine Privatnachricht mehr senden', 'OK | Ganzes Privatgespräch A\u2194B für beide gelöscht', 'OK | Freigegebener Fundort bleibt anonym (\"Gelöschter Nutzer\")' - all 4 parametrized assertions passed; full suite cd /app/backend && python -m pytest -q -p no:cacheprovider -> 49 passed (43 pre-existing + 6 new)."
+    },
+    {
+      "criterion": "German privacy policy /datenschutz reflects audit (no E2E claim, retention, deletion, rights)",
+      "name": "datenschutz-dsgvo-german-sections",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With localStorage leonida-lang=de (set via addInitScript before navigation - a plain localStorage.setItem after load did not retrigger the already-mounted English default, a test-script detail not an app bug), /datenschutz 390x844 shows headings 'Melden, Blockieren und Moderation', the exact text 'nicht Ende-zu-Ende-verschlüsselt', retention text '6 Monate' for reports, deletion text 'Gelöschter Nutzer', and rights text 'Art. 77 DSGVO'."
+    },
+    {
+      "criterion": "English privacy policy mirrors German content",
+      "name": "datenschutz-dsgvo-english-sections",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With localStorage leonida-lang=en, /datenschutz shows 'not end-to-end encrypted', '6 months' report retention, 'Deleted user' anonymisation, 'Art. 77 GDPR', effective date 'November 12, 2026' and footer 'Last updated: November 12, 2026'."
+    },
+    {
+      "criterion": "Frontend code compatible before/after SQL 020",
+      "name": "yarn typecheck + vitest i18n.test.ts + code review DeleteAccount.tsx/chat.ts",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/frontend && yarn typecheck -> tsc --noEmit exit 0. cd /app && npx vitest run src/lib/i18n.test.ts -> 2 passed. Code review: DeleteAccount.tsx reads (data as {photo_paths?}).photo_paths from delete_my_account and falls back to all own spot_photos rows when absent (pre-020 compatibility); useChatReports in chat.ts retries the chat_reports select without ', message_excerpt' via isMissing(error) when the column is not yet present."
+    },
+    {
+      "criterion": "No regressions on public pages",
+      "name": "tscheck-public-pages-no-errors-390",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844, guest session, /, /karte, /datenschutz, /nutzungsbedingungen all loaded via page.goto with zero response.status()>=400 observed across all four routes; screenshots captured for each route."
+    },
+    {
+      "criterion": "Public ingress path stays healthy (cross-cutting)",
+      "name": "public-preview-health-and-guest-map",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check against https://leonida-karte--6tt5kohx.preview.emergentagent.com: /karte shows map-logo, no locked panel for guest, no console errors."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "test_credentials_missing (carried over, unchanged): the live/preview Supabase project does not yet have SQL 020 applied and no real account exists in this environment (forbidden to request per seed_facts); the two-account A/B/C/D DSGVO flows are therefore proven only via the local PG15 harness + 021 self-test (45/45 OK), not against the live project. Pre-existing, known-unrelated 009 (65/66) and 006 (38/39) selftest shortfalls were observed as unchanged side effects of the harness setup and are not reported as new bugs per seed_facts."
+  ],
+  "retest_needed": false
+}

@@ -23,6 +23,7 @@ export interface ChatReport {
   status: "open" | "reviewed" | "dismissed";
   review_note: string | null;
   created_at: string;
+  message_excerpt?: string | null;
 }
 
 export interface ChatRestriction { kind: "mute" | "ban"; until_at: string | null; reason: string | null }
@@ -37,6 +38,8 @@ export function chatErrorMessage(error: { code?: string; message?: string } | nu
   const message = error.message ?? "";
   if (message.includes("ACCOUNT_BANNED")) return tr("Dein Konto ist gesperrt.");
   if (message.includes("CHAT_RATE_LIMIT")) return tr("Zu viele Nachrichten. Bitte warte kurz.");
+  if (message.includes("CHAT_REPORT_DUPLICATE")) return tr("Du hast diese Nachricht bereits gemeldet.");
+  if (message.includes("RATE_LIMIT")) return tr("Zu viele Meldungen. Bitte versuche es später erneut.");
   if (message.includes("CHAT_MUTED")) return tr("Du bist momentan stummgeschaltet.");
   if (message.includes("CHAT_BANNED")) return tr("Du bist für den Chat gesperrt.");
   if (message.includes("CHAT_MESSAGE_TOO_LONG")) return tr("Eine Nachricht darf höchstens 500 Zeichen enthalten.");
@@ -130,9 +133,12 @@ export function useChatReports(enabled: boolean) {
   return useQuery({
     queryKey: ["chat-reports"], enabled,
     queryFn: async () => {
-      const { data, error } = await sb.from("chat_reports").select("id, message_id, reporter_id, reported_user_id, reason, status, review_note, created_at").eq("status", "open").order("created_at", { ascending: false }).limit(50);
+      const load = (cols: string) => sb.from("chat_reports").select(cols).eq("status", "open").order("created_at", { ascending: false }).limit(50);
+      const base = "id, message_id, reporter_id, reported_user_id, reason, status, review_note, created_at";
+      let { data, error } = await load(`${base}, message_excerpt`);
+      if (error && isMissing(error)) ({ data, error } = await load(base)); // vor SQL 020 ohne gespeicherten Text
       if (error) { if (isChatUnavailable(error)) return [] as ChatReport[]; throw error; }
-      return (data ?? []) as ChatReport[];
+      return (data ?? []) as unknown as ChatReport[];
     },
   });
 }

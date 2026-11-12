@@ -8,7 +8,7 @@ import { lang, tr } from "@/lib/i18n";
 export const OPERATOR = {
   name: "Nico Etterer",
   email: "n.etterer@outlook.de",
-  updated: tr("Stand: 11. November 2026"),
+  updated: tr("Stand: 12. November 2026"),
 };
 
 export function LegalPage({ title, testId, children, englishChildren }: { title: string; testId: string; children: ReactNode; englishChildren?: ReactNode }) {

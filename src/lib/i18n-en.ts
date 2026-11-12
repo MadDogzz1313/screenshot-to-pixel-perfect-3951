@@ -243,6 +243,11 @@ export const EN: Record<string, string> = {
   "Unbekannter Fehler": "Unknown error",
   // Legal / Karte / Profil
   "Stand: 11. November 2026": "Last updated: November 11, 2026",
+  "Stand: 12. November 2026": "Last updated: November 12, 2026",
+  "Gelöschter Nutzer": "Deleted user",
+  "Du hast diese Nachricht bereits gemeldet.": "You have already reported this message.",
+  "Zu viele Meldungen. Bitte versuche es später erneut.": "Too many reports. Please try again later.",
+  "Gemeldeter Text: „{0}“": "Reported text: “{0}”",
   "Zurück": "Back",
   "Nutzungsbedingungen": "Terms of Use",
   "Datenschutz": "Privacy",
@@ -287,7 +292,7 @@ export const EN: Record<string, string> = {
   "Dein Konto wurde gelöscht.": "Your account has been deleted.",
   "Konto löschen": "Delete account",
   "Konto endgültig löschen?": "Permanently delete account?",
-  "Profil, XP, Abzeichen, Fundorte, Fotos, Nachrichten und Freundschaften werden dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden. Tippe zur Bestätigung „{0}“ ein.": "Profile, XP, badges, spots, photos, messages and friendships will be permanently deleted. This cannot be undone. Type “{0}” to confirm.",
+  "Profil, Profilbild, XP, Abzeichen, Coins, Community-Chat- und Privatnachrichten (das ganze Gespräch für beide), Freundschaften, Meldungen und nicht freigegebene Fundorte werden dauerhaft gelöscht. Bereits freigegebene Fundorte bleiben ohne deinen Namen als „Gelöschter Nutzer“ auf der Karte. Das kann nicht rückgängig gemacht werden. Tippe zur Bestätigung „{0}“ ein.": "Your profile, profile picture, XP, badges, coins, community chat and private messages (the whole conversation for both sides), friendships, reports and unapproved spots will be permanently deleted. Spots that were already approved stay on the map without your name as “Deleted user”. This cannot be undone. Type “{0}” to confirm.",
   "Abbrechen": "Cancel",
   "Endgültig löschen": "Delete permanently",
   // Glocke

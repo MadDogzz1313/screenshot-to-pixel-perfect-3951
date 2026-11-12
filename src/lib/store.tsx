@@ -46,7 +46,7 @@ const BUCKET = "spot-photos";
 const SPOT_BASE = "id, author_id, title, category, area, x, y, vehicle_type, hour, description, status, likes_count, created_at, author:profiles!spots_author_id_fkey(username), spot_photos(path, status, created_at)";
 type SpotRow = {
   id: string; title: string; category: CategoryId; area: string; x: number; y: number; vehicle_type: string | null; hour: number | null;
-  description: string; status: Status; likes_count: number; created_at: string; author_id: string; accuracy_verified_at?: string | null;
+  description: string; status: Status; likes_count: number; created_at: string; author_id: string | null; accuracy_verified_at?: string | null;
   author: { username: string } | null; spot_photos: { path: string; status: string; created_at: string }[];
 };
 const photoUrl = (path: string) => supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
@@ -56,7 +56,7 @@ const toSpot = (r: SpotRow): Spot => {
     id: r.id, title: r.title, category: r.category, area: r.area, x: Number(r.x), y: Number(r.y),
     vehicleType: r.vehicle_type ?? undefined, hour: r.hour ?? undefined, description: r.description,
     images: photos.length ? photos.map((p) => photoUrl(p.path)) : [fallbackImg],
-    author: r.author?.username ?? tr("Unbekannt"), authorId: r.author_id, likes: r.likes_count, status: r.status, createdAt: r.created_at.slice(0, 10),
+    author: r.author?.username ?? (r.author_id ? tr("Unbekannt") : tr("Gelöschter Nutzer")), ...(r.author_id ? { authorId: r.author_id } : {}), likes: r.likes_count, status: r.status, createdAt: r.created_at.slice(0, 10),
     accurate: !!r.accuracy_verified_at,
   };
 };
