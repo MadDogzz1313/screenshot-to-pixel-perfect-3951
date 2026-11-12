@@ -183,3 +183,9 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - `src/components/MapCanvas.tsx`: `fullscreen`-State für beide Map-Varianten; `map-fullscreen-button` toggelt eine fixed, z-index-50, safe-area-kompatible Vollbild-Kartenansicht, sperrt währenddessen Body-Scroll und wechselt zwischen Maximize/Minimize2. Zoom/Pan, Pins und Daten bleiben unverändert. Bestehende Zoom-Buttons bleiben erhalten.
 - `src/lib/i18n-en.ts`: `Karte im Vollbild öffnen` → `Open map fullscreen`, `Vollbild schließen` → `Exit fullscreen`.
 - Preview-Fix steht bereit; Production benötigt erneute Veröffentlichung nach Abschluss der Tests.
+
+## Gäste-Fundortdetails gesperrt
+- Nutzerentscheidung: Karte und Pins bleiben für Gäste sichtbar; Pin-Tap zeigt Anmelde-/Registrierungs-Hinweis. Detailansicht ist nur nach Anmeldung sichtbar. Gilt Preview + Production (Production muss nach Veröffentlichung aktualisiert werden).
+- `src/routes/karte.tsx`: `selectSpot()` öffnet bei Gästen `map-login-required-panel` statt `SpotCard`; angemeldete Nutzer behalten den bisherigen SpotCard-Flow. Panel mit Link `/` und Schließen-Button.
+- `src/routes/fundort.$id.tsx`: zusätzlicher `authReady`-abhängiger Frühschutz; Gäste sehen bei direkten `/fundort/$id`-Links ebenfalls nur `spot-login-required` mit Login-Link, keine Fundortdaten/Details. Angemeldete Nutzer unverändert.
+- Repro-Fix: Panel-Schließen-Button erhielt `z-10`, weil der Text zuvor Pointer-Events über dem Button abfangen konnte. Preview erneut geprüft: Pin → Login-Hinweis, schließen, direkter Detail-Link → Login-Schutz, 0 Fehler.

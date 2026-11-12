@@ -243,7 +243,8 @@ export const EN: Record<string, string> = {
   "Unbekannter Fehler": "Unknown error",
   // Legal / Karte / Profil
   "Stand: 11. November 2026": "Last updated: November 11, 2026",
-  "Karte im Vollbild öffnen": "Open map fullscreen",
+  "Anmeldung erforderlich": "Sign-in required",
+  "Bitte anmelden, um Fundortdetails zu sehen.": "Please sign in to view spot details.",
   "Vollbild schließen": "Exit fullscreen",
   "Gelöschter Nutzer": "Deleted user",
   "Du hast diese Nachricht bereits gemeldet.": "You have already reported this message.",

@@ -1,0 +1,68 @@
+{
+  "iteration": 36,
+  "summary": "Guest map-pin detail gating fix verified. Guest pin taps now show map-login-required-panel instead of opening SpotCard; direct /fundort/<id> route shows spot-login-required for guests. Authenticated path verified via source analysis (no real Supabase credentials available). Backend suite (49 tests) and frontend typecheck pass. Map remains fully interactive for guests (zoom, pins visible).",
+  "passed": 7,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "checks": [
+    {
+      "criterion": "Guest tapping a map spot cannot open its detail card",
+      "name": "guest-map-pin-login-gate",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844 on /karte without session, clicking first map-pin-<id> did not render SpotCard/map-spot-card-close; map-login-required-panel, title, text rendered; close button removed panel; no horizontal overflow."
+    },
+    {
+      "criterion": "Guest login prompt is usable and styled",
+      "name": "guest-map-pin-login-gate",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "map-login-required-link href=/ present, panel uses neon styling (border/shadow classes), close button (map-login-required-close) dismisses panel; no console errors/>=400 observed in companion public-preview check."
+    },
+    {
+      "criterion": "Direct guest detail URLs are protected",
+      "name": "guest-direct-detail-route-guard",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Navigated to /fundort/3f994a55-0bf6-4535-bd2a-198762da3d45 (approved spot) without session: spot-login-required, title, text rendered with sign-in link (href=/) and back-to-map link (href=/karte); spot-like-button/spot-save-button absent (count 0); no horizontal overflow."
+    },
+    {
+      "criterion": "Authenticated users retain existing detail access",
+      "name": "source-review-authenticated-path",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Source review: /app/src/routes/karte.tsx selectSpot() calls setSel(spot) when `user` truthy (gate only applies when !user && authReady); /app/src/routes/fundort.$id.tsx guard is `if (!user) return <spot-login-required/>`, falling through to existing detail render for authenticated users. No real Supabase session available to exercise end-to-end per briefing; verified by reading the guarded conditionals directly."
+    },
+    {
+      "criterion": "Map remains public and unchanged for guests",
+      "name": "guest-map-zoom-fullscreen-usable",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/karte loads for guest at 390x844, map-zoom-in-button/map-zoom-out-button clickable, map-pin-<id> remains visible after zoom actions."
+    },
+    {
+      "criterion": "No regressions (frontend typecheck + public preview smoke)",
+      "name": "public-preview-guest-pin-gate",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On public preview URL https://leonida-karte--6tt5kohx.preview.emergentagent.com/karte, pin click opened map-login-required-panel; no console errors and no >=400 responses captured during the flow."
+    },
+    {
+      "criterion": "No regressions (backend suite + frontend typecheck)",
+      "name": "backend-pytest-suite + yarn-typecheck",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`cd /app/backend && python -m pytest -q` -> 49 passed, 1 warning (5.39s). `cd /app/frontend && yarn typecheck` -> tsc --noEmit completed with no errors (Done in 6.35s)."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    {
+      "type": "note",
+      "severity": "low",
+      "description": "Pre-existing persisted check 'map-zoom-controls-work-no-errors' fails waiting for getByTestId('map-locate-button'), which does not exist anywhere in /app/src/components/MapCanvas.tsx. This is unrelated to the guest-gating fix under test (zoom-in/zoom-out buttons exist and work fine, confirmed by new 'guest-map-zoom-fullscreen-usable' check); it looks like a stale check referencing a testid removed/renamed in an earlier unrelated change. Not blocking this task's acceptance matrix; flagged for awareness, no fix applied per testing-agent scope."
+    }
+  ],
+  "retest_needed": false
+}

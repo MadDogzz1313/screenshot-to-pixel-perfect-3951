@@ -17,13 +17,18 @@ export const Route = createFileRoute("/karte")({
 const roundBtn = "relative grid h-12 w-12 place-items-center rounded-full border border-neon/60 bg-background/60 shadow-[0_0_16px_oklch(0.7_0.3_345/0.4)] backdrop-blur-md transition-transform duration-150 active:scale-95";
 
 function Karte() {
-  const { spots, profiles, user } = useStore();
+  const { spots, profiles, user, authReady } = useStore();
   const [q, setQ] = useState(""); const [cats, setCats] = useState<CategoryId[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sel, setSel] = useState<Spot | null>(null);
+  const [loginPrompt, setLoginPrompt] = useState(false);
   const visible = useMemo(() => spots.filter((s) => s.status === "approved"
     && (!cats.length || cats.includes(s.category))
     && (!q || (s.title + s.area + (s.vehicleType ?? "")).toLowerCase().includes(q.toLowerCase()))), [spots, q, cats]);
+  const selectSpot = (spot: Spot) => {
+    if (user) setSel(spot);
+    else if (authReady) setLoginPrompt(true);
+  };
   return (
     <AppShell vividBg>
       {/* Volle Bildschirmhöhe minus Navigation: die Karte bekommt den restlichen Platz ("Fit to Screen"). */}
@@ -64,7 +69,7 @@ function Karte() {
           </div>
         )}
 
-        <MapCanvas variant="floating" spots={visible} onSelect={setSel} className="w-full flex-1" />
+        <MapCanvas variant="floating" spots={visible} onSelect={selectSpot} className="w-full flex-1" />
 
         <div className="flex shrink-0 items-center justify-between gap-2">
           <div data-testid="map-stats" className="neon-card flex min-w-0 items-center gap-3 !rounded-full px-4 py-2">
@@ -79,10 +84,18 @@ function Karte() {
           </Link>
         </div>
       </div>
-      {sel && (
+      {loginPrompt && (
+        <div data-testid="map-login-required-panel" role="dialog" aria-modal="true" className="fixed inset-x-3 bottom-28 z-50 mx-auto max-w-md rounded-3xl border border-[#FF2E97]/70 bg-[#21113B]/95 p-5 text-center shadow-[0_0_28px_rgba(255,46,151,0.32)] backdrop-blur-md">
+          <button type="button" data-testid="map-login-required-close" aria-label={tr("Schließen")} onClick={() => setLoginPrompt(false)} className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-white/10 active:scale-95"><X className="h-5 w-5" /></button>
+          <p data-testid="map-login-required-title" className="font-display text-xl text-neon-gradient">{tr("Anmeldung erforderlich")}</p>
+          <p data-testid="map-login-required-text" className="mt-2 text-sm text-muted-foreground">{tr("Bitte anmelden, um Fundortdetails zu sehen.")}</p>
+          <Link to="/" data-testid="map-login-required-link" className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-5 font-bold text-primary-foreground transition-transform duration-150 active:scale-95">{tr("Anmelden / Registrieren")}</Link>
+        </div>
+      )}
+      {sel && user && (
         <div className="fixed inset-x-0 bottom-28 z-50 mx-auto max-w-3xl px-3">
           <div className="relative"><SpotCard spot={sel} />
-            <button aria-label={tr("Schließen")} onClick={() => setSel(null)} className="absolute right-2 top-2 rounded-full bg-background/80 p-1"><X className="h-4 w-4" /></button></div>
+            <button type="button" data-testid="map-spot-card-close" aria-label={tr("Schließen")} onClick={() => setSel(null)} className="absolute right-2 top-2 rounded-full bg-background/80 p-1"><X className="h-4 w-4" /></button></div>
         </div>
       )}
     </AppShell>
