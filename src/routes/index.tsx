@@ -47,6 +47,15 @@ function Login() {
         <Input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)} className="h-12" />
         <Button type="submit" className="h-12 w-full bg-sunset text-base font-bold">{mode === "login" ? "Anmelden" : "Konto erstellen"}</Button>
         <Button type="button" variant="outline" className="h-12 w-full" onClick={() => { continueAsGuest(); nav({ to: "/karte" }); }}>Ohne Anmeldung zur Karte</Button>
+        {mode === "register" && (
+          <div className="rounded-xl border border-neon/30 bg-card/60 p-3">
+            <p className="font-display text-[11px] tracking-[0.18em] text-neon">E-MAIL VON LEONIDA EXPLORER</p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              Nach dem Registrieren schicken wir dir eine Bestätigungs-E-Mail im Namen von <span className="font-semibold text-foreground">Leonida Explorer</span>.
+              Derzeit kommt sie über den Standard-Absender von Lovable – ein Absender wie <span className="text-foreground">noreply@deine-domain.de</span> braucht deine eigene Domain.
+            </p>
+          </div>
+        )}
         <p className="text-center text-[11px] text-muted-foreground">Demo: beliebige E-Mail. Mit „admin@…“ siehst du die Admin-Ansicht.</p>
       </form>
     </div>
