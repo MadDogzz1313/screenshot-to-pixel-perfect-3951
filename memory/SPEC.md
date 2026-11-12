@@ -171,3 +171,9 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Nutzerentscheidung: „Exit Game“ führt zur Minigame-Auswahl `/arcade`.
 - `src/components/arcade/games/NeonHighwayGame.tsx`: Unter den bestehenden Game-Over-Aktionen „Erneut spielen“ und „Top 5 anzeigen“ ergänzt; nutzt TanStack-Router-Link nach `/arcade`, `data-testid="highway-exit-button"`, 48px Touch-Ziel, bestehende Neon-Pink/Purple-Farben, Fokus-/Hover-/Active-Zustände. Spielschleife, Score, Rewards und bestehende Buttons unverändert.
 - `src/lib/i18n-en.ts`: `Spiel verlassen` → `Exit Game`.
+
+## Karten-Glocke öffnet Benachrichtigungen
+- Fehler: `src/routes/karte.tsx` verlinkte die Glocke oben rechts unabhängig vom Nutzerstatus nur nach `/profil` bzw. `/admin`; der Notification-Sheet wurde dort nicht geöffnet.
+- Änderung: Bei angemeldeten Nutzern rendert die Karten-Glocke jetzt `NotificationBell` mit `data-testid="map-bell-button"`; Tippen öffnet direkt den bestehenden `notification-panel`. Gäste behalten den bisherigen Profil-Fallback mit Glocken-Symbol.
+- `src/components/social/NotificationBell.tsx`: optionaler `testId`-Prop, Standard bleibt `notification-bell-button` für Profil/Crew. Keine Benachrichtigungslogik oder Datenabfrage verändert.
+- 12.11.2026: Karten-Glocken-Bug durch Deployer bestätigt: Production/Preview hatten denselben reinen Link `/profil` bzw. `/admin` statt NotificationBell. Preview-Fix rendert für eingeloggte Nutzer direkt `NotificationBell testId="map-bell-button"` (öffnet bestehenden Sheet auf `/karte`); Gäste behalten Bell-Link zu `/profil`. Deployer bestätigt Source-RCA; Production braucht erneute Veröffentlichung. Testiteration 33: Authenticated-Codepfad, Guest/Layout und Public-Preview geprüft; 3 kombinierte Kriterien bestanden, keine Bugs. Alter notification-bell-unread Check hat nur Locale-Hardcoding (Deutschtext bei englischem Browser), keine Funktionsregression.

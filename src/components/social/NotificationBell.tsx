@@ -10,7 +10,7 @@ import { tr } from "@/lib/i18n";
 const ICON = { friend_request: UserPlus, friend_accepted: Check, private_message: MessageCircle, community: Megaphone, admin: ShieldAlert, crew: Users } as const;
 
 /** Glocke oben rechts im eigenen Profil. Zähler = ungelesene Benachrichtigungen (Realtime über useSocialRealtime). */
-export function NotificationBell() {
+export function NotificationBell({ testId = "notification-bell-button" }: { testId?: string }) {
   const { user } = useStore();
   const [open, setOpen] = useState(false);
   // Push "Postfach-/Community-Mitteilung" antippen -> /profil?glocke=1 öffnet direkt die Übersicht
@@ -34,7 +34,7 @@ export function NotificationBell() {
 
   if (!user) return null;
   return <>
-    <button type="button" aria-label={unread ? tr("{0} ungelesene Benachrichtigungen", unread) : tr("Benachrichtigungen")} data-testid="notification-bell-button" onClick={() => setOpen(true)}
+    <button type="button" aria-label={unread ? tr("{0} ungelesene Benachrichtigungen", unread) : tr("Benachrichtigungen")} data-testid={testId} onClick={() => setOpen(true)}
       className="relative grid h-11 w-11 place-items-center rounded-full border border-neon/50 bg-card/80 text-neon shadow-[0_0_14px_oklch(0.7_0.3_345/0.35)] backdrop-blur transition-transform duration-150 active:scale-90">
       <Bell className="h-5 w-5" />
       {unread > 0 && <span data-testid="notification-bell-count" className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-primary-foreground shadow-[0_0_10px_var(--neon)]">{unread > 99 ? "99+" : unread}</span>}

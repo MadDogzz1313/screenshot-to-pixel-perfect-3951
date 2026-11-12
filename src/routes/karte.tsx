@@ -4,6 +4,7 @@ import { Search, X, MapPin, Plus, UserRound, Bell, SlidersHorizontal, TreePalm }
 import { AppShell } from "@/components/AppShell";
 import { MapCanvas } from "@/components/MapCanvas";
 import { SpotCard } from "@/components/SpotCard";
+import { NotificationBell } from "@/components/social/NotificationBell";
 import { CATEGORIES, type CategoryId, type Spot } from "@/lib/demo-data";
 import { useStore } from "@/lib/store";
 
@@ -23,10 +24,6 @@ function Karte() {
   const visible = useMemo(() => spots.filter((s) => s.status === "approved"
     && (!cats.length || cats.includes(s.category))
     && (!q || (s.title + s.area + (s.vehicleType ?? "")).toLowerCase().includes(q.toLowerCase()))), [spots, q, cats]);
-  // Glocke: Admins -> wartende Beiträge zur Moderation, Spieler -> eigene wartende Beiträge im Profil.
-  const pending = spots.filter((s) => s.status === "pending" && (user?.isAdmin || s.author === user?.username)).length;
-  const bellTo = user?.isAdmin ? "/admin" : "/profil";
-
   return (
     <AppShell vividBg>
       {/* Volle Bildschirmhöhe minus Navigation: die Karte bekommt den restlichen Platz ("Fit to Screen"). */}
@@ -40,10 +37,7 @@ function Karte() {
             </h1>
             <p data-testid="map-community-label" className="mt-1.5 text-center text-[10px] font-bold tracking-[0.32em] text-foreground/90 [text-shadow:0_0_8px_oklch(0.7_0.3_345/0.8)]">COMMUNITY MAP</p>
           </div>
-          <Link to={bellTo} aria-label={pending ? tr("{0} wartende Beiträge", pending) : tr("Hinweise")} data-testid="map-bell-button" className={`${roundBtn} mt-3`}>
-            <Bell className="h-6 w-6" />
-            {pending > 0 && <span data-testid="map-bell-dot" className="absolute right-1 top-1 h-3 w-3 rounded-full bg-primary shadow-[0_0_8px_var(--neon)]" />}
-          </Link>
+          {user ? <NotificationBell testId="map-bell-button" /> : <Link to="/profil" aria-label={tr("Hinweise")} data-testid="map-bell-button" className={`${roundBtn} mt-3`}><Bell className="h-6 w-6" /></Link>}
         </header>
 
         <div className="flex shrink-0 gap-2">
