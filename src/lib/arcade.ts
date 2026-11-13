@@ -90,6 +90,7 @@ export function useFinishArcadeRound(game: ArcadeGameId) {
     void qc.invalidateQueries({ queryKey: ["arcade-leaderboard", game] });
     void qc.invalidateQueries({ queryKey: ["arcade-stats", game] });
     void qc.invalidateQueries({ queryKey: ["profiles"] });
+    void qc.invalidateQueries({ queryKey: ["level-rewards"] });
   } });
 }
 

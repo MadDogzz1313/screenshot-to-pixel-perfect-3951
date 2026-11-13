@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LevelUpOverlay } from "./LevelUpOverlay";
+import { useMarkLevelRewardsSeen, usePendingLevelRewards, type PendingLevelReward } from "@/lib/level-rewards";
 import { Award, CalendarDays, Heart, Lock, MapPin, Settings } from "lucide-react";
 import { LevelBadge } from "./LevelBadge";
 import { SpotCard } from "./SpotCard";
@@ -17,6 +20,22 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
 }) {
   const badges = useUserBadges(profile.id);
   const unlocked = badges.data?.ids ?? [];
+  const levelRewards = usePendingLevelRewards(own ? profile.id : undefined);
+  const markLevelRewardsSeen = useMarkLevelRewardsSeen();
+  const [celebration, setCelebration] = useState<PendingLevelReward[] | null>(null);
+  const shownRewards = useRef("");
+  useEffect(() => {
+    const pending = levelRewards.data ?? [];
+    if (!pending.length) return;
+    const key = pending.map((r) => r.reward_id).join(",");
+    if (key === shownRewards.current) return;
+    shownRewards.current = key;
+    setCelebration(pending);
+  }, [levelRewards.data]);
+  const finishCelebration = useCallback(() => {
+    setCelebration(null);
+    markLevelRewardsSeen.mutate();
+  }, [markLevelRewardsSeen]);
   if (profile.restricted) return (
     <div className="space-y-4 px-3">
       <div className="neon-card flex flex-col items-center gap-3 p-6 text-center">
@@ -31,6 +50,7 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
   const featured = featuredDefs(profile.featured).filter((b) => unlocked.includes(b.id));
   const showBadges = own || profile.featured !== null;
   return (
+    <>
     <div className="space-y-4 px-3">
       <div className="neon-card overflow-hidden !p-0">
         <div className="relative h-28"><img src={banner} alt="" className="h-full w-full object-cover object-[50%_70%]" /><div className="absolute inset-0 bg-gradient-to-b from-transparent to-card" />
@@ -68,5 +88,7 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
       <div className="grid gap-2 sm:grid-cols-2">{confirmed.map((s) => <SpotCard key={s.id} spot={s} />)}</div>
       {!confirmed.length && <p className="text-sm text-muted-foreground">{tr("Noch keine bestätigten Fundorte.")}{" "}<Link to="/beitrag" className="text-neon">{tr("Jetzt einen vorschlagen")}</Link></p>}
     </div>
+    {celebration && <LevelUpOverlay rewards={celebration} onDone={finishCelebration} />}
+    </>
   );
 }

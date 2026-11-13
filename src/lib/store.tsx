@@ -268,7 +268,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.from("spots").update({ status }).eq("id", id).select("id");
       if (error) return tr("Speichern fehlgeschlagen");
       if (!data?.length) return tr("Keine Berechtigung");
-      await Promise.all(["spots", "profiles", "badges", "progress", "leaderboard"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
+      await Promise.all(["spots", "profiles", "badges", "progress", "leaderboard", "level-rewards"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
       return null;
     },
     // Like dauerhaft in spot_likes (Primärschlüssel spot_id+user_id verhindert Mehrfach-Likes)

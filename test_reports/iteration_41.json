@@ -1,0 +1,72 @@
+{
+  "iteration": 41,
+  "mode": "generate",
+  "feature": "Server-confirmed level-up coin reward (500 Coins/level) + LevelUpOverlay animation on /profil",
+  "passed": 7,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "checks": [
+    {
+      "criterion": "Server migration applies and awards exactly 500 Coins per real level",
+      "name": "test_tscheck_sql024_level_coin_rewards",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "9/9 pytest assertions passed statically against docs/migrations/024_level_coin_rewards.sql: unique(user_id,level), level check 2-100, coins=500 check, same 25*(L-1)^2+75*(L-1)/MAX_LEVEL=100 formula as src/lib/levels.ts, AFTER UPDATE OF xp ON profiles trigger, FOR UPDATE wallet lock, ON CONFLICT (user_id, level) DO NOTHING before crediting wallet+ledger ('level_up' reason), non-increasing-xp guard (no retroactive award), RLS own-row-only select, RPCs granted to authenticated only."
+    },
+    {
+      "criterion": "Normal level-up animation only after server-confirmed reward",
+      "name": "level-up-overlay-confirmed-single-reward",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked my_pending_level_rewards=[{level:2,coins:500}] on authenticated /profil (390x844, de locale): profile shows 'LEVEL II' (existing Roman logic), then level-up-overlay/level-up-card appear with title 'LEVEL AUFSTIEG!', old rank I -> new rank II, level-up-badge/level-up-progress visible, level-up-reward '+500 ... Leonida Coins'. Continue click closes overlay, calls mark_level_rewards_seen, refetches my_coin_balance. Reload with empty list -> no overlay. Reload with 404/PGRST202 (missing function) -> no overlay, no crash, profile still renders."
+    },
+    {
+      "criterion": "Multi-level jump uses direct transition and sum",
+      "name": "level-up-overlay-multi-level-direct-transition",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked rewards levels 2,3,4 (500 each): exactly one level-up-overlay instance, direct transition I -> IV (no sequential overlays), level-up-reward shows '+1,500 Leonida Coins', level-up-level-note contains '3'."
+    },
+    {
+      "criterion": "Reduced motion and skip do not affect payout",
+      "name": "level-up-overlay-reduced-motion-no-duplicate",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With prefers-reduced-motion:reduce, overlay carries level-up-reduced class, shows reward, and auto-completes in ~700ms (<1.5s) calling only mark_level_rewards_seen (ack, no coin RPC). Same mocked pending reward re-served on window focus/visibilitychange within the visit does not reopen the overlay (dedup via reward_id). Separately on normal motion, clicking level-up-continue-button closes the overlay immediately (<1s) mid-animation."
+    },
+    {
+      "criterion": "Animation completion refreshes coins and profile state",
+      "name": "level-up-overlay-confirmed-single-reward",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Same check as above: after Continue, my_coin_balance RPC call count increased (query invalidated/refetched) and mark_level_rewards_seen was called exactly once per dismissal; profile Roman rank/XP/CoinBalance components remain the existing ones (no new level system rendered)."
+    },
+    {
+      "criterion": "No duplicate animation for the same pending rewards during one profile visit",
+      "name": "level-up-overlay-reduced-motion-no-duplicate",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Covered in the reduced-motion check: a forced refocus/visibilitychange refetch returning the identical reward_id list does not reopen a second overlay within the same visit (component's shownRewards ref key dedup). Server-side double-payout prevention is covered by the sql024 backend test's unique(user_id, level) + ON CONFLICT DO NOTHING assertions."
+    },
+    {
+      "criterion": "Profile and mobile regression",
+      "name": "profil-route-mobile-no-crash / core-routes-no-regression-390 / public-preview-health-and-guest-map",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran 3 existing checks at 390x844: guest /profil shows profile-login-link (expected guest card, not a bug), guest can navigate /karte, /entdecken, /arcade, /community, /beitrag, /profil via bottom nav with no blank/white screen; public ingress preview URL loads the guest map without errors."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "Count note: acceptance_matrix listed 7 criteria; all 7 covered (1 backend static-SQL artifact + 3 new browser checks covering 5 UI criteria + 3 re-run regression checks for the mobile-regression criterion).",
+    "Migration 024 still requires manual execution in Lovable/Supabase per spec_deviations; no live-DB behavior was or could be exercised, matching the briefing's explicit deviation."
+  ],
+  "retest_needed": false,
+  "notes": [
+    "LevelUpOverlay.tsx is fully wired into ProfileView.tsx (usePendingLevelRewards/useMarkLevelRewardsSeen), not a stub.",
+    "Overlay title text localizes to English 'LEVEL UP!' under device/browser default locale (en) and German 'LEVEL AUFSTIEG!' under saved leonida-lang=de — confirmed via src/lib/i18n-en.ts mapping; tests pinned locale to 'de' to match the briefing's literal German wording. Not a bug.",
+    "Reward total uses toLocaleString() without an explicit locale in LevelUpOverlay (renders '+1,500' with a comma even in German mode), matching the acceptance_matrix's own literal '+1,500' wording precisely. Not a bug, just noting the component doesn't call the app's locale()-aware formatter used elsewhere (CoinBalance etc.) — cosmetic only, not flagged as a bug per instructions (polish/formatting)."
+  ]
+}

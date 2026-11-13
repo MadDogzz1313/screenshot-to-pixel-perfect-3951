@@ -878,4 +878,9 @@ export const EN: Record<string, string> = {
   "Fundort freischalten? Die ersten fünf Fundorte anderer Spieler sind kostenlos, danach werden exakt 500 Leonida Coins abgezogen.": "Unlock this spot? Your first five spots from other players are free; exactly 500 Leonida coins will be deducted afterward.",
   "Freischaltung für 500 Coins": "Unlock for 500 coins",
   "Für 500 Coins freischalten": "Unlock for 500 coins",
+  "Levelaufstieg": "Level up",
+  "LEVEL AUFSTIEG!": "LEVEL UP!",
+  "Leonida Coins": "Leonida Coins",
+  "{0} neue Level erreicht · 500 Coins je Level": "{0} new levels reached · 500 coins per level",
+  "500 Coins für den neuen Rang": "500 coins for the new rank",
 };
