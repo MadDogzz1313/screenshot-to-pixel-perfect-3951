@@ -1,0 +1,72 @@
+{
+  "iteration": 37,
+  "summary": "Verified the creator-spot-free-unlock feature (SQL 022 + fundort.$id.tsx ownSpot bypass). Backend suite (54 tests) and frontend typecheck pass. Fixed a stale existing browser-check fixture that accidentally used the logged-in user's own id as the spot author (which the new fix now correctly treats as an own-spot bypass), then added a dedicated browser check proving own-spot detail pages never render the lock panel even when the backend mock returns locked/priced data.",
+  "passed": 7,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "bugs": [],
+  "action_items": [
+    "No Supabase/Lovable credentials are available in this environment, so the authenticated own-spot flow is verified via source-code review + a mocked-session browser check + the static SQL migration tests, not a real logged-in session against production Supabase. Confirm end-to-end with a real account after manual execution of docs/migrations/022_eigene_fundorte_freigeschaltet.sql in Lovable/Supabase.",
+    "Production deployment of this Preview tree (and the SQL migration) is still pending per the briefing; no action needed from testing, flagging for visibility."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Backend makes creator access free and server-enforced / counter excludes own spots / pending-rejected blocked / idempotency unchanged",
+      "name": "test_tscheck_sql022_creator_unlock.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "pytest -q: 54 passed, 1 warning in 5.83s (full suite including test_tscheck_sql022_creator_unlock.py::test_creator_is_free_and_not_recorded_as_unlock, test_free_counter_excludes_creator_owned_spots, test_pending_and_rejected_spots_are_not_unlockable, test_unlock_is_idempotent_and_debits_only_after_insert, test_rpc_is_server_side_and_authenticated_only — all assert against docs/migrations/022_eigene_fundorte_freigeschaltet.sql content)."
+    },
+    {
+      "criterion": "Own approved spots are free and have no unlock window",
+      "name": "own-approved-spot-no-unlock-panel-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked authenticated session with spot author_id==user.id; backend RPCs mocked to return locked/priced data (my_spot_access=false, preview cost=150) to prove the frontend bypasses them for own spots. Assertions: getByTestId('spot-locked-panel') count 0, getByTestId('spot-unlock-button') count 0, spot title visible. Source confirms: src/routes/fundort.$id.tsx line 26 `ownSpot = !!user && s?.authorId === user.id`; line 28 disables useSpotAccess/useSpotUnlockPreview queries `!!user && !ownSpot`; line 32-33 guard lock/loading panels with `!ownSpot`."
+    },
+    {
+      "criterion": "Existing foreign spot pricing and idempotency stay unchanged",
+      "name": "locked-spot-shows-server-price-free-and-paid",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Fixed a stale fixture (author_id was accidentally == logged-in user id, making Playwright's first run correctly fail after the fix since it's now an own-spot). Updated author_id to a distinct id (55555555-...). Re-ran: both free-remaining (cost 0, 'Free unlock') and paid (cost 150, 'Unlock for 150 Coins') scenarios render spot-locked-panel + spot-unlock-price + spot-unlock-button correctly for a foreign spot."
+    },
+    {
+      "criterion": "Cross-platform web/iOS UI behavior - guest map/detail gating intact, no console errors, no HTTP>=400",
+      "name": "public-preview-health-and-guest-map",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Ran against public preview URL https://leonida-karte--6tt5kohx.preview.emergentagent.com; /karte loads for guest with no console errors / 4xx."
+    },
+    {
+      "criterion": "Pending or rejected spots cannot be unlocked publicly (guest detail guard)",
+      "name": "guest-direct-detail-route-guard",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Direct navigation to a fundort/<id> route as guest is correctly guarded; no spot details leaked."
+    },
+    {
+      "criterion": "No regressions — guest map has no unlock panel/errors",
+      "name": "guest-map-no-unlock-panel-no-errors",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest map view renders without spot-locked-panel and without console errors; screenshot captured."
+    },
+    {
+      "criterion": "No regressions — core routes at 390x844",
+      "name": "core-routes-no-regression-390",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Core routes navigate cleanly at mobile viewport with no crash; screenshot of /entdecken captured."
+    },
+    {
+      "criterion": "No regressions — frontend typecheck",
+      "name": "frontend-typecheck",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/frontend && yarn typecheck => 'tsc --noEmit -p tsconfig.json' Done in 6.13s, exit 0."
+    }
+  ]
+}
