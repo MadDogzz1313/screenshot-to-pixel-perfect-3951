@@ -1,144 +1,120 @@
 {
-  "project_name": "Leonida Explorer - Level-Up Animation & Rewards",
-  "context_type": "mobile_web_app",
-  "theme": "dark_neon_miami",
-  "typography": {
-    "fonts": {
-      "display": "Russo One, system-ui, sans-serif",
-      "sans": "Outfit, system-ui, sans-serif"
-    },
-    "scale_px": {
-      "display": 48,
-      "h1": 36,
-      "h2": 28,
-      "h3": 22,
-      "body": 16,
-      "caption": 14
-    },
-    "typesetting_rules": [
-      "Display font (Russo One) for dramatic rank banners, 'LEVEL AUFSTIEG!' title, and roman numeral accents",
-      "Outfit font for body copy, coin counters, and system labels",
-      "Maximum heading tracking: tracking-wide for neon banners, standard tracking for body",
-      "Line-height: tight for level headlines, relaxed for descriptions"
-    ]
-  },
+  "theme": "dark",
+  "archetype": "ARCHETYPE 7: ELECTRIC & NEON (Miami Synthwave / Cyberpunk)",
   "colors": {
     "surfaces": [
       {
         "name": "page",
         "kind": "solid",
-        "bg": "#12051f",
-        "on_bg": "#f9f0fa",
-        "on_bg_muted": "#cbb0d9",
+        "bg": "#120824",
+        "on_bg": "#F5EFFF",
+        "on_bg_muted": "#BFAAD9",
         "roles": {
-          "link": "#ff2e97",
-          "error": "#ff4d6d",
-          "success": "#4ade80",
-          "gold": "#ffd45a"
+          "link": "#22E4F2",
+          "error": "#FF4466",
+          "success": "#2EE59D"
         }
       },
       {
         "name": "neon_card",
         "kind": "solid",
-        "bg": "#24103d",
-        "on_bg": "#f9f0fa",
-        "on_bg_muted": "#b89ec6",
+        "bg": "#21113B",
+        "on_bg": "#F5EFFF",
+        "on_bg_muted": "#BFAAD9",
         "roles": {
-          "border": "#ff2e97",
-          "glow": "#9541ff"
+          "accent_pink": "#FF2E97",
+          "accent_cyan": "#22E4F2",
+          "accent_gold": "#FFD12A"
         }
       },
       {
-        "name": "level_up_overlay",
-        "kind": "glass",
-        "contrast_against": "#12051f",
-        "guarantee": "scrim: rgba(18, 5, 31, 0.92) with backdrop-blur-md",
-        "on_bg": "#ffffff",
-        "on_bg_muted": "#d8b4e2",
-        "roles": {
-          "title_gradient": "#ff2e97",
-          "gold_reward": "#ffd45a",
-          "old_rank": "#a18ca8",
-          "new_rank": "#ffffff"
-        }
-      },
-      {
-        "name": "coin_badge_surface",
+        "name": "neoshop_button",
         "kind": "solid",
-        "bg": "#2a1c0d",
-        "on_bg": "#ffe58b",
-        "on_bg_muted": "#ffd45a",
+        "bg": "#2B0B47",
+        "on_bg": "#22E4F2",
+        "on_bg_muted": "#19B5C2",
         "roles": {
-          "border": "#ffd45a",
-          "icon": "#ffd45a"
+          "border": "#22E4F2",
+          "glow": "rgba(34,228,242,0.35)",
+          "arrow": "#22E4F2",
+          "cart_icon": "#22E4F2"
+        }
+      },
+      {
+        "name": "coin_badge",
+        "kind": "solid",
+        "bg": "#1A0E2E",
+        "on_bg": "#FFD12A",
+        "on_bg_muted": "#D6AA18"
+      },
+      {
+        "name": "shop_item_card",
+        "kind": "solid",
+        "bg": "#24133F",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#BFAAD9",
+        "roles": {
+          "border": "#FF2E97",
+          "price_tag": "#FFD12A"
         }
       }
     ],
-    "accent": "#ffd45a",
-    "on_accent": "#180a2a"
+    "accent": "#22E4F2",
+    "on_accent": "#0D041A",
+    "secondary_accent": "#FF2E97",
+    "on_secondary_accent": "#FFFFFF"
+  },
+  "typography": {
+    "font_family_display": "'Russo One', system-ui, sans-serif",
+    "font_family_body": "'Outfit', system-ui, sans-serif",
+    "scale_px": {
+      "display": 48,
+      "h1": 36,
+      "h2": 28,
+      "h3": 20,
+      "body": 16,
+      "caption": 14
+    }
   },
   "entry_surfaces": {
-    "/": "Neon Miami landing hero with interactive map explore CTA and live spot cards",
-    "/profil": "Gamer profile hub with Roman rank badge, smooth XP progress bar, coin counter, and modal LevelUpOverlay",
-    "/einstellungen": "Tactical settings list with language switch, privacy options, and version info"
+    "/arcade": "Miami synthwave arcade hub — coin counter & cyan glowing Neoshop CTA top-right, dual mini-game launcher grid below, locked teaser modes list",
+    "/neoshop": "Retro-futuristic Neon Shop with top back navigation to /arcade, live user coin balance pill, unlockable items/upgrades/perks grid"
+  },
+  "visual_enhancers": {
+    "neon_glow": "box-shadow: 0 0 16px rgba(34,228,242,0.35), inset 0 0 8px rgba(34,228,242,0.15)",
+    "neoshop_button_style": "rounded-full border border-[#22E4F2] bg-[#2B0B47]/95 px-4 py-1.5 text-sm font-bold text-[#22E4F2] shadow-[0_0_14px_rgba(34,228,242,0.35)] transition-all duration-150 hover:bg-[#380F5C] hover:shadow-[0_0_20px_rgba(34,228,242,0.55)] active:scale-95 flex items-center gap-2",
+    "mobile_guard": "flex flex-wrap items-center gap-2.5 max-w-full overflow-hidden"
   },
   "motion": {
-    "fps_target": 60,
-    "duration_ms": 3800,
-    "reduced_motion_duration_ms": 700,
-    "keyframe_rules": [
-      "XP bar fills smoothly to 100% via cubic-bezier(0.2, 0.8, 0.2, 1)",
-      "Pink-violet neon ring pulses at scale 0.35 to 1.35 with outer glow",
-      "Roman numeral transition: old rank fades/glides up as new glowing rank locks in",
-      "Particle burst: 18 golden spark elements animated via CSS transform: translate3d and opacity",
-      "Coin coin-flip spin: CSS rotateY(360deg) loop during reward display",
-      "Respect prefers-reduced-motion: instantly show confirmed state with static neon framing"
-    ]
+    "press_feedback": "active:scale-95 transition-transform duration-100 ease-out",
+    "hover_glow": "transition-all duration-200 ease-in-out",
+    "page_transition": "animate-in fade-in duration-200"
   },
   "accessibility": {
-    "wcag_level": "WCAG AA",
-    "dialog_attributes": "role='dialog' aria-modal='true' aria-label='Levelaufstieg'",
-    "reduced_motion": "Supported via window.matchMedia('(prefers-reduced-motion: reduce)') and CSS overrides",
-    "touch_targets": "Minimum 48px touch target for the 'Weiter' button and action controls",
-    "test_attributes": [
-      "data-testid='level-up-overlay'",
-      "data-testid='level-up-card'",
-      "data-testid='level-up-title'",
-      "data-testid='level-up-transition'",
-      "data-testid='level-up-badge'",
-      "data-testid='level-up-reward'",
-      "data-testid='level-up-continue-button'"
-    ]
+    "contrast_compliance": "WCAG AA (Cyan #22E4F2 against Dark Violet #2B0B47 is > 8.5:1, Gold #FFD12A against #1A0E2E is > 9.2:1)",
+    "touch_target": "Minimum 44px touch height for all interactive buttons on iOS/Capacitor",
+    "screen_reader_labels": "aria-label on Neoshop button and back navigation buttons",
+    "text_resizing": "Respects iOS Dynamic Type without horizontal layout blowout"
   },
-  "image_urls": [
-    {
-      "category": "badges",
-      "url": "/badges/founder.webp",
-      "description": "Founder rank badge asset"
-    },
-    {
-      "category": "badges",
-      "url": "/badges/gold.webp",
-      "description": "Gold rank badge asset"
-    },
-    {
-      "category": "badges",
-      "url": "/badges/diamond.webp",
-      "description": "Diamond rank badge asset"
-    }
-  ],
-  "component_paths": {
-    "level_up_overlay": "/app/src/components/LevelUpOverlay.tsx",
-    "level_badge": "/app/src/components/LevelBadge.tsx",
-    "levels_library": "/app/src/lib/levels.ts",
-    "level_rewards_library": "/app/src/lib/level-rewards.ts",
-    "styles": "/app/src/styles.css"
+  "component_path": {
+    "arcade_hub": "/app/src/components/arcade/ArcadeHub.tsx",
+    "coin_balance": "/app/src/components/arcade/CoinBalance.tsx",
+    "neoshop_route": "/app/src/routes/neoshop.tsx",
+    "neoshop_component": "/app/src/components/arcade/NeoshopView.tsx"
   },
   "instructions_to_main_agent": [
-    "Ensure atomic server-side reward awarding of 500 Leonida Coins per level gained via level_coin_rewards ledger",
-    "Direct jump representation for multi-level jumps (e.g. I -> III with +1000 Leonida Coins)",
-    "Use GPU-accelerated CSS properties (transform, opacity) exclusively to maintain 60 FPS on iOS Capacitor and mobile browsers",
-    "Prevent double rewards upon app restart or repeated profile visits using the ledger check",
-    "Ensure the Roman numeral rank system (I to C) matches existing levels.ts perfectly"
-  ]
+    "1. In `/app/src/components/arcade/ArcadeHub.tsx`: Remove the badge `<span data-testid=\"arcade-xp-hint\">...Arcade-XP separat</span>` completely from the header banner.",
+    "2. Place the new `<Link to=\"/neoshop\" data-testid=\"neoshop-button\" className=\"...\">🛒 Neoshop →</Link>` directly next to the `<CoinBalance />` component.",
+    "3. Keep the CoinBalance completely intact (`175 Coins` or real synced balance).",
+    "4. Style the button with: rounded full/pill borders, glowing cyan border (`border border-[#22E4F2]`), dark violet background (`bg-[#2B0B47]`), glowing cyan text and cart icon (`text-[#22E4F2]`), subtle neon glow shadow (`shadow-[0_0_14px_rgba(34,228,242,0.35)]`).",
+    "5. Ensure iPhone responsive layout: use `flex flex-wrap items-center gap-2 sm:gap-3` so neither CoinBalance nor Neoshop button overflows on narrow screens like iPhone SE/13 mini (375px).",
+    "6. Create `/app/src/routes/neoshop.tsx` with TanStack router integration and back button leading explicitly back to `/arcade` with `<ArrowLeft />` or `← Zurück zur Arcade`.",
+    "7. Include synced user coin balance in Neoshop, with interactive unlockable upgrades/customizations (Spot-Booster, Neon-Themes, Avatar-Frames, Arcade-Leben) using existing Coin-System.",
+    "8. Preserve all existing Arcade games (Neon Highway, Leonida Fishing), highscore tracking, and backend Arcade XP logic untouched."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "anti_ai_slop": "Maintain authentic 80s/90s Miami Vice / Synthwave dark aesthetics with deep indigo surfaces and sharp neon cyan/pink accents.",
+    "test_attributes": "All new interactive elements must have clear data-testid attributes: data-testid='neoshop-button', data-testid='neoshop-back-button', data-testid='neoshop-coin-balance', data-testid='neoshop-item-card'.",
+    "framework": "TanStack Router, React 19, Tailwind v4, Lucide Icons, Sonner for toasts."
+  }
 }

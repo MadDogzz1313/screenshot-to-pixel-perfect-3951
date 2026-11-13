@@ -19,6 +19,7 @@ import { Route as EinstellungenRouteImport } from './routes/einstellungen'
 import { Route as EntdeckenRouteImport } from './routes/entdecken'
 import { Route as FreundeRouteImport } from './routes/freunde'
 import { Route as KarteRouteImport } from './routes/karte'
+import { Route as NeoshopRouteImport } from './routes/neoshop'
 import { Route as NutzungsbedingungenRouteImport } from './routes/nutzungsbedingungen'
 import { Route as PasswortNeuRouteImport } from './routes/passwort-neu'
 import { Route as ProfilRouteImport } from './routes/profil'
@@ -83,6 +84,11 @@ const FreundeRoute = FreundeRouteImport.update({
 const KarteRoute = KarteRouteImport.update({
   id: '/karte',
   path: '/karte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NeoshopRoute = NeoshopRouteImport.update({
+  id: '/neoshop',
+  path: '/neoshop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NutzungsbedingungenRoute = NutzungsbedingungenRouteImport.update({
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
+  '/neoshop': typeof NeoshopRoute
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
+  '/neoshop': typeof NeoshopRoute
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
+  '/neoshop': typeof NeoshopRoute
   '/nutzungsbedingungen': typeof NutzungsbedingungenRoute
   '/passwort-neu': typeof PasswortNeuRoute
   '/profil': typeof ProfilRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/entdecken'
     | '/freunde'
     | '/karte'
+    | '/neoshop'
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/entdecken'
     | '/freunde'
     | '/karte'
+    | '/neoshop'
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/entdecken'
     | '/freunde'
     | '/karte'
+    | '/neoshop'
     | '/nutzungsbedingungen'
     | '/passwort-neu'
     | '/profil'
@@ -338,6 +350,7 @@ export interface RootRouteChildren {
   EntdeckenRoute: typeof EntdeckenRoute
   FreundeRoute: typeof FreundeRoute
   KarteRoute: typeof KarteRoute
+  NeoshopRoute: typeof NeoshopRoute
   NutzungsbedingungenRoute: typeof NutzungsbedingungenRoute
   PasswortNeuRoute: typeof PasswortNeuRoute
   ProfilRoute: typeof ProfilRoute
@@ -422,6 +435,13 @@ declare module '@tanstack/react-router' {
       path: '/karte'
       fullPath: '/karte'
       preLoaderRoute: typeof KarteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/neoshop': {
+      id: '/neoshop'
+      path: '/neoshop'
+      fullPath: '/neoshop'
+      preLoaderRoute: typeof NeoshopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nutzungsbedingungen': {
@@ -568,6 +588,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntdeckenRoute: EntdeckenRoute,
   FreundeRoute: FreundeRoute,
   KarteRoute: KarteRoute,
+  NeoshopRoute: NeoshopRoute,
   NutzungsbedingungenRoute: NutzungsbedingungenRoute,
   PasswortNeuRoute: PasswortNeuRoute,
   ProfilRoute: ProfilRoute,

@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { ArrowRight, LockKeyhole, Trophy, Zap } from "lucide-react";
+import { ArrowRight, LockKeyhole, ShoppingCart, Trophy } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { CoinBalance } from "@/components/arcade/CoinBalance";
 import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
@@ -24,7 +24,7 @@ export function ArcadeHub() {
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#22E4F2]">{tr("Spiel · Sammle · Steige auf")}</p>
         <h2 className="mt-1 font-display text-3xl text-neon-gradient">Neon Arcade</h2>
         <p className="mt-2 max-w-md text-sm text-[#BFAAD9]">{tr("Echte Touch-Spiele für iPhone. Gewertete Runden geben dir Coins und Arcade-XP – Community-Abzeichen bleiben davon unberührt.")}</p>
-        <div className="mt-4 flex flex-wrap items-center gap-2"><CoinBalance /><span data-testid="arcade-xp-hint" className="inline-flex items-center gap-1.5 rounded-full border border-[#22E4F2]/50 bg-[#22E4F2]/10 px-3 py-1.5 text-sm font-bold text-[#22E4F2]"><Zap className="h-4 w-4" />{tr("Arcade-XP separat")}</span></div>
+        <div className="mt-4 flex max-w-full flex-wrap items-center gap-2 overflow-hidden"><CoinBalance /><Link to="/neoshop" aria-label={tr("Neoshop öffnen")} data-testid="neoshop-button" className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-[#22E4F2] bg-[#2B0B47]/95 px-3 py-2 text-sm font-bold text-[#22E4F2] shadow-[0_0_14px_rgba(34,228,242,0.35)] transition-[transform,background-color,box-shadow] duration-150 hover:bg-[#380F5C] hover:shadow-[0_0_20px_rgba(34,228,242,0.55)] active:scale-95 sm:flex-none sm:px-4"><ShoppingCart className="h-5 w-5 shrink-0" /><span className="truncate">{tr("Neoshop")}</span><ArrowRight className="h-5 w-5 shrink-0" /></Link></div>
         {!user && <p data-testid="arcade-guest-note" className="mt-3 text-xs text-[#BFAAD9]">{tr("Du kannst die Spiele testen. Für Ranglisten, Coins und XP musst du angemeldet sein.")}</p>}
       </section>
       <section className="grid gap-4 sm:grid-cols-2">
