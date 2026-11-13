@@ -2,15 +2,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isMissing, sb } from "./db";
 
 import { tr } from "@/lib/i18n";
+import highwayIcon from "@/assets/arcade-neon-highway.webp";
+import fishingIcon from "@/assets/arcade-leonida-fishing.webp";
 export type ArcadeGameId = "neon_highway" | "leonida_fishing";
 export type ArcadeRoundStart = { round_id: string; seed: string; started_at: string; max_duration_seconds: number; max_score: number };
 export type ArcadeRoundResult = { round_id: string; score: number; coins: number; xp: number; new_high_score: boolean; already_processed?: boolean; daily_limit_reached?: boolean };
 export type LeaderboardEntry = { rank: number; user_id: string; username: string | null; score: number };
 export type ArcadeStats = { high_score: number | null; rank: number | null; xp_earned: number };
 
-export const ARCADE_GAMES: { id: ArcadeGameId; name: string; description: string; icon: string; maxCoins: number; maxXp: number; playable: boolean }[] = [
-  { id: "neon_highway", name: "Neon Highway", description: tr("Weiche dem Verkehr aus und rase durch die Neon-Nacht."), icon: "🏎️", maxCoins: 40, maxXp: 20, playable: true },
-  { id: "leonida_fishing", name: "Leonida Fishing", description: tr("15 Würfe pro Tag: Köder wählen, im richtigen Moment einholen und fünf Fischarten sammeln."), icon: "🎣", maxCoins: 250, maxXp: 5, playable: true },
+export const ARCADE_GAMES: { id: ArcadeGameId; name: string; description: string; icon: string; image: string; maxCoins: number; maxXp: number; playable: boolean }[] = [
+  { id: "neon_highway", name: "Neon Highway", description: tr("Weiche dem Verkehr aus und rase durch die Neon-Nacht."), icon: "🏎️", image: highwayIcon, maxCoins: 40, maxXp: 20, playable: true },
+  { id: "leonida_fishing", name: "Leonida Fishing", description: tr("15 Würfe pro Tag: Köder wählen, im richtigen Moment einholen und fünf Fischarten sammeln."), icon: "🎣", image: fishingIcon, maxCoins: 250, maxXp: 5, playable: true },
 ];
 export const UPCOMING_ARCADE_GAMES = [tr("Alligator-Jagd"), "Leonida Memory", "Neon Snake", "Flamingo Flight", "Beach Basketball", "Sunset Runner", "Neon Breaker", "Leonida Quiz"];
 
