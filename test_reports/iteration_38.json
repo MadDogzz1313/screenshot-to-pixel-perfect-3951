@@ -1,0 +1,50 @@
+{
+  "iteration": 38,
+  "summary": "Verified the new chunk-recovery (stale-page auto-reload) feature: src/lib/chunk-recovery.ts + src/routes/__root.tsx. Backend suite (54 tests) passed with no regressions (feature is frontend-only, no API surface). 4 browser checks added/run: regression nav (passed), single stale-module auto-recovery via one _fresh reload (passed), normal-browser-unaffected regression (passed), and the 'fails twice -> error screen + Try again' scenario which could not be reproduced on this Vite dev-server preview (see note below) despite several interception strategies.",
+  "passed": 3,
+  "failed": 1,
+  "flaky": 0,
+  "blocked": 0,
+  "bugs": [],
+  "action_items": [
+    "Criterion 'Error screen for outdated files (fails twice within a minute)' could not be reproduced on the Vite dev-server preview: TanStack Start's dev router performs a real background fetch of the full server-rendered document for every client-side navigation (confirmed via network trace: a `GET /community` returning 200 full HTML happens on every nav click, independent of whether the client-side dynamic import of community.tsx is intercepted/aborted). That server-rendered content keeps the page visually working even when every client bundle request for the route module is aborted and even when the 60s reload-guard is pre-consumed to force a 'second failure'. Root cause: in dev mode the actual recovery path is Vite's `vite:preloadError` window event (confirmed working, see chunk-recovery-stale-route-auto-reload), not a real React error-boundary throw; getting the error boundary itself to render requires blocking the SSR document fetch too, which the briefing's instructions (intercept only /src/routes/community.tsx) explicitly do not call for. Source review of src/routes/__root.tsx confirms the Try again button logic is implemented correctly (outdated-case calls reloadFresh(href, true) which always navigates with a fresh _fresh param), and chunk-recovery.ts's GUARD_MS logic correctly blocks repeat auto-reloads within 60s and falls through to the thrown error in that case — so this looks like a dev-SSR-environment limitation analogous to the already-whitelisted native version-check deviation, not a functional bug. Recommend confirming on a production static build (same caveat as the version-check item in spec_deviations) rather than requiring dev-preview proof."
+  ],
+  "retest_needed": true,
+  "checks": [
+    {
+      "criterion": "Normal navigation still works (regression) - guest taps all 6 bottom-nav tabs, no error screen, no _fresh param",
+      "name": "bottom-nav-regression-no-fresh-param",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest entry via auth-guest-button -> /karte; clicked app-nav-karte/entdecken/arcade/beitrag/community/profil in sequence; each resolved to its expected URL, 'This page didn't load' count 0 each time, no URL ever contained _fresh."
+    },
+    {
+      "criterion": "Outdated page file after a new release is recovered automatically (core fix)",
+      "name": "chunk-recovery-stale-route-auto-reload",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Added init script setting window.webkit.messageHandlers.bridge (native iOS simulation). Intercepted GET **/src/routes/community.tsx** exactly once (fulfilled 200 text/html stale payload), then let subsequent requests pass through. Clicking app-nav-community triggered one navigation to /community?_fresh=<token> (Vite's vite:preloadError -> reloadFresh()), the _fresh param was stripped again, and the Community page rendered correctly with no 'This page didn't load' screen and only one fresh navigation (no loop). Harmless 'PushNotifications plugin is not implemented on ios' pageerror observed and ignored per briefing."
+    },
+    {
+      "criterion": "Error screen 'Try again' for outdated files (fails twice within a minute)",
+      "name": "chunk-recovery-error-screen-try-again",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "Could not reproduce the error screen on the Vite dev-server preview even with (a) every request to /src/routes/community.tsx aborted and (b) the 60s guard pre-consumed via sessionStorage before the click, to simulate a second failure. Network trace showed `GET /community` always returns 200 (TanStack Start's dev-mode SSR document fetch, unaffected by the client-bundle interception), so the page kept rendering correctly instead of hitting the React error boundary. See action_items for root-cause analysis and recommendation to verify on a production static build."
+    },
+    {
+      "criterion": "Non-chunk errors unchanged (normal browser, no webkit bridge)",
+      "name": "chunk-recovery-normal-browser-unaffected",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Without the webkit bridge init script, guest navigated through all 6 bottom-nav tabs: no 'This page didn't load' screen, no _fresh param on any URL, zero console errors (excluding favicon) and zero HTTP>=400 responses."
+    },
+    {
+      "criterion": "No regressions in existing backend behavior (feature is frontend-only, API surface unaffected)",
+      "name": "test_tscheck_* (existing suite)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q -p no:cacheprovider => 54 passed, 1 warning in 5.89s. No new backend code was introduced by this feature, so no new backend test file was added."
+    }
+  ]
+}

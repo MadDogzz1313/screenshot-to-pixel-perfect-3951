@@ -18,6 +18,7 @@ import { PwaUpdatePrompt } from "../lib/PwaUpdatePrompt";
 import { BanGate } from "../components/social/BanGate";
 import { useViewportGuard } from "../lib/useViewportGuard";
 import { UsernameReminder } from "../components/UsernameReminder";
+import { freshNavigationTarget, isChunkLoadError, reloadFresh } from "../lib/chunk-recovery";
 
 import { initLanguage, lang, tr } from "@/lib/i18n";
 function NotFoundComponent() {
@@ -45,9 +46,11 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+  const outdated = isChunkLoadError(error);   // alte App-Version nach neuer Veröffentlichung -> frisch laden
   useEffect(() => {
+    if (outdated && reloadFresh()) return;
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+  }, [error, outdated]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -61,6 +64,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              if (outdated) { reloadFresh(window.location.href, true); return; }
               router.invalidate();
               reset();
             }}
@@ -136,7 +140,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
   useViewportGuard();
+  // iPhone-App: neue Version erkannt -> beim nächsten Seitenwechsel frisch laden
+  useEffect(() => router.subscribe("onBeforeNavigate", (e) => { freshNavigationTarget(e.toLocation.href); }), [router]);
   const [, refreshLanguage] = useState(0);
   useEffect(() => {
     const timer = window.setTimeout(() => { if (initLanguage()) refreshLanguage((v) => v + 1); }, 100);
