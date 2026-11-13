@@ -4,6 +4,8 @@ import { LevelUpOverlay } from "./LevelUpOverlay";
 import { useMarkLevelRewardsSeen, usePendingLevelRewards, type PendingLevelReward } from "@/lib/level-rewards";
 import { Award, CalendarDays, Heart, Lock, MapPin, Settings } from "lucide-react";
 import { LevelBadge } from "./LevelBadge";
+import { FramedAvatar } from "./FramedAvatar";
+import { useProfileFrame } from "@/lib/profile-frames";
 import { SpotCard } from "./SpotCard";
 import { BadgeGallery, featuredDefs } from "./BadgeGallery";
 import { levelFromXp, levelProgress, toRoman } from "@/lib/levels";
@@ -19,6 +21,7 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
   profile: Profile; spots: Spot[]; own?: boolean; progress?: Progress | undefined; onFeature?: ((ids: string[]) => Promise<string | null>) | undefined;
 }) {
   const badges = useUserBadges(profile.id);
+  const frame = useProfileFrame(profile.id);
   const unlocked = badges.data?.ids ?? [];
   const levelRewards = usePendingLevelRewards(own ? profile.id : undefined);
   const markLevelRewardsSeen = useMarkLevelRewardsSeen();
@@ -39,7 +42,7 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
   if (profile.restricted) return (
     <div className="space-y-4 px-3">
       <div className="neon-card flex flex-col items-center gap-3 p-6 text-center">
-        <img src={profile.avatar} alt="" className="h-24 w-24 rounded-full border-4 border-neon object-cover" />
+        <FramedAvatar src={profile.avatar} size={96} frameId={frame.data} frameTestId="profile-frame" imgClassName="border-4 border-neon" />
         <h2 data-testid="profile-username" className="font-display text-2xl">{profile.username}</h2>
         <p data-testid="profile-private-note" className="flex items-center gap-1 text-sm text-muted-foreground"><Lock className="h-4 w-4" />{tr("Dieses Profil ist privat.")}</p>
       </div>
@@ -57,7 +60,7 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
           {own && <Link to="/einstellungen" aria-label={tr("Einstellungen")} data-testid="profile-settings-button"
             className="absolute left-3 top-3 z-20 grid h-11 w-11 place-items-center rounded-full border border-neon/70 bg-[#1a0b26]/75 text-white shadow-[0_0_16px_oklch(0.7_0.3_345/0.55)] backdrop-blur-md transition-transform duration-150 hover:rotate-45 active:scale-90"><Settings className="h-6 w-6" /></Link>}</div>
         <div className="relative z-10 -mt-14 flex items-end gap-3 px-4">
-          <img data-testid="profile-avatar" src={profile.avatar} alt="" className="h-28 w-28 shrink-0 rounded-full border-4 border-neon object-cover shadow-[0_0_24px_oklch(0.7_0.3_345/0.6)]" />
+          <FramedAvatar testId="profile-avatar" frameTestId="profile-frame" src={profile.avatar} size={112} frameId={frame.data} imgClassName="border-4 border-neon shadow-[0_0_24px_oklch(0.7_0.3_345/0.6)]" />
           <div className="min-w-0 pb-1">
             <h2 data-testid="profile-username" className="truncate font-display text-2xl italic">{profile.username}</h2>
             <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-neon/70 px-3 py-0.5 text-xs font-bold">LEVEL {toRoman(levelFromXp(profile.xp))}</span>

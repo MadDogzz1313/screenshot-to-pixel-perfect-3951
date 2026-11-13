@@ -1,0 +1,84 @@
+{
+  "iteration": 45,
+  "mode": "generate",
+  "summary": "Profilrahmen (profile frames) feature: Neoshop frames tab, purchase flow, settings picker, avatar display on own/public profile, SQL-029-missing fallback, and regression of other Neoshop tabs + yarn test/typecheck. 8 browser checks, all passed.",
+  "passed": 8,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Neoshop Profilrahmen tab lists 5 frames with animated preview, name, price, buy button",
+      "name": "neoshop-frames-tab-lists-five",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked rpc/my_profile_frames with 5 rows; /neoshop?tab=frames shows all 5 frame-cards with correct de-DE prices (500 / 1.000), Exklusiv badge only on golden_crown, animated <img> preview plus <source media='(prefers-reduced-motion: reduce)'> static fallback present."
+    },
+    {
+      "criterion": "Purchase once with success message (mocked)",
+      "name": "neoshop-frame-purchase-success-once",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked logged-in session + buy_profile_frame; dialog showed price 500 / balance 1.000, confirm triggered buy_profile_frame exactly once (buyCalls===1), success dialog title 'Profilrahmen freigeschaltet!' and 'Jetzt ausrüsten' button visible."
+    },
+    {
+      "criterion": "Purchase dialog with insufficient balance shows no confirm button",
+      "name": "neoshop-frame-insufficient-balance",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Balance mocked to 50 vs price 500; dialog shows data-testid=neoshop-frame-insufficient, neoshop-frame-confirm-button count 0, neoshop-frame-earn-button visible instead."
+    },
+    {
+      "criterion": "Settings -> Profilrahmen picker (mocked)",
+      "name": "settings-frame-picker-equip-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/einstellungen settings-frame-row expands FramePicker: 'Kein Rahmen' + 5 frames rendered, golden_crown shows lock + '1.000' + Neoshop link, owned neon_sunset has Ausrüsten button; clicking it called equip_profile_frame and resulted in exactly one '-equipped' badge total."
+    },
+    {
+      "criterion": "Frame displayed around avatar on own and public profile",
+      "name": "profile-frame-displayed-own-and-public",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked profile_frame_loadouts -> {frame_id:'golden_crown'}; /profil shows profile-avatar + profile-frame (data-frame=golden_crown) both with non-zero bounding boxes; /u/MadDogzz (mocked profile_cards row) also shows profile-frame."
+    },
+    {
+      "criterion": "No frame / unmocked fallback shows SQL 029 hint, no crash",
+      "name": "neoshop-unmocked-shows-sql029-hint",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Unmocked /neoshop?tab=frames (real 404 from Supabase, migration 029 not applied there) rendered neoshop-frames-setup-hint and frame cards in locked fallback state; zero page errors."
+    },
+    {
+      "criterion": "Regression: other Neoshop tabs still work",
+      "name": "neoshop-six-designs-halved-prices",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check (Fahrzeugdesigns tab, 6 skins w/ halved prices) unchanged by this feature."
+    },
+    {
+      "criterion": "Regression: Angelköder (baits) tab still works",
+      "name": "neoshop-baits-tab-purchase-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check; bait purchase flow confirmed unaffected."
+    },
+    {
+      "criterion": "Public preview ingress path renders frames tab",
+      "name": "neoshop-frames-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Ran against https://leonida-karte--6tt5kohx.preview.emergentagent.com/neoshop?tab=frames with mocked my_profile_frames; all 5 frame cards visible."
+    }
+  ],
+  "notes": [
+    "cd /app && yarn test: 7 files / 64 tests passed.",
+    "cd /app/frontend && yarn typecheck: tsc --noEmit passed with no errors.",
+    "Confirmed in code: 'Neon-Profilrahmen' coming-soon placeholder removed from Extras tab COMING_SOON map (only 'Miami-Kartenstil' remains there); frames now live in dedicated FrameShop tab.",
+    "Real purchase against live Supabase remains blocked until migration 029/030 is applied there (setup-missing fallback verified instead, as expected per spec_deviations)."
+  ]
+}

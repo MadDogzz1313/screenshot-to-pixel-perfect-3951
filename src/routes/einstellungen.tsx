@@ -6,6 +6,7 @@ import { App } from "@capacitor/app";
 import {
   AtSign, BadgeInfo, Ban, BellRing, Camera, ChevronLeft, Eye, FileText, KeyRound, Lock, LogOut, Mail, MessageSquareText,
   Settings2, ShieldCheck, Smartphone, UserRound, UserRoundPen,
+  CircleUserRound,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AvatarEditor } from "@/components/AvatarEditor";
@@ -15,6 +16,9 @@ import { OPERATOR } from "@/components/LegalPage";
 import { PushSettings } from "@/components/social/PushSettings";
 import { DeleteAccount } from "@/components/social/DeleteAccount";
 import { EmailChangeForm, PasswordChangeForm } from "@/components/settings/AccountForms";
+import { FramePicker } from "@/components/arcade/FrameShop";
+import { FramedAvatar } from "@/components/FramedAvatar";
+import { frameById, useMyFrames } from "@/lib/profile-frames";
 import { ButtonRow, ExpandRow, InfoRow, LinkRow, SettingsGroup, SettingsSection } from "@/components/settings/SettingsUi";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -66,6 +70,7 @@ function Settings() {
   const [bio, setBio] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
+  const myFrames = useMyFrames(user?.id);
   const invalidate = useInvalidate();
   const version = useAppVersion();
   const me = profiles.find((p) => p.id === user?.id);
@@ -100,7 +105,7 @@ function Settings() {
 
   return shell(<>
     <Link to="/profil" data-testid="settings-profile-card" className="neon-card flex items-center gap-3 p-3 animate-in fade-in duration-300 transition-transform active:scale-[0.99]">
-      <img src={me.avatar} alt="" className="h-14 w-14 shrink-0 rounded-full border-2 border-neon object-cover shadow-[0_0_14px_oklch(0.7_0.3_345/0.5)]" />
+      <FramedAvatar src={me.avatar} size={56} frameId={myFrames.data?.equipped} frameTestId="settings-profile-frame" imgClassName="border-2 border-neon shadow-[0_0_14px_oklch(0.7_0.3_345/0.5)]" />
       <span className="min-w-0 flex-1"><span data-testid="settings-profile-username" className="block truncate font-display text-lg italic">{user.needsUsername ? tr("Benutzername fehlt") : user.username}</span>
         <span data-testid="settings-profile-email" className="block truncate text-xs text-muted-foreground">{user.email}</span></span>
     </Link>
@@ -115,6 +120,9 @@ function Settings() {
           </ExpandRow>
           <ExpandRow value="profilbild" icon={Camera} label={tr("Profilbild")} hint={me.avatarPath ? tr("Eigenes Bild") : tr("Standardbild")} testId="settings-avatar-row">
             <AvatarEditor userId={user.id} path={me.avatarPath} hasAvatar={!!me.avatarPath} onDone={() => invalidate("profiles")} />
+          </ExpandRow>
+          <ExpandRow value="profilrahmen" icon={CircleUserRound} label={tr("Profilrahmen")} hint={frameById(myFrames.data?.equipped)?.name ?? tr("Kein Rahmen")} testId="settings-frame-row">
+            <FramePicker userId={user.id} avatar={me.avatar} />
           </ExpandRow>
           <ExpandRow value="bio" icon={UserRoundPen} label={tr("Biografie")} hint={me.bio || tr("Noch leer")} testId="settings-bio-row">
             <Textarea data-testid="profile-bio-input" value={bio ?? me.bio} maxLength={200} placeholder={tr("Über dich (max. 200 Zeichen)")} onChange={(e) => setBio(e.target.value)} className="min-h-24 text-base" />
