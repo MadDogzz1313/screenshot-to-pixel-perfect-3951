@@ -116,6 +116,22 @@
   .level-up-enter, .level-up-enter * { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
 }
 
+/* Leonida Fishing */
+@keyframes fishing-catch-pop { from { opacity: 0; transform: translateY(40px) scale(.7) rotate(-8deg); } 60% { opacity: 1; transform: translateY(-6px) scale(1.06) rotate(2deg); } to { opacity: 1; transform: none; } }
+@keyframes fishing-coin-rise { 0% { opacity: 0; transform: translateY(14px) scale(.8); } 25% { opacity: 1; transform: translateY(0) scale(1.1); } 100% { opacity: 0; transform: translateY(-60px) scale(1); } }
+@keyframes fishing-gold-spark { 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); } }
+@keyframes fishing-bite-pulse { 0%, 100% { box-shadow: 0 0 18px 2px rgb(255 209 42 / .55); transform: scale(1); } 50% { box-shadow: 0 0 34px 10px rgb(255 209 42 / .85); transform: scale(1.06); } }
+@keyframes fishing-crown-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.fishing-catch-pop { animation: fishing-catch-pop 620ms cubic-bezier(.2,.9,.3,1.2) both; }
+.fishing-coin-rise { animation: fishing-coin-rise 1400ms 350ms ease-out both; }
+.fishing-gold-spark { animation: fishing-gold-spark 1500ms ease-out infinite; }
+.fishing-bite-pulse { animation: fishing-bite-pulse 700ms ease-in-out infinite; }
+.fishing-crown { animation: fishing-crown-bob 1800ms ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .fishing-catch-pop, .fishing-coin-rise, .fishing-gold-spark, .fishing-bite-pulse, .fishing-crown { animation: none !important; }
+  .fishing-gold-spark { opacity: .8; }
+}
+
 /* Untere Navigationsleiste: Abstand zum Home-Balken des iPhones */
 @utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.25rem); }
 

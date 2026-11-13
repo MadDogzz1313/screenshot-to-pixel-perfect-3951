@@ -10,7 +10,7 @@ export type ArcadeStats = { high_score: number | null; rank: number | null; xp_e
 
 export const ARCADE_GAMES: { id: ArcadeGameId; name: string; description: string; icon: string; maxCoins: number; maxXp: number; playable: boolean }[] = [
   { id: "neon_highway", name: "Neon Highway", description: tr("Weiche dem Verkehr aus und rase durch die Neon-Nacht."), icon: "🏎️", maxCoins: 40, maxXp: 20, playable: true },
-  { id: "leonida_fishing", name: "Leonida Fishing", description: tr("Treffe den richtigen Moment und ziehe seltene Fische an Land."), icon: "🎣", maxCoins: 35, maxXp: 18, playable: true },
+  { id: "leonida_fishing", name: "Leonida Fishing", description: tr("15 Würfe pro Tag: Köder wählen, im richtigen Moment einholen und fünf Fischarten sammeln."), icon: "🎣", maxCoins: 250, maxXp: 5, playable: true },
 ];
 export const UPCOMING_ARCADE_GAMES = [tr("Alligator-Jagd"), "Leonida Memory", "Neon Snake", "Flamingo Flight", "Beach Basketball", "Sunset Runner", "Neon Breaker", "Leonida Quiz"];
 

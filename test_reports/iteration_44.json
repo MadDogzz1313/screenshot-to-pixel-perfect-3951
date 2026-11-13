@@ -1,0 +1,112 @@
+{
+  "iteration": 44,
+  "mode": "generate",
+  "summary": "Leonida Fishing v2 feature fully verified: SQL logic (32/32 ok=t), unit tests (64/64), typecheck clean, and all 8 UI acceptance criteria covered with mocked Playwright checks. Existing Neoshop vehicle-design regressions re-verified (pass). No bugs found; one minor finding (not a bug) noted below.",
+  "passed": 13,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "checks": [
+    {
+      "criterion": "SQL server logic for odds, bait boost, prices, uses, daily limit, Berlin reset, no double rewards",
+      "name": "sqltest-run.sh (013,016,018,019,022,023,024,025,027,028) + yarn test",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "bash scripts/sqltest/run.sh ... -> 32 rows, all ok=t (PASS). `yarn test` -> vitest run: all suites passed including src/lib/fishing.test.ts (64 tests total, 0 failures). `cd frontend && yarn typecheck` -> tsc --noEmit clean, exit 0."
+    },
+    {
+      "criterion": "Fishing game screen on iPhone viewport",
+      "name": "fishing-screen-layout-iphone",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844 viewport, mocked logged-in session + my_fishing_state RPC. Verified fishing-attempts chip '4/15', fishing-active-bait chip '2/3', cast/bait/collection buttons visible, coin balance visible, no horizontal scroll (scrollWidth<=clientWidth)."
+    },
+    {
+      "criterion": "Cast → bite → reel flow (mocked)",
+      "name": "fishing-cast-bite-reel-flow-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "start_fishing_cast called once on tap; status shows 'Bite' text during wait; after bite_delay, reel button (force-clicked to bypass CSS pulse-animation actionability stall) called reel_fishing_cast exactly once with _reel:true; result card showed '+250' coins and gold-spark legendary elements."
+    },
+    {
+      "criterion": "Missed bite (mocked)",
+      "name": "fishing-missed-bite-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Cast started, reel button never tapped; after window expired client auto-called reel_fishing_cast with _reel:false exactly once; result card 'fishing-result-escaped' showed 'The fish got away!' text."
+    },
+    {
+      "criterion": "Daily limit UI",
+      "name": "fishing-daily-limit-reached-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked used=15/limit=15: fishing-attempts shows '15/15', cast button disabled, fishing-limit-message shows \"You've used all 15 fishing attempts for today. Come back tomorrow!\"; forced click on disabled button did not call start_fishing_cast (0 calls)."
+    },
+    {
+      "criterion": "Bait selection sheet",
+      "name": "fishing-bait-sheet-selection-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Opened sheet shows 'Ohne Köder'-equivalent (none) option + bait options; owned common bait shows '2/3' uses; uncommon (not owned) shop-link points to /neoshop?tab=baits; selecting common bait called select_fishing_bait once with _bait='bait_common'."
+    },
+    {
+      "criterion": "Collection sheet",
+      "name": "fishing-collection-sheet-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "All 5 fish cards (kuestenbarsch, sonnenbarsch, neon_makrele, palmenschnapper, leonida_marlin) rendered; caught fish shows 'Gefangen: 5x' style count; uncaught (sonnenbarsch) shows 'not caught' text + silhouette image class; legendary card has .fishing-crown element attached."
+    },
+    {
+      "criterion": "Neoshop Angelköder tab + purchase (mocked)",
+      "name": "neoshop-baits-tab-purchase-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/neoshop?tab=baits shows 5 bait cards with prices 12/25/50/87/125; buy dialog shows price '25', rarity, '+300%' bonus text, '3' uses, balance '1,000'; confirm called buy_fishing_bait exactly once with a string/number _nonce. Fixed mock payload shape (added 'charged'/'uses_left') after a console pageerror surfaced from an incomplete initial mock - not an app bug (see notes)."
+    },
+    {
+      "criterion": "Neoshop Angelköder insufficient balance",
+      "name": "neoshop-bait-insufficient-balance-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With mocked balance=5, buy dialog for legendary bait (125 coins) shows 'neoshop-bait-insufficient' alert, no confirm button present (count=0), 'Coins sammeln' (earn) link shown instead."
+    },
+    {
+      "criterion": "Regression: 6 vehicle designs halved prices",
+      "name": "neoshop-six-designs-halved-prices",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check unchanged; passed."
+    },
+    {
+      "criterion": "Regression: vehicle design purchase deducts coins once",
+      "name": "neoshop-purchase-deducts-coins-once-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check unchanged; passed."
+    },
+    {
+      "criterion": "Regression: insufficient coins dialog for vehicle design",
+      "name": "neoshop-insufficient-coins-dialog-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check unchanged; passed."
+    },
+    {
+      "criterion": "Regression: garage equip/locked states",
+      "name": "garage-equip-locked-states-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran persisted check unchanged; passed."
+    }
+  ],
+  "bugs": [],
+  "notes": [
+    "neoshop-baits-tab-purchase-mocked initially logged a page console error (Cannot read properties of undefined reading 'toLocaleString') because my first mock for buy_fishing_bait omitted the 'charged' field that BaitShop.tsx's success toast reads (fmt(r.charged)). This was a test-mock shape gap, not an app bug — fixed the mock to include charged/uses_left and the check passed cleanly with no console errors on rerun. Flagging only so the real RPC's response shape (must include charged, balance, uses_left, already_processed per src/lib/fishing.ts useBuyBait) is kept in sync once SQL 027 is applied for real.",
+    "Playwright's default .click() actionability wait can stall for seconds on the pulsing gold reel button (continuous CSS transform animation never reports 'stable'); using click({force:true}) is required for the reel button in automated checks. Not an app bug — purely a headless-testing timing note for future checks on this screen.",
+    "A pre-existing check 'leonida-fishing-full-game-flow' (from an earlier iteration) targets the OLD fishing UI (fishing-start-overlay, canvas game, 45s round) that predates this v2 redesign (bait shop, cast/bite/reel RPC flow). It was left untouched/not rerun since it is outside this iteration's acceptance matrix and no longer reflects the current spec; it should be considered superseded.",
+    "Real-DB play remains impossible until the user runs docs/migrations/027_leonida_fishing_v2.sql on the live Supabase project (confirmed via briefing); all fishing UI criteria were verified with Playwright route mocks per the given fake-session pattern."
+  ],
+  "action_items": [],
+  "retest_needed": false
+}

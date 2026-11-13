@@ -1,16 +1,17 @@
-import { ArrowLeft, Car, Check, LockKeyhole, Package, ShoppingBag, ShoppingCart, Sparkles, Warehouse } from "lucide-react";
+import { ArrowLeft, Car, Check, Fish, LockKeyhole, Package, ShoppingBag, ShoppingCart, Sparkles, Warehouse } from "lucide-react";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { CoinBalance } from "@/components/arcade/CoinBalance";
+import { BaitShop } from "@/components/arcade/fishing/BaitShop";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCoinBalance } from "@/lib/arcade";
 import { locale, tr } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 import { readStoredSkin, useBuyVehicleSkin, useEquipVehicleSkin, useVehicleGarage, vehicleSkinError, VEHICLE_SKINS, type GarageEntry } from "@/lib/vehicle-skins";
 
-type Tab = "skins" | "effects" | "extras";
+type Tab = "skins" | "baits" | "effects" | "extras";
 const COMING_SOON = {
   effects: [{ id: "arcade-boost", title: tr("Arcade-Booster"), description: tr("Zusätzliche Arcade-Erweiterungen für deine Spielsessions."), icon: "⚡" }],
   extras: [
@@ -27,7 +28,7 @@ export function NeoshopView() {
   const balance = useCoinBalance(!!user);
   const buy = useBuyVehicleSkin(user?.id);
   const equip = useEquipVehicleSkin(user?.id);
-  const [tab, setTab] = useState<Tab>("skins");
+  const [tab, setTab] = useState<Tab>(search.tab ?? "skins");
   const [confirm, setConfirm] = useState<GarageEntry | null>(null);
   const [bought, setBought] = useState<GarageEntry | null>(null);
   const fmt = (n: number) => n.toLocaleString(locale());
@@ -78,12 +79,12 @@ export function NeoshopView() {
         <section className="relative overflow-hidden rounded-3xl border border-[#22E4F2]/55 bg-[#21113B]/90 p-5 shadow-[0_0_24px_rgba(34,228,242,0.18)] backdrop-blur-xl">
           <div aria-hidden className="pointer-events-none absolute -right-8 -top-10 text-8xl opacity-15">🛒</div>
           <div className="relative flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#22E4F2]/60 bg-[#2B0B47] text-[#22E4F2] shadow-[0_0_16px_rgba(34,228,242,0.3)]"><ShoppingBag className="h-6 w-6" /></span><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#22E4F2]">{tr("Sammle · Gestalte · Entdecke")}</p><h2 data-testid="neoshop-title" className="font-display text-2xl text-neon-gradient">{tr("Dein Neoshop")}</h2></div></div>
-          <p className="relative mt-3 text-sm text-[#BFAAD9]">{tr("Tausche deine Leonida Coins gegen Fahrzeugdesigns für Neon Highway – jetzt alle zum halben Preis.")}</p>
+          <p className="relative mt-3 text-sm text-[#BFAAD9]">{tr("Tausche deine Leonida Coins gegen Fahrzeugdesigns für Neon Highway und Angelköder für Leonida Fishing.")}</p>
           <div className="relative mt-4 flex flex-wrap items-center gap-2"><div data-testid="neoshop-coin-balance"><CoinBalance /></div><Link to="/arcade/highway" search={{ garage: 1 }} data-testid="neoshop-garage-link" className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#FF2E97]/60 bg-[#2B0B47]/80 px-3 text-xs font-bold text-[#FFB3D9] transition-[transform,background-color] duration-150 active:scale-95 active:bg-[#FF2E97]/15"><Warehouse className="h-4 w-4" />{tr("Neon Garage")}</Link></div>
         </section>
 
         <div role="tablist" aria-label={tr("Neoshop-Bereiche")} className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {([["skins", tr("Fahrzeug-Skins"), Car], ["effects", tr("Effekte"), Sparkles], ["extras", tr("Extras"), Package]] as const).map(([id, label, Icon]) => (
+          {([["skins", tr("Fahrzeugdesigns"), Car], ["baits", tr("Angelköder"), Fish], ["effects", tr("Effekte"), Sparkles], ["extras", tr("Extras"), Package]] as const).map(([id, label, Icon]) => (
             <button key={id} type="button" role="tab" aria-selected={tab === id} data-testid={`neoshop-tab-${id}`} onClick={() => setTab(id)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-2xl border px-4 text-sm font-bold transition-[border-color,background-color,box-shadow,color] duration-150 ${tab === id ? "border-[#FF2E97] bg-[#3A0F55] text-white shadow-[0_0_16px_rgba(255,46,151,0.45)]" : "border-white/15 bg-[#1C0B36]/80 text-[#BFAAD9]"}`}><Icon className="h-4 w-4" />{label}</button>
           ))}
         </div>
@@ -119,7 +120,7 @@ export function NeoshopView() {
             </div>
             <p data-testid="neoshop-info" className="rounded-2xl border border-border bg-card/55 p-4 text-center text-xs text-muted-foreground">{tr("Designs ändern nur das Aussehen deines Autos – Geschwindigkeit, Steuerung, Highscores und Belohnungen bleiben gleich.")}</p>
           </section>
-        ) : (
+        ) : tab === "baits" ? <BaitShop /> : (
           <section data-testid="neoshop-catalog" className="grid gap-3 sm:grid-cols-2">
             {COMING_SOON[tab].map((item) => <article key={item.id} data-testid={`neoshop-item-card-${item.id}`} className="relative overflow-hidden rounded-3xl border border-[#FF2E97]/50 bg-[#24133F]/90 p-4 shadow-[0_0_16px_rgba(255,46,151,0.16)]"><div className="flex items-start gap-3"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#22E4F2]/45 bg-[#120824] text-2xl">{item.icon}</span><div className="min-w-0 flex-1"><h3 className="font-display text-base">{item.title}</h3><p className="mt-1 text-xs text-[#BFAAD9]">{item.description}</p></div><LockKeyhole className="h-4 w-4 shrink-0 text-[#BFAAD9]" aria-label={tr("Bald verfügbar")} /></div><p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#22E4F2]">{tr("Bald verfügbar")}</p></article>)}
           </section>

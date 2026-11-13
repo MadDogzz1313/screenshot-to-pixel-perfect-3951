@@ -10,7 +10,7 @@ import { useState } from "react";
 import { tr, locale } from "@/lib/i18n";
 function GameHighscore({ game, enabled }: { game: ArcadeGameId; enabled: boolean }) {
   const stats = useArcadeStats(game, enabled);
-  return <p data-testid={`game-highscore-${game}`} className="mt-2 text-xs text-[#BFAAD9]">{tr("🏆 Dein Highscore:")}{" "}<span className="font-bold text-[#FFD12A]">{stats.data?.high_score?.toLocaleString(locale()) ?? "–"}</span></p>;
+  return <p data-testid={`game-highscore-${game}`} className="mt-2 text-xs text-[#BFAAD9]">{game === "leonida_fishing" ? tr("🏆 Deine Marlíne:") : tr("🏆 Dein Highscore:")}{" "}<span className="font-bold text-[#FFD12A]">{stats.data?.high_score?.toLocaleString(locale()) ?? "–"}</span></p>;
 }
 export function ArcadeHub() {
   const { user } = useStore();
@@ -37,6 +37,6 @@ export function ArcadeHub() {
       <section className="rounded-3xl border border-border bg-card/65 p-4"><h3 className="flex items-center gap-2 font-display"><LockKeyhole className="h-4 w-4 text-[#BFAAD9]" />{tr("Weitere Spiele kommen als echte Spielmodi")}</h3><p className="mt-1 text-xs text-muted-foreground">{tr("Keine Attrappen: Diese acht Spiele werden erst freigeschaltet, wenn ihre Touch-Mechanik und serverseitige Wertung fertig getestet sind.")}</p><div className="mt-3 flex flex-wrap gap-2">{UPCOMING_ARCADE_GAMES.map((name) => <span key={name} data-testid="upcoming-game-chip" className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">{name}</span>)}</div></section>
       <p data-testid="arcade-security-note" className="text-center text-[11px] text-muted-foreground">{tr("Serverseitige Rundennummern, Score-Grenzen, Tageslimits und idempotente Belohnungen schützen die gewerteten Ergebnisse. Browser-Spiele bleiben grundsätzlich nicht vollständig cheatfrei.")}</p>
     </div>
-    {leaderboard && <LeaderboardModal game={leaderboard} gameName={ARCADE_GAMES.find((x) => x.id === leaderboard)?.name ?? "Arcade"} open onOpenChange={(open) => !open && setLeaderboard(null)} />}
+    {leaderboard && <LeaderboardModal game={leaderboard} gameName={ARCADE_GAMES.find((x) => x.id === leaderboard)?.name ?? "Arcade"} open onOpenChange={(open) => !open && setLeaderboard(null)} {...(leaderboard === "leonida_fishing" ? { scoreLabel: tr("Deine Marlíne"), description: tr("Rang nach Anzahl gefangener Leonida-Marlíne.") } : {})} />}
   </AppShell>;
 }
