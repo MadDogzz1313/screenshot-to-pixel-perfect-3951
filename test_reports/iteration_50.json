@@ -1,0 +1,87 @@
+{
+  "iteration": 50,
+  "mode": "generate",
+  "summary": "New feature: legendary leonida_marlin catch triggers a fullscreen catch-video sequence (CatchVideo.tsx + LegendaryCatch.tsx) before the reward screen. Verified happy path, skip button, 404-video fallback, coin-once guarantee, and that other species (epic/mythic) are unaffected. Backend suite 83/83 green (no DB changes in this step, as noted). One pre-existing stale check (leonida-fishing-full-game-flow) from iteration 9 targets an obsolete canvas-minigame UI that no longer exists in the current bait/species fishing implementation -- unrelated to this feature, flagged as a note, not a regression caused by this change.",
+  "passed": 7,
+  "failed": 1,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [],
+  "action_items": [
+    "Stale browser check 'leonida-fishing-full-game-flow' (created iteration 9) targets testids (fishing-start-overlay, fishing-canvas, fishing-pause-button, BEISS bite indicator, fishing-game-over) that belong to a much earlier canvas-based mini-game implementation. The fishing feature has since been fully redesigned into the bait/species/coin system (fishing-cast-button, fishing-bait-sheet, etc. -- in use since at least iteration 44). This check has not been part of any regression run since iteration 9 and is unrelated to the legendary-catch-video feature added in this iteration. Recommend the check be rewritten against the current UI or removed; not fixed here per scope (browser checks/backend tests/reports only)."
+  ],
+  "retest_needed": true,
+  "checks": [
+    {
+      "criterion": "SQL/backend regression (no DB change expected this step)",
+      "name": "backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 83 passed, 1 warning in 12.19s. No regressions; no new backend code in this step (video feature is purely client-side; coins already granted server-side by reel_fishing_cast as before)."
+    },
+    {
+      "criterion": "Legendärer Fang startet die Vollbild-Fangsequenz (video overlay, source, coins)",
+      "name": "fishing-legendary-catch-video-fallback-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked start_fishing_cast/reel_fishing_cast (species_id leonida_marlin, coins 250). After reel-button tap, fishing-catch-video-overlay appeared (portal in body) with <video data-testid=fishing-catch-video playsinline preload=auto> and <source src=/videos/legendary-catch.mp4>. GET /videos/legendary-catch.mp4 via page.request returned 200/206 with content-type video/mp4 (curl cross-check earlier: '200 video/mp4' and '206 video/mp4' for Range request). Tap mid-video did not close the overlay (controls=false, no click handler on the video itself). Playwright-Chromium lacks H.264, so canPlayType fails -> overlay auto-closed and fishing-legendary-catch reward screen appeared within the expected fallback window. Title contained '🏆' and 'LEGENDÄRER FANG!', fishing-legendary-coins counted up to '+250', 'LEONIDA COINS' text and fishing-legendary-fish image visible. 'Weiter' (fishing-legendary-continue) returned to fishing-cast-button. reel_fishing_cast called exactly once throughout."
+    },
+    {
+      "criterion": "Überspringen nur über Button oben rechts",
+      "name": "fishing-legendary-catch-skip-button",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "fishing-catch-video-skip bounding box confirmed in the top-right quadrant of the 390x844 viewport (x > width/2, y < 150). Clicking it immediately closed the overlay and showed fishing-legendary-catch; reel_fishing_cast/start_fishing_cast each called exactly once."
+    },
+    {
+      "criterion": "Fehler/kein Abspielen -> Belohnung (404 video source)",
+      "name": "fishing-legendary-catch-video-404-fallback",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Routed /videos/legendary-catch.mp4 to return HTTP 404. Overlay still appeared, then auto-closed to fishing-legendary-catch within 15s (error path triggers the same onDone -> reward flow as the H.264-unsupported fallback). reel_fishing_cast called exactly once. One console 404 entry logged as expected (intentional mocked failure), non-blocking."
+    },
+    {
+      "criterion": "Coins genau einmal, unabhängig vom Video (skip/error/weiter don't retrigger reel/start)",
+      "name": "fishing-legendary-catch-video-fallback-flow / fishing-legendary-catch-skip-button / fishing-legendary-catch-video-404-fallback (combined)",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Across all three legendary-catch checks, reelCalls/startCalls were asserted to stay at exactly 1 after skip, after video fallback-closes, and after tapping 'Weiter' -- no additional RPC calls observed."
+    },
+    {
+      "criterion": "Andere Fische unverändert (epic -> fishing-result, no video overlay)",
+      "name": "fishing-cast-bite-reel-flow-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated existing check to use species_id 'palmenschnapper' (epic, coins 175) since the legendary path now intentionally diverges for leonida_marlin (was previously used here before this feature). Confirmed fishing-result/fishing-result-card/fishing-result-coins '+175' render as before, fishing-catch-video-overlay stays CSS-hidden (visibility:hidden), and fishing-legendary-catch has count 0."
+    },
+    {
+      "criterion": "Regression: mythic_marlin unaffected (fishing-mythic-catch, no video)",
+      "name": "fishing-mythic-catch-animation-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED unchanged: fishing-mythic-catch overlay with title/coins/badge renders exactly as before; no video overlay path for mythic_marlin."
+    },
+    {
+      "criterion": "Regression: Bonus-Angelversuche weiterhin nicht gesperrt",
+      "name": "fishing-bonus-casts-not-locked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED unchanged."
+    },
+    {
+      "criterion": "Regression: öffentlicher Preview-Pfad lädt weiterhin",
+      "name": "preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run against https://leonida-karte--6tt5kohx.preview.emergentagent.com PASSED."
+    },
+    {
+      "criterion": "Regression: leonida-fishing-full-game-flow bleibt grün",
+      "name": "leonida-fishing-full-game-flow",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "FAILED (pre-existing, unrelated to this feature): expects fishing-start-overlay/fishing-canvas/fishing-pause-button/BEISS bite indicator from an old canvas-based mini-game (authored iteration 9). Screenshot shows the current bait/species fishing UI ('Sign in to fish, earn coins and fill your collection', Start fishing / Bait / Collection buttons) which has no such testids -- the UI architecture changed several iterations ago and this check was never updated/rerun since iteration 9. Classified as note/stale-check, not a bug introduced by the legendary-catch-video feature."
+    }
+  ]
+}

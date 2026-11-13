@@ -25,6 +25,8 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  // Videos laufen mit Range-Anfragen direkt über den Browser (Safari spielt sie sonst über den Worker nicht zuverlässig ab)
+  if (url.pathname.startsWith("/videos/")) return;
 
   // Network-first with an explicit no-store request prevents stale HTML, manifests,
   // Vite assets and API reads from becoming a permanent Home-Screen app snapshot.

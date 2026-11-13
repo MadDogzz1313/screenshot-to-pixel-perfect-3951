@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { CoinBalance } from "@/components/arcade/CoinBalance";
 import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
 import { FishCard } from "@/components/arcade/fishing/FishCard";
+import { CatchVideo, type CatchVideoHandle } from "@/components/arcade/fishing/CatchVideo";
+import { LegendaryCatch } from "@/components/arcade/fishing/LegendaryCatch";
+import { CATCH_VIDEOS, catchVideoFor } from "@/lib/catch-videos";
 import { BadgeImg } from "@/components/BadgeImg";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import sceneUrl from "@/assets/fishing/scene.webp";
@@ -33,6 +36,9 @@ export function LeonidaFishingGame() {
   const [phase, setPhaseState] = useState<Phase>("idle");
   const [result, setResult] = useState<ReelResult | null>(null);
   const [firstMythic, setFirstMythic] = useState(false);
+  // Fangsequenz: "video" = Vollbild-Fangvideo, "reward" = Belohnungsbildschirm. Rein optisch – Fang/Coins sind schon gespeichert.
+  const [catchStage, setCatchStage] = useState<"video" | "reward" | null>(null);
+  const videos = useRef(new Map<string, CatchVideoHandle | null>());
   const [sheet, setSheet] = useState<"bait" | "collection" | null>(null);
   const [leaderboard, setLeaderboard] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -78,7 +84,9 @@ export function LeonidaFishingGame() {
       const r = await reelFishingCast(id, take);
       // Erstes Mythisch-Badge: Sammlung vor dem Fang hatte noch keinen mythischen Marlín (Badge vergibt der Server).
       setFirstMythic(r.status === "caught" && r.species_id === "mythic_marlin" && !r.already_processed && (data?.collection.mythic_marlin ?? 0) === 0);
-      s.castId = null; setResult(r); setPhase("result"); refresh(r);
+      s.castId = null; setResult(r);
+      if (r.status === "caught") setCatchStage(catchVideoFor(r.species_id) ? "video" : "reward");
+      setPhase("result"); refresh(r);
       if (r.status === "caught" && navigator.vibrate) navigator.vibrate(r.species_id === "leonida_marlin" ? [40, 60, 80] : 35);
     } catch (error) {
       toast.error(fishingError(error as { code?: string; message?: string }));
@@ -93,10 +101,10 @@ export function LeonidaFishingGame() {
     if (setupMissing) { toast.error(fishingError({ code: "PGRST202" })); return; }
     if (limitReached || busy) return;
     const s = sim.current; s.castStart = performance.now(); s.splashAt = s.castStart + CAST_MS * 0.85;
-    setResult(null); setPhase("casting");
+    setResult(null); setCatchStage(null); setPhase("casting");
     try {
       const c = await startFishingCast(newNonce());
-      if (c.status !== "pending") { setResult({ ...c, already_processed: true, balance: null }); setPhase("result"); refresh(); return; }
+      if (c.status !== "pending") { setResult({ ...c, already_processed: true, balance: null }); setCatchStage("reward"); setPhase("result"); refresh(); return; }
       qc.setQueryData<FishingState>(fishingKey(user.id), (old) => (old ? { ...old, used: c.used, bonus_casts: typeof c.bonus_casts === "number" ? Number(c.bonus_casts) : old.bonus_casts } : old));
       schedule(c);
     } catch (error) {
@@ -139,7 +147,7 @@ export function LeonidaFishingGame() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mainButton = (() => {
-    if (phase === "bite") return { label: tr("Jetzt einholen!"), testId: "fishing-reel-button", onClick: () => void reel(true), disabled: false, accent: true };
+    if (phase === "bite") return { label: tr("Jetzt einholen!"), testId: "fishing-reel-button", onClick: () => { videos.current.forEach((v) => v?.prime()); void reel(true); }, disabled: false, accent: true };
     if (phase === "casting" || phase === "waiting") return { label: phase === "casting" ? tr("Auswerfen …") : tr("Warte …"), testId: "fishing-reel-button", onClick: () => undefined, disabled: true, accent: false };
     if (phase === "reeling") return { label: tr("Einholen …"), testId: "fishing-reel-button", onClick: () => undefined, disabled: true, accent: false };
     return { label: phase === "result" ? tr("Nochmal angeln") : tr("Angeln starten"), testId: "fishing-cast-button", onClick: () => void cast(), disabled: limitReached || state.isLoading, accent: false };
@@ -176,8 +184,9 @@ export function LeonidaFishingGame() {
       {!user && <p data-testid="fishing-login-hint" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#22E4F2]/40 bg-[#0B0418]/85 p-3 text-center text-sm text-[#BFAAD9]">{tr("Melde dich an, um zu angeln, Coins zu verdienen und deine Sammlung zu füllen.")}</p>}
       {limitReached && !busy && phase !== "result" && <p data-testid="fishing-limit-message" role="status" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#FF2E97]/50 bg-[#0B0418]/85 p-4 text-center text-sm font-semibold text-[#FFB3D9]">{tr("Deine 15 Angelversuche für heute sind aufgebraucht. Komm morgen wieder!")}</p>}
 
+      {phase === "result" && result && result.status === "caught" && result.species_id === "leonida_marlin" && catchStage === "reward" && <LegendaryCatch coins={result.coins} xp={result.xp} onContinue={() => { setResult(null); setCatchStage(null); setPhase("idle"); }} />}
       {phase === "result" && result && result.status === "caught" && result.species_id === "mythic_marlin" && <MythicCatch result={result} firstBadge={firstMythic} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
-      {phase === "result" && result && !(result.status === "caught" && result.species_id === "mythic_marlin") && <ResultCard result={result} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
+      {phase === "result" && result && catchStage !== "video" && !(result.status === "caught" && (result.species_id === "mythic_marlin" || result.species_id === "leonida_marlin")) && <ResultCard result={result} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
     </div>
 
     <nav className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-end gap-3 border-t border-[#FF2E97]/25 bg-[#120A24]/90 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.9rem)] backdrop-blur-md" aria-label={tr("Angel-Steuerung")}>
@@ -217,6 +226,11 @@ export function LeonidaFishingGame() {
         </div>
       </SheetContent>
     </Sheet>
+
+    {!!user && Object.entries(CATCH_VIDEOS).map(([species, video]) => <CatchVideo key={species} video={video}
+      ref={(h) => { videos.current.set(species, h); }}
+      active={phase === "result" && catchStage === "video" && result?.status === "caught" && result.species_id === species}
+      onDone={() => setCatchStage("reward")} />)}
 
     <LeaderboardModal game={GAME} gameName="Leonida Fishing" open={leaderboard} onOpenChange={setLeaderboard} scoreLabel={tr("Deine Marlíne")} description={tr("Rang nach Anzahl gefangener Leonida-Marlíne.")} />
   </div>;

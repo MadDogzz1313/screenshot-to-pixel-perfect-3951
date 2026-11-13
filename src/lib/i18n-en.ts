@@ -1059,5 +1059,11 @@ export const EN: Record<string, string> = {
   "Du hast {0} Leonida Coins erhalten!": "You received {0} Leonida Coins!",
   "Du hast {0} Bonus-Angelversuche erhalten!": "You received {0} bonus fishing attempts!",
   "Gutschrift vom Leonida-Team": "A gift from the Leonida team",
+  "Legendärer Fang": "Legendary catch",
+  "LEGENDÄRER FANG!": "LEGENDARY CATCH!",
+  "+{0} LEONIDA COINS": "+{0} LEONIDA COINS",
+  "LEONIDA COINS": "LEONIDA COINS",
+  "Ton an": "Sound on",
+  "Überspringen": "Skip",
   "Deine 15 Angelversuche für heute und alle Bonus-Angelversuche sind aufgebraucht. Komm morgen wieder!": "You've used your 15 fishing attempts for today and all bonus attempts. Come back tomorrow!",
 };

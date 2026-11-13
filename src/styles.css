@@ -132,8 +132,17 @@
 @keyframes fishing-mythic-glow { 0%, 100% { filter: drop-shadow(0 0 14px rgb(255 46 151 / .8)) drop-shadow(0 0 26px rgb(139 44 255 / .6)); } 50% { filter: drop-shadow(0 0 22px rgb(255 200 61 / .9)) drop-shadow(0 0 38px rgb(255 46 151 / .7)); } }
 .fishing-mythic-rays { background: repeating-conic-gradient(from 0deg, rgb(255 200 61 / .22) 0deg 6deg, transparent 6deg 18deg, rgb(255 46 151 / .2) 18deg 24deg, transparent 24deg 36deg); mask-image: radial-gradient(circle, #000 0%, transparent 55%); -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 55%); transform: translate(-50%, -50%); animation: fishing-rays-spin 18s linear infinite; }
 .fishing-mythic-fish { animation: fishing-mythic-rise 900ms cubic-bezier(.2,.9,.3,1.1) both, fishing-mythic-glow 2400ms 900ms ease-in-out infinite; }
+/* Legendärer Fang: Belohnungsbildschirm nach dem Fangvideo */
+@keyframes fishing-legend-pulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgb(255 200 61 / .85)) drop-shadow(0 0 22px rgb(255 46 151 / .55)); } 50% { transform: scale(1.07); filter: drop-shadow(0 0 22px rgb(255 200 61 / 1)) drop-shadow(0 0 36px rgb(255 46 151 / .8)); } }
+@keyframes fishing-legend-twinkle { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: .95; transform: scale(1.4); } }
+@keyframes fishing-legend-glow { 0%, 100% { filter: drop-shadow(0 0 14px rgb(255 200 61 / .85)) drop-shadow(0 0 28px rgb(255 46 151 / .5)); } 50% { filter: drop-shadow(0 0 24px rgb(255 215 106 / 1)) drop-shadow(0 0 40px rgb(255 46 151 / .75)); } }
+.fishing-legend-rays { background: repeating-conic-gradient(from 0deg, rgb(255 200 61 / .26) 0deg 7deg, transparent 7deg 17deg, rgb(255 46 151 / .22) 17deg 23deg, transparent 23deg 34deg); mask-image: radial-gradient(circle, #000 0%, transparent 52%); -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 52%); transform: translate(-50%, -50%); animation: fishing-rays-spin 22s linear infinite; }
+.fishing-legend-pulse { animation: fishing-catch-pop 620ms cubic-bezier(.2,.9,.3,1.2) both, fishing-legend-pulse 1600ms 700ms ease-in-out infinite; }
+.fishing-legend-fish { animation: fishing-mythic-rise 900ms 150ms cubic-bezier(.2,.9,.3,1.1) both, fishing-legend-glow 2400ms 1100ms ease-in-out infinite; }
+.fishing-legend-twinkle { animation: fishing-legend-twinkle 1900ms ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .fishing-mythic-rays, .fishing-mythic-fish { animation: none !important; }
+  .fishing-mythic-rays, .fishing-mythic-fish, .fishing-legend-rays, .fishing-legend-pulse, .fishing-legend-fish, .fishing-legend-twinkle { animation: none !important; }
+  .fishing-legend-fish { filter: drop-shadow(0 0 16px rgb(255 200 61 / .85)); }
   .fishing-mythic-fish { filter: drop-shadow(0 0 16px rgb(255 46 151 / .8)); }
   .fishing-catch-pop, .fishing-coin-rise, .fishing-gold-spark, .fishing-bite-pulse, .fishing-crown { animation: none !important; }
   .fishing-gold-spark { opacity: .8; }
