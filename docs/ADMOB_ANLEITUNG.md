@@ -15,8 +15,8 @@ Stand: Plugin **@capacitor-community/admob 8.3.0** (Google Mobile Ads SDK 13.11 
 |---|---|
 | AdMob **App-ID** `ca-app-pub-4817586991799948~3790557761` | `ios/App/App/Info.plist` → `GADApplicationIdentifier` (optional überschreibbar mit Codemagic-Variable `ADMOB_IOS_APP_ID`) |
 | **Modus** off / test / live | Datenbank `ad_reward_config` → im Admin-Bereich **„Werbung (AdMob)“** |
-| **Anzeigenblock fishing_bonus_casts** (iOS, Rewarded) | Admin-Bereich „Werbung (AdMob)“ |
-| **Anzeigenblock fishing_special_bait** (iOS, Rewarded) | Admin-Bereich „Werbung (AdMob)“ |
+| **Anzeigenblock fishing_bonus_casts** `ca-app-pub-4817586991799948/1554969174` | durch SQL 037 vorbelegt, änderbar im Admin-Bereich „Werbung (AdMob)“ |
+| **Anzeigenblock fishing_special_bait** `ca-app-pub-4817586991799948/3031702376` | durch SQL 037 vorbelegt, änderbar im Admin-Bereich „Werbung (AdMob)“ |
 | Google-Testanzeigenblock (fest im Code) | `src/lib/ads.ts` → `GOOGLE_TEST_REWARDED_IOS` |
 
 Testmodus = immer Googles offizielle Testanzeigen (`ca-app-pub-3940256099942544/1712485313`) + `initializeForTesting`. Es entstehen keine echten Impressionen.

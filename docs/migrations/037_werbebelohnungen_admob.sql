@@ -29,7 +29,12 @@ create table if not exists public.ad_reward_config (
   ios_bait_unit_id text check (ios_bait_unit_id is null or ios_bait_unit_id ~ '^ca-app-pub-[0-9]+/[0-9]+$'),
   updated_at timestamptz not null default now()
 );
-insert into public.ad_reward_config (id) values (1) on conflict (id) do nothing;
+-- Produktive Anzeigenblöcke des Nutzers vorbelegt (bleiben UNGENUTZT, solange der Modus 'test' ist; live schaltet nur der Admin)
+insert into public.ad_reward_config (id, ios_bonus_unit_id, ios_bait_unit_id)
+values (1, 'ca-app-pub-4817586991799948/1554969174', 'ca-app-pub-4817586991799948/3031702376')
+on conflict (id) do update set
+  ios_bonus_unit_id = coalesce(public.ad_reward_config.ios_bonus_unit_id, excluded.ios_bonus_unit_id),
+  ios_bait_unit_id = coalesce(public.ad_reward_config.ios_bait_unit_id, excluded.ios_bait_unit_id);
 alter table public.ad_reward_config enable row level security;
 revoke all on public.ad_reward_config from anon, authenticated;
 -- live nur mit eingetragenen produktiven Anzeigenblöcken
