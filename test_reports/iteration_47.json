@@ -1,0 +1,83 @@
+{
+  "iteration": 47,
+  "mode": "retest",
+  "summary": "Retest of XP/level system rework (migration 033_xp_levelkurve.sql, not yet applied on real Supabase). SQL selftests 11/11 ok=t (004..034), new SQL check added for finish_arcade_round(neon_highway) exercising 3 rounds + idempotent repeat (5/5 ok=t). yarn test 63/63 passed, frontend typecheck clean, backend pytest 73/73 passed after updating one stale backend test (sql024) whose assertion referenced the OLD level formula that 033 intentionally superseded. Re-ran 6 existing browser regression checks (fishing, neoshop, garage, profile frames, neon highway, public preview) unchanged - all pass, no UI regressions. No bugs found.",
+  "passed": 9,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "checks": [
+    {
+      "criterion": "Level curve values (SQL leonida_level_curve + JS xpStep/xpForLevel)",
+      "name": "sqltest-run.sh (004,013,016,018,019,022,023,024,027,031,033,034_selbsttest_xp.sql) + yarn test + typecheck",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "bash scripts/sqltest/run.sh ... 033_xp_levelkurve.sql 034_selbsttest_xp.sql -> 11 rows, all ok=t: xp_step L1/5/10/20/50/99=400/1000/1250/1550/1900/2150; xp_total L2/5/6/10/20/50/100=400/2750/3750/8400/22350/74100/175550; leonida_level_from_xp(0/399/400/3750/175550)=1/1/2/6/100; migration never lowers level/xp; multi-level credit 0->8450=L10 with exactly 9x500 coins (balance 4500), no double payout on repeat update; fishing reward_xp 25/40/60/100/150/500; mythic catch +500 XP despite old 600/day cap, repeated reel already_processed same xp. `yarn test` -> 7 files/63 tests passed incl. src/lib/levels.test.ts (6 tests). `yarn typecheck` -> tsc --noEmit clean."
+    },
+    {
+      "criterion": "Highway XP rules server-side (40/75/+50, idempotent finish)",
+      "name": "scripts/sqltest/check_highway_xp_rules.sql (new)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "New SQL selftest (via start_arcade_round + backdated arcade_rounds.started_at + finish_arcade_round, rolled back at end): Round1 (score 100/1000ms, first highscore, <50% of max_score 6000) -> xp=90 (40+50), new_high_score=true. Round2 (score 50, lower than round1) -> xp=40, new_high_score=false. Round3 (score 3100 >= 50% of 6000, duration 90000ms, beats highscore) -> xp=125 (75+50), new_high_score=true. Repeated finish_arcade_round on round3 -> already_processed=true, xp=125 unchanged. Sum of arcade_xp_events for user = 255 (90+40+125), not 380 -> no double XP. All 5 rows ok=t."
+    },
+    {
+      "criterion": "Backend API health/regression (non-fishing/highway, FastAPI+Mongo)",
+      "name": "backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd backend && python -m pytest -q -> 73 passed, 1 warning (no failures). Updated tests/test_tscheck_sql024_level_coin_rewards.py::test_level_math_matches_levels_ts_thresholds, which statically asserted the OLD quadratic level formula (25*l*l+75*l) inside src/lib/levels.ts; 033 intentionally replaced that formula with the new logarithmic curve (xpStep/xpForLevel), so the stale assertion was updated to check for the new curve's presence (leonida_level_curve reference in 033, xpStep/xpForLevel in levels.ts) instead of re-asserting obsolete math. Not an app bug - a necessary test-suite update to match the intentional spec change; the curve's correctness is independently verified by the SQL/JS checks above."
+    },
+    {
+      "criterion": "Regression: fishing screen layout iPhone",
+      "name": "fishing-screen-layout-iphone",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: fishing cast->bite->reel flow",
+      "name": "fishing-cast-bite-reel-flow-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: Neoshop vehicle designs",
+      "name": "neoshop-six-designs-halved-prices",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: garage equip/locked states",
+      "name": "garage-equip-locked-states-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: profile frame display",
+      "name": "profile-frame-displayed-own-and-public",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: Neon Highway full game flow + public preview sanity",
+      "name": "neon-highway-full-game-flow, preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Both persisted checks re-ran unchanged and passed (neon-highway-full-game-flow against localhost; preview-app-loads against https://leonida-karte--6tt5kohx.preview.emergentagent.com)."
+    }
+  ],
+  "bugs": [],
+  "notes": [
+    "Real DB still holds old-scale XP until the user applies 033 on live Supabase (per briefing); displayed levels for existing real users may appear lower until then - expected per spec_deviations.",
+    "Added scripts/sqltest/check_highway_xp_rules.sql as a persistent, re-runnable artifact (not wired into any CI chain automatically) - run with: bash scripts/sqltest/run.sh <004..033 chain> scripts/sqltest/check_highway_xp_rules.sql.",
+    "Did not re-touch the unrelated pre-existing 'cannot drop columns from view' warning on docs/migrations/004_profile_badges.sql in the harness output - same harness quirk seen in prior iterations (seq. re-run of 004), outside this iteration's matrix, no functional impact (migration chain still completes to 11/11 ok=t)."
+  ],
+  "action_items": [],
+  "retest_needed": false
+}

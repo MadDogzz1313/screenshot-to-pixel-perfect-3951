@@ -1,9 +1,18 @@
 export const MAX_LEVEL = 100;
 
-/** Kumulative XP-Schwelle für ein Level: 25*(L-1)^2 + 75*(L-1) */
+/**
+ * XP-Bedarf für den Aufstieg von Level L auf L+1 (identisch zu public.leonida_level_curve, SQL 033):
+ * roundToNearest50(1000 · (1 + ln L) / (1 + ln 5)) → L5→6 = 1.000 XP, danach logarithmisch langsamer steigend.
+ */
+export function xpStep(level: number): number {
+  const l = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
+  return Math.round((1000 * (1 + Math.log(l))) / (1 + Math.log(5)) / 50) * 50;
+}
+const TOTALS: number[] = [0, 0];
+for (let l = 1; l < MAX_LEVEL; l++) TOTALS.push(TOTALS[l]! + xpStep(l));
+/** Kumulative XP-Schwelle, um ein Level zu erreichen (Level I = 0 XP). */
 export function xpForLevel(level: number): number {
-  const l = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level))) - 1;
-  return 25 * l * l + 75 * l;
+  return TOTALS[Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)))]!;
 }
 
 export function levelFromXp(xp: number): number {

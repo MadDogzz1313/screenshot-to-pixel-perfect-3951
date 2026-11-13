@@ -36,11 +36,17 @@ def test_level_coin_rewards_table_unique_per_user_and_level():
 def test_level_math_matches_levels_ts_thresholds():
     text = sql()
     ts = LEVELS_TS.read_text(encoding="utf-8")
-    # Same formula: 25*(L-1)^2 + 75*(L-1), same MAX_LEVEL=100
-    assert "25 * (level - 1) * (level - 1) + 75 * (level - 1)" in text
     assert "generate_series(1, 100)" in text
     assert "MAX_LEVEL = 100" in ts
-    assert "25 * l * l + 75 * l" in ts
+    # SQL 033 superseded the original 25*(L-1)^2+75*(L-1) curve with a logarithmic
+    # curve (public.leonida_level_curve); 024's own trigger math (idempotent award
+    # per reached level) is unchanged and still verified below. The curve itself is
+    # covered by docs/migrations/034_selbsttest_xp.sql (SQL) and src/lib/levels.test.ts (JS).
+    migration_033 = (
+        Path(__file__).resolve().parents[2] / "docs/migrations/033_xp_levelkurve.sql"
+    ).read_text(encoding="utf-8")
+    assert "leonida_level_curve" in migration_033
+    assert "xpStep" in ts and "xpForLevel" in ts
 
 
 def test_trigger_fires_after_update_of_xp_on_profiles():
