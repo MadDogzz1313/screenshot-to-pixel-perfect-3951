@@ -42,3 +42,6 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Temporäre Arbeitsdateien (nie committen)
+.emergent/tmp/
