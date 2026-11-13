@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { CoinBalance } from "@/components/arcade/CoinBalance";
 import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
 import { FishCard } from "@/components/arcade/fishing/FishCard";
-import { CatchVideo, type CatchVideoHandle } from "@/components/arcade/fishing/CatchVideo";
+import { CatchVideo } from "@/components/arcade/fishing/CatchVideo";
 import { CatchReward } from "@/components/arcade/fishing/CatchReward";
 import { CATCH_VIDEOS, catchVideoFor } from "@/lib/catch-videos";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -37,7 +37,6 @@ export function LeonidaFishingGame() {
   const [firstMythic, setFirstMythic] = useState(false);
   // Fangsequenz: "video" = Vollbild-Fangvideo, "reward" = Belohnungsbildschirm. Rein optisch – Fang/Coins sind schon gespeichert.
   const [catchStage, setCatchStage] = useState<"video" | "reward" | null>(null);
-  const videos = useRef(new Map<string, CatchVideoHandle | null>());
   const [sheet, setSheet] = useState<"bait" | "collection" | null>(null);
   const [leaderboard, setLeaderboard] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -146,7 +145,7 @@ export function LeonidaFishingGame() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mainButton = (() => {
-    if (phase === "bite") return { label: tr("Jetzt einholen!"), testId: "fishing-reel-button", onClick: () => { videos.current.forEach((v) => v?.prime()); void reel(true); }, disabled: false, accent: true };
+    if (phase === "bite") return { label: tr("Jetzt einholen!"), testId: "fishing-reel-button", onClick: () => void reel(true), disabled: false, accent: true };
     if (phase === "casting" || phase === "waiting") return { label: phase === "casting" ? tr("Auswerfen …") : tr("Warte …"), testId: "fishing-reel-button", onClick: () => undefined, disabled: true, accent: false };
     if (phase === "reeling") return { label: tr("Einholen …"), testId: "fishing-reel-button", onClick: () => undefined, disabled: true, accent: false };
     return { label: phase === "result" ? tr("Nochmal angeln") : tr("Angeln starten"), testId: "fishing-cast-button", onClick: () => void cast(), disabled: limitReached || state.isLoading, accent: false };
@@ -228,7 +227,6 @@ export function LeonidaFishingGame() {
     </Sheet>
 
     {!!user && Object.entries(CATCH_VIDEOS).map(([species, video]) => <CatchVideo key={species} video={video}
-      ref={(h) => { videos.current.set(species, h); }}
       active={phase === "result" && catchStage === "video" && result?.status === "caught" && result.species_id === species}
       onDone={() => setCatchStage("reward")} />)}
 

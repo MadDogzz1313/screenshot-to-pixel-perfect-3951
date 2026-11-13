@@ -1,0 +1,87 @@
+{
+  "iteration": 53,
+  "mode": "retest",
+  "summary": "Retest of TestFlight fix: CatchVideo now mounts the <video> only when actively catching (no idle overlay/video in DOM, no '-idle-' testids), preloads via fetch->blob 1.5s after game start, and falls back to the server URL on error/stall. Ran the full backend suite (83/83) and all fishing-* browser checks. Added a NEW check simulating real playback (canPlayType override + a generated WebM fixture served in place of the mp4) proving currentSrc starts with 'blob:', paused=false, currentTime>0, and the spinner disappears; Skip then closes to the reward. Two pre-existing checks ('fishing-legendary-catch-video-fallback-flow', 'fishing-mythic-catch-animation-mocked') still used the old '.invisible'-class + '<source>' child selectors from the previous (always-mounted/idle) DOM shape and failed on rerun -- rewritten to match the new DOM (plain testid now unambiguous since only the active instance is ever portal-mounted; the <video> carries 'src' directly, no <source> child) and re-verified green. One more pre-existing, unrelated assertion bug was found while re-running the full fishing suite: 'fishing-daily-limit-reached-mocked' asserted 'Daily attempts: 15/15' but the component renders REMAINING casts (limit-used), so at used=15/limit=15 the UI correctly shows '0/15' -- same remaining-vs-used wording mismatch already fixed in a different check last iteration, now also fixed here and re-verified green. 404-fallback, skip-button, screen-layout, cast-bite-reel-flow, bait-sheet, bonus-casts, collection-sheet, missed-bite and preview-app-loads all re-ran unchanged and green.",
+  "passed": 11,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [],
+  "action_items": [
+    "No new app bugs found this iteration. Three check artifacts were updated to match the new single-portal-mount/no-idle-DOM semantics and the long-standing remaining-vs-used attempts wording -- none are app defects, all are check-script corrections."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Backend regression (no DB change expected for this frontend video-mount refactor)",
+      "name": "backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 83 passed in 21.28s. No backend code touched by this change."
+    },
+    {
+      "criterion": "Abspielpfad (simuliert): echtes Video spielt über blob: ab, Spinner verschwindet, Skip schließt zur Belohnung",
+      "name": "fishing-legendary-catch-real-playback-blob",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "NEW check: addInitScript forces HTMLMediaElement.canPlayType=()=>'maybe'; page.route intercepts /videos/legendary-catch.mp4 with a 4s WebM fixture generated via ffmpeg (imageio-ffmpeg) from the real asset. Before the catch: fishing-catch-video-overlay/-video have count 0 (no idle mount). After reel: overlay visible, video.currentSrc matches /^blob:/, paused=false, currentTime>0, fishing-catch-video-loading has count 0 once playing. Skip -> fishing-legendary-catch with +250, overlay unmounted (count 0)."
+    },
+    {
+      "criterion": "Mit addInitScript canPlayType + Route-Mock spielt das Video wirklich (Abspielpfad-Variante ohne Blob-Vorladen, Server-Fallback-Pfad)",
+      "name": "fishing-legendary-catch-video-fallback-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Rerun FAILED first (stale selector: '[data-testid=...]:not(.invisible)' + video.locator('source') -- the overlay/video are no longer permanently mounted nor use a <source> child). Rewritten to use the plain testid (now unambiguous, only the active catch ever portal-mounts it) and video.getAttribute('src') directly; passed on rerun. Overlay visible, src is the mp4 path or a blob:, mid-video tap doesn't close it, Chromium (no H.264) falls back -> fishing-legendary-catch +250, overlay unmounted, reel/start called once each."
+    },
+    {
+      "criterion": "Fallback bei kaputter lokaler Kopie / 404",
+      "name": "fishing-legendary-catch-video-404-fallback",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run unchanged, green: 404 on /videos/legendary-catch.mp4 -> overlay auto-closes within the watchdog window and fishing-legendary-catch reward appears; fishing-catch-video-overlay count 0 afterwards; reel called once."
+    },
+    {
+      "criterion": "Skip-Button schließt die aktive Sequenz",
+      "name": "fishing-legendary-catch-skip-button",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run unchanged, green: top-right skip button closes straight to the reward."
+    },
+    {
+      "criterion": "Mythisch: mythic_marlin -> Video mythic-catch -> fishing-mythic-catch +5.000, Badge bei Erstfang",
+      "name": "fishing-mythic-catch-animation-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Rerun FAILED first (same stale '.invisible' + '<source>' selector issue). Rewritten analogously to the legendary flow check; passed on rerun. Overlay's video src is mythic-catch.mp4 (or blob:) and not legendary-catch.mp4; fishing-mythic-catch shows title/+5,000 coins/first-unlock badge; overlay unmounted afterwards, reel/start called once each."
+    },
+    {
+      "criterion": "Kein Overlay im Leerlauf, Coins einmal, andere Fische unverändert (nicht-legendär/mythisch zeigt kein Video)",
+      "name": "fishing-cast-bite-reel-flow-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run unchanged, green: fishing-result/-result-card show +175; fishing-catch-video-overlay and fishing-legendary-catch both count 0 for an epic (non-legendary) catch; reel payload asserted exactly once."
+    },
+    {
+      "criterion": "Regression: Tageslimit-Anzeige (unabhängig vom Video-Refactor)",
+      "name": "fishing-daily-limit-reached-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Rerun FAILED first: expected 'Daily attempts: 15/15' but got '0/15' -- unrelated pre-existing wrong assertion (component shows REMAINING casts = limit-used per LeonidaFishingGame.tsx:168, same convention already fixed in a different check last iteration). Corrected to expect 0/15 at used=15/limit=15; passed on rerun. Cast button disabled, limit message shown, start_fishing_cast never called."
+    },
+    {
+      "criterion": "Regression: Köder-Auswahl, Bonus-Angelversuche, Sammlung, verpasster Biss, Layout -- unverändert durch das Video-Refactor",
+      "name": "fishing-bait-sheet-selection-mocked / fishing-bonus-casts-not-locked / fishing-collection-sheet-mocked / fishing-missed-bite-mocked / fishing-screen-layout-iphone",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "All five re-run unchanged (name-only reruns), all green; none touch the overlay/video DOM."
+    },
+    {
+      "criterion": "Öffentlicher Preview-Pfad lädt weiterhin ohne Fehler",
+      "name": "preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run against https://leonida-karte--6tt5kohx.preview.emergentagent.com unchanged, green."
+    }
+  ]
+}
