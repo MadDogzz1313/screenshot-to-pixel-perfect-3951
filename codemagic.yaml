@@ -38,6 +38,18 @@ workflows:
           yarn install --frozen-lockfile --non-interactive --ignore-engines
       - name: iOS-Projekt synchronisieren
         script: npx cap sync ios
+      - name: AdMob (Rewarded Ads) prüfen
+        # App-ID steht in ios/App/App/Info.plist (GADApplicationIdentifier). Optional überschreibbar mit der
+        # Codemagic-Umgebungsvariable ADMOB_IOS_APP_ID. Ohne App-ID würde das Google-SDK die App beim Start beenden.
+        script: |
+          set -e
+          PLIST=ios/App/App/Info.plist
+          if [ -n "${ADMOB_IOS_APP_ID:-}" ]; then plutil -replace GADApplicationIdentifier -string "$ADMOB_IOS_APP_ID" "$PLIST"; fi
+          APPID="$(plutil -extract GADApplicationIdentifier raw -o - "$PLIST")"
+          echo "$APPID" | grep -Eq '^ca-app-pub-[0-9]+~[0-9]+$'
+          plutil -extract SKAdNetworkItems xml1 -o - "$PLIST" | grep -q "cstr6suwn9.skadnetwork"
+          grep -q "CapacitorCommunityAdmob" ios/App/CapApp-SPM/Package.swift
+          echo "✅ AdMob App-ID: $APPID (Anzeigen-Modus steuert der Admin-Bereich, Start: Testanzeigen)"
       - name: App-Namen unter dem Symbol festlegen
         # Name auf dem Home-Bildschirm = CFBundleDisplayName. Bundle-ID, Symbol und Funktionen bleiben unverändert.
         script: |
@@ -133,6 +145,18 @@ workflows:
           npx cap sync ios
           test -f ios/App/App/capacitor.config.json
           grep -q '"appId": "de.leonida.explorer"' ios/App/App/capacitor.config.json
+      - name: AdMob (Rewarded Ads) prüfen
+        # App-ID steht in ios/App/App/Info.plist (GADApplicationIdentifier). Optional überschreibbar mit der
+        # Codemagic-Umgebungsvariable ADMOB_IOS_APP_ID. Ohne App-ID würde das Google-SDK die App beim Start beenden.
+        script: |
+          set -e
+          PLIST=ios/App/App/Info.plist
+          if [ -n "${ADMOB_IOS_APP_ID:-}" ]; then plutil -replace GADApplicationIdentifier -string "$ADMOB_IOS_APP_ID" "$PLIST"; fi
+          APPID="$(plutil -extract GADApplicationIdentifier raw -o - "$PLIST")"
+          echo "$APPID" | grep -Eq '^ca-app-pub-[0-9]+~[0-9]+$'
+          plutil -extract SKAdNetworkItems xml1 -o - "$PLIST" | grep -q "cstr6suwn9.skadnetwork"
+          grep -q "CapacitorCommunityAdmob" ios/App/CapApp-SPM/Package.swift
+          echo "✅ AdMob App-ID: $APPID (Anzeigen-Modus steuert der Admin-Bereich, Start: Testanzeigen)"
       - name: App-Namen unter dem Symbol festlegen
         # Name auf dem Home-Bildschirm = CFBundleDisplayName. Bundle-ID, Symbol und Funktionen bleiben unverändert.
         script: |

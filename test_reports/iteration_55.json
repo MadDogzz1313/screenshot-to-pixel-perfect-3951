@@ -1,0 +1,94 @@
+{
+  "iteration": 55,
+  "mode": "generate",
+  "feature": "Werbebelohnungen (AdMob Rewarded Ads) fuer Leonida Fishing + Admin-Konfiguration",
+  "passed": 10,
+  "failed": 1,
+  "flaky": 1,
+  "blocked": 0,
+  "test_error": 0,
+  "backend_tests": {
+    "command": "cd /app/backend && python -m pytest -q -p no:cacheprovider",
+    "result": "87 passed (incl. pre-existing tests/test_admob_ssv.py: valid signature -> 200 granted, tampered query -> 403, unknown key_id -> 403, missing signature -> 400, AdMob console test callback (no user_id/custom_data) -> 200 test:true)."
+  },
+  "sql_selftest": {
+    "command": "cd /app && bash scripts/sqltest/run.sh docs/migrations/013_arcade_coins_spot_unlock.sql docs/migrations/016_arcade_rundenwertung_fix.sql docs/migrations/018_spot_unlock_hardening.sql docs/migrations/019_coin_balance_unlimited.sql docs/migrations/024_level_coin_rewards.sql docs/migrations/027_leonida_fishing_v2.sql docs/migrations/031_mythischer_fisch.sql docs/migrations/033_xp_levelkurve.sql docs/migrations/035_admin_spielerverwaltung.sql docs/migrations/036_selbsttest_admin_spielerverwaltung.sql docs/migrations/037_werbebelohnungen_admob.sql docs/migrations/038_selbsttest_werbebelohnungen.sql",
+    "result": "036 (Admin-Spielerverwaltung): 'ALLE 27 PRUEFUNGEN OK'. 038 (Werbebelohnungen Selbsttest): 'ALLE 16 PRUEFUNGEN OK' - covers 5 Bonus je Werbung, 2/Tag limit, Koeder 1/Tag mit 3 Wuerfen, Abbruch verbraucht nichts, doppelter Callback ohne Wirkung, Live Client-Gutschrift verboten, SSV falsches Secret abgelehnt, Replay ohne Wirkung, Tagesreset.",
+    "note": "Briefing's migration numbers (010/013/016/018/019/024/027/031/033/035/037) do not match actual filenames in docs/migrations/ (numbering shifted); resolved by matching content/criterion text to find the correct files (013_arcade_coins_spot_unlock.sql etc., 035_admin_spielerverwaltung.sql, 036_selbsttest, 037/038 werbebelohnungen). All referenced self-tests ran and passed."
+  },
+  "unit_tests": {
+    "command": "cd /app && npx vitest run --config vitest.highway.config.ts",
+    "result": "41/41 passed on 2 of 3 runs. One run showed a single flaky failure in the 'Polizeijagd' describe block (police-variant-ratio assertion, Math.random-based, no fixed seed) which passed again in isolation and in a full immediate rerun -> classified flaky, not a regression. Briefing mentions 64 tests; actual total in this config is 41 (same discrepancy already noted in iteration_54, pre-existing, unrelated to ad-rewards feature)."
+  },
+  "checks": [
+    {
+      "criterion": "Server-Logik Werbebelohnungen (SQL 037/038)",
+      "name": "sql_selftest (see sql_selftest block)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "psql -f docs/migrations/038_selbsttest_werbebelohnungen.sql -> 'ALLE 16 PRUEFUNGEN OK' (16 rows, all ok=t): Abbruch kein Limit, +5/+10 Bonus, Doppelereignis ohne Wirkung, 3. Werbung gesperrt, Koeder 1/Tag mit 3 Wuerfen, 2. Koeder gesperrt, unbekannte Platzierung abgelehnt, Bonus/Sitzungen nicht direkt aenderbar/lesbar, Tagesreset, Live-Block geliefert, Client-Gutschrift verboten, SSV falsches Secret abgelehnt, SSV Replay ohne Wirkung, Admin-Funktionen nur Admins. 036 (Admin-Spielerverwaltung) re-verified green: 'ALLE 27 PRUEFUNGEN OK'."
+    },
+    {
+      "criterion": "SSV-Endpunkt",
+      "name": "backend/tests/test_admob_ssv.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "pytest: test_valid_signature_confirms_reward (200, status=granted), test_tampered_query_rejected (403), test_unknown_key_and_missing_signature (403 then 400), test_admob_console_test_callback_ok (200, test=true). Live curl cross-check: GET http://localhost:8001/api/admob/ssv?ad_unit=1 -> HTTP 400 (no signature), matching spec."
+    },
+    {
+      "criterion": "Werbe-Angebote nur in der iPhone-App",
+      "name": "fishing-no-ad-rewards-in-web-browser",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/arcade/fishing in web Chromium: fishing-ad-rewards has count 0, and the rpc/my_ad_reward_state route was never hit (confirmed via page.route flag) because adsSupported() returns false (Capacitor.isNativePlatform() false on web) - matches spec_deviations. Fishing screen itself rendered normally (cross-checked via existing fishing-cast-bite-reel-flow-mocked, fishing-bait-sheet-selection-mocked, fishing-collection-sheet-mocked re-runs, all passed)."
+    },
+    {
+      "criterion": "Admin-Karte 'Werbung (AdMob)'",
+      "name": "admin-ad-config-save-and-errors",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked has_role=true + admin_ad_reward_config={mode:test,...,ssv_secret_ready:true}: admin-ad-config opened, 3 mode buttons + 2 unit-id inputs visible; switching to Live without filling units and saving triggered admin_set_ad_reward_config RPC which returned 400 AD_UNITS_REQUIRED -> toast 'Für Live beide Anzeigenblock-IDs eintragen.' shown; after filling both IDs and saving again, RPC body contained \"_mode\":\"live\", \"_bonus_unit\":\"ca-app-pub-123/111\", \"_bait_unit\":\"ca-app-pub-123/222\" and toast 'AdMob-Einstellungen gespeichert' appeared."
+    },
+    {
+      "criterion": "Datenschutz",
+      "name": "datenschutz-werbung-admob-section",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/datenschutz: privacy-section-werbung visible and contains 'AdMob', non-personalised/nicht-personalisiert wording, App Tracking Transparency/ATT reference, and User Messaging Platform/UMP reference. Verified both DE and EN copy exist in src/lib/privacy-content.ts (id: 'werbung' in both DE and EN arrays with equivalent content)."
+    },
+    {
+      "criterion": "Regression (highway-*/fishing-* + unit tests)",
+      "name": "highway-swipe-left-right-one-lane / neon-highway-full-game-flow / neon-highway-public-preview / fishing-cast-bite-reel-flow-mocked / fishing-bait-sheet-selection-mocked / fishing-collection-sheet-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran 6 pre-existing named checks unchanged (name only): all passed, confirming highway swipe/full-flow/public-preview and fishing cast/bait/collection flows are unaffected by the ad-rewards feature."
+    },
+    {
+      "criterion": "Regression - pre-existing Pause-during-chase-video bug (carried over from iteration_54)",
+      "name": "highway-pause-during-chase-video-resumes-correctly",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "Still fails: the full-screen police-chase video overlay intercepts pointer events so highway-pause-button cannot be clicked while the film plays (window.__highway.status stays 'playing'). Unrelated to ad-rewards feature; same root cause as recorded in iteration_54's bug entry (overlay z-index/pointer-events). Carried forward, not newly introduced."
+    }
+  ],
+  "bugs": [
+    {
+      "severity": "medium",
+      "criterion": "Pre-existing: Pause während des Films (Polizeijagd, highway)",
+      "description": "Unchanged pre-existing bug from iteration_54: the Polizeijagd cinematic overlay (z-[100]) intercepts pointer events, so the Pause button cannot be clicked while the film plays. Not caused by and not part of this iteration's ad-rewards criteria, but still present in regression.",
+      "evidence": "Check 'highway-pause-during-chase-video-resumes-correctly' rerun: Playwright timeout waiting for window.__highway.status to become 'paused' (stayed 'playing'); see iteration_54.json bugs[] for original root-cause analysis (unchanged)."
+    }
+  ],
+  "action_items": [
+    "Pre-existing medium bug (highway Pause-during-chase overlay pointer-events) remains open from iteration_54; not part of this iteration's AdMob scope but flagged again for visibility.",
+    "Note: docs/migrations numbering in the briefing (010/013/016/018/019/024/027/031/033/035/037) does not match the actual files on disk; resolved this run by content-matching, but future briefings should use the current filenames (013_arcade_coins_spot_unlock.sql, 016_arcade_rundenwertung_fix.sql, 018_spot_unlock_hardening.sql, 019_coin_balance_unlimited.sql, 024_level_coin_rewards.sql, 027_leonida_fishing_v2.sql, 031_mythischer_fisch.sql, 033_xp_levelkurve.sql, 035_admin_spielerverwaltung.sql, 036_selbsttest_admin_spielerverwaltung.sql, 037/038_werbebelohnungen)."
+  ],
+  "retest_needed": true,
+  "notes": [
+    "All 6 AdMob/ad-rewards acceptance criteria for this iteration passed on both backend (pytest + SQL selftest) and browser lanes.",
+    "adsSupported() correctly gates ad UI to native iOS only; web/PWA shows no fishing-ad-rewards block and never calls my_ad_reward_state, matching spec_deviations.",
+    "Admin texts confirmed German-only per spec_deviations (toasts, labels all DE).",
+    "Vitest flakiness (1 run out of 3) traced to an unseeded Math.random-based police-variant-ratio assertion in engine.test.ts; not a regression from this feature, reproducibly passes on rerun.",
+    "retest_needed=true solely because of the carried-over pre-existing highway pause/video-overlay bug; all new AdMob-related criteria are green."
+  ]
+}

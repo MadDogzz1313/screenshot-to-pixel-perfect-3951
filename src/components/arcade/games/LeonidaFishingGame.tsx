@@ -7,6 +7,7 @@ import { CoinBalance } from "@/components/arcade/CoinBalance";
 import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
 import { FishCard } from "@/components/arcade/fishing/FishCard";
 import { CinematicVideo } from "@/components/arcade/CinematicVideo";
+import { AdRewards } from "@/components/arcade/fishing/AdRewards";
 import { CatchReward } from "@/components/arcade/fishing/CatchReward";
 import { CATCH_VIDEOS, catchVideoFor } from "@/lib/catch-videos";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -188,6 +189,7 @@ export function LeonidaFishingGame() {
       {phase === "result" && result && catchStage !== "video" && !(result.status === "caught" && (result.species_id === "mythic_marlin" || result.species_id === "leonida_marlin")) && <ResultCard result={result} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
     </div>
 
+    {!!user && (phase === "idle" || phase === "result") && <div className="relative z-10 bg-[#120A24]/70 px-4 pt-2"><AdRewards userId={user.id} /></div>}
     <nav className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-end gap-3 border-t border-[#FF2E97]/25 bg-[#120A24]/90 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.9rem)] backdrop-blur-md" aria-label={tr("Angel-Steuerung")}>
       <SideButton testId="fishing-bait-button" label={tr("Köder")} badge={(data?.inventory ?? []).reduce((n, i) => n + i.uses_left, 0)} color="#22E4F2" onClick={() => setSheet("bait")}><span aria-hidden className="text-xl">🪝</span></SideButton>
       <button type="button" data-testid={mainButton.testId} disabled={mainButton.disabled} onClick={mainButton.onClick}

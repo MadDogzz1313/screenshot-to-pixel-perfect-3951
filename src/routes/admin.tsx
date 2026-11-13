@@ -13,6 +13,7 @@ import { CrewActivityAdmin } from "@/components/crew/CrewActivityAdmin";
 import { StripeDonationsAdmin } from "@/components/StripeDonationsAdmin";
 import { PushServerAdmin } from "@/components/social/PushServerAdmin";
 import { AdminPlayerManager } from "@/components/admin/AdminPlayerManager";
+import { AdConfigAdmin } from "@/components/admin/AdConfigAdmin";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Leonida Explorer" }, { name: "robots", content: "noindex" }, { name: "description", content: "Moderation" }, { property: "og:title", content: "Admin" }, { property: "og:description", content: "Moderation" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -40,6 +41,7 @@ function Admin() {
         <AdminPlayerManager />
         <AdminUserManagement myId={user.id} />
         <PushServerAdmin />
+        <AdConfigAdmin />
         <CrewActivityAdmin />
         <section data-testid="admin-corrections" className="neon-card space-y-2 p-3">
           <p className="font-display">Korrekturen prüfen ({corrections.data?.length ?? 0})</p>

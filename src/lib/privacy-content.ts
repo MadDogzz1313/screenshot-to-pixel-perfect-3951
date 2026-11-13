@@ -123,6 +123,21 @@ const de: PrivacyDoc = {
       ],
     },
     {
+      id: "werbung",
+      title: "Freiwillige Werbung in Leonida Fishing (Google AdMob, nur iPhone-App)",
+      blocks: [
+        { p: "In der iPhone-App kannst du in Leonida Fishing freiwillig ein Werbevideo ansehen, um 5 Bonus-Angelversuche (höchstens 2× pro Tag) oder einen Epischen Köder (1× pro Tag) zu erhalten. Werbung startet nie automatisch, nur nach deinem Tippen und einer Bestätigung." },
+        { p: "Anbieter ist Google Ireland Limited (Google AdMob / Google Mobile Ads SDK). Beim Laden und Anzeigen einer Anzeige verarbeitet Google technische Daten wie IP-Adresse, Gerätetyp, Betriebssystem, App-Version, Spracheinstellung, ungefähren Standort aus der IP-Adresse sowie Interaktionen mit der Anzeige (z. B. ob sie vollständig angesehen wurde), um die Anzeige auszuliefern, Betrug zu verhindern und Reichweiten zu messen." },
+        { list: [
+          { label: "Keine personalisierte Werbung", text: "Wir fordern ausschließlich nicht-personalisierte Anzeigen an und fragen keine App-Tracking-Erlaubnis (Apple ATT) ab; die Werbe-ID (IDFA) wird nicht genutzt." },
+          { label: "Einwilligung", text: "Im EWR, im Vereinigten Königreich und in der Schweiz holt Google über die User Messaging Platform (UMP) die erforderliche Einwilligung ein. Du kannst sie in Leonida Fishing unter „Werbe-Datenschutz“ jederzeit ändern." },
+          { label: "Belohnungsprüfung", text: "Damit Belohnungen nur einmal und nur für vollständig angesehene Werbung vergeben werden, übermittelt Google nach dem Ansehen eine signierte Bestätigung (Transaktionsnummer, Anzeigenblock, deine Nutzer-ID und eine Sitzungsnummer) an unseren Server. Wir speichern pro Werbeversuch Zeitpunkt, Art der Belohnung und Status, solange dein Konto besteht." },
+          { label: "Rechtsgrundlage", text: "Art. 6 Abs. 1 lit. b DSGVO (Erbringung der gewünschten Belohnung), Art. 6 Abs. 1 lit. a DSGVO bzw. § 25 Abs. 1 TDDDG, soweit eine Einwilligung erforderlich ist." },
+          { label: "Weitere Informationen", text: "https://policies.google.com/technologies/ads und https://policies.google.com/privacy" },
+        ] },
+      ],
+    },
+    {
       id: "geraet",
       title: "13. Speicherung auf deinem Gerät",
       blocks: [
@@ -349,6 +364,21 @@ const en: PrivacyDoc = {
       title: "12. Donations",
       blocks: [
         { p: "On the website, you can make a voluntary donation through the payment service Stripe; the iPhone app has no donation feature. You enter your payment details directly with Stripe; we do not receive them. For each donation, we store a payment reference, your account, amount, currency, payment status and time. After confirmation by an admin, the donation can unlock a supporter badge." },
+      ],
+    },
+    {
+      id: "werbung",
+      title: "Optional ads in Leonida Fishing (Google AdMob, iPhone app only)",
+      blocks: [
+        { p: "In the iPhone app you can voluntarily watch an ad video in Leonida Fishing to receive 5 bonus casts (at most twice a day) or one epic bait (once a day). Ads never start automatically – only after you tap and confirm." },
+        { p: "The provider is Google Ireland Limited (Google AdMob / Google Mobile Ads SDK). When an ad is loaded and shown, Google processes technical data such as IP address, device type, operating system, app version, language, approximate location derived from the IP address and interactions with the ad (e.g. whether it was watched completely) to deliver the ad, prevent fraud and measure reach." },
+        { list: [
+          { label: "No personalised ads", text: "We only request non-personalised ads and do not ask for App Tracking Transparency permission; the advertising ID (IDFA) is not used." },
+          { label: "Consent", text: "In the EEA, the UK and Switzerland Google collects the required consent via its User Messaging Platform (UMP). You can change it at any time in Leonida Fishing under “Ad privacy”." },
+          { label: "Reward verification", text: "To make sure rewards are granted only once and only for fully watched ads, Google sends a signed confirmation (transaction number, ad unit, your user ID and a session number) to our server. For each ad attempt we store time, reward type and status for as long as your account exists." },
+          { label: "Legal basis", text: "Art. 6(1)(b) GDPR (providing the requested reward), Art. 6(1)(a) GDPR and Section 25(1) TDDDG where consent is required." },
+          { label: "More information", text: "https://policies.google.com/technologies/ads and https://policies.google.com/privacy" },
+        ] },
       ],
     },
     {
