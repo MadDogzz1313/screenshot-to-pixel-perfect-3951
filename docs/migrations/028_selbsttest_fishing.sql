@@ -1,4 +1,5 @@
 -- 028_selbsttest_fishing.sql
+-- HINWEIS: Gilt für den Stand von 027. Nach 031 (neue Chancen, Mythisch) stattdessen 032_selbsttest_mythisch.sql verwenden.
 -- Selbsttest für 027 (Leonida Fishing v2). Rollt am Ende ALLES zurück.
 -- Optional in Lovable ausführen (nach 027). Ergebnis: eine Zeile je Prüfung mit ok = true.
 begin;

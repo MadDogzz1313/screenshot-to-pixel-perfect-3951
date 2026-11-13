@@ -16,6 +16,7 @@ export const BADGES: BadgeDef[] = [
   { id: "helping_hand", kind: "community", name: tr("Helfende Hand"), requirement: tr("10 vom Admin bestätigte Korrekturen"), metric: "corrections", target: 10 },
   { id: "veteran", kind: "community", name: "Veteran", requirement: tr("6 Monate seit Registrierung"), metric: "months", target: 6 },
   { id: "top_explorer", kind: "community", name: tr("Top-Entdecker"), requirement: tr("Platz 1–10 einer abgeschlossenen Monatswertung"), metric: "best_rank", target: 10 },
+  { id: "mythic_catch", kind: "community", name: tr("Mythischer Fang"), requirement: tr("Fange den Mythischen Leonida-Marlín in Leonida Fishing"), target: 1 },
   { id: "supporter", kind: "donation", name: "Supporter", requirement: tr("Bestätigte Spenden ab 1 €"), target: 100 },
   { id: "bronze", kind: "donation", name: "Bronze Supporter", requirement: tr("Bestätigte Spenden ab 5 €"), target: 500 },
   { id: "silver", kind: "donation", name: "Silver Supporter", requirement: tr("Bestätigte Spenden ab 15 €"), target: 1500 },
@@ -25,6 +26,8 @@ export const BADGES: BadgeDef[] = [
 ];
 export const badgeById = (id: string) => BADGES.find((b) => b.id === id);
 export const badgeImg = (id: string) => `/badges/${id}.webp`;
+/** Animierte Badges besitzen zusätzlich /badges/<id>-static.webp für „Bewegung reduzieren“. */
+export const ANIMATED_BADGES = new Set(["mythic_catch"]);
 export type Progress = Partial<Record<Metric, number | null>>;
 /** Fortschritt 0..1 und Text (z. B. "3 / 10"). Monatsrang: kleiner ist besser. */
 export function progressOf(b: BadgeDef, p: Progress | undefined): { pct: number; label: string } | null {

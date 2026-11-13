@@ -1,3 +1,4 @@
+import { BadgeImg } from "@/components/BadgeImg";
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LevelUpOverlay } from "./LevelUpOverlay";
@@ -82,7 +83,7 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
         <section className="neon-card space-y-3 p-4">
           <div className="flex items-center justify-between"><h3 className="flex items-center gap-2 font-display"><Award className="h-5 w-5 text-neon" />{tr("Abzeichen")}</h3>
             <span data-testid="profile-badge-count" className="text-xs text-muted-foreground">{tr("{0} / 18 freigeschaltet", unlocked.length)}</span></div>
-          {featured.length > 0 && <div data-testid="profile-featured" className="flex justify-center gap-3">{featured.map((b) => <img key={b.id} src={badgeImg(b.id)} alt={b.name} className="h-20 object-contain drop-shadow-[0_0_10px_oklch(0.7_0.3_345/0.5)]" />)}</div>}
+          {featured.length > 0 && <div data-testid="profile-featured" className="flex justify-center gap-3">{featured.map((b) => <BadgeImg key={b.id} id={b.id} alt={b.name} className="h-20 object-contain drop-shadow-[0_0_10px_oklch(0.7_0.3_345/0.5)]" />)}</div>}
           {badges.data && !badges.data.ready && <p className="text-xs text-muted-foreground">{tr("Abzeichen werden nach dem Datenbank-Update freigeschaltet.")}</p>}
           {own ? <BadgeGallery unlocked={unlocked} progress={progress} featured={profile.featured} onFeature={onFeature} />
             : <BadgeGallery unlocked={unlocked} />}

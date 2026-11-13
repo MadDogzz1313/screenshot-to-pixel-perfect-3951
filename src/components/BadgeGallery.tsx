@@ -1,3 +1,4 @@
+import { BadgeImg } from "@/components/BadgeImg";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { isNativeApp } from "@/lib/native";
@@ -29,7 +30,7 @@ export function BadgeGallery({ unlocked, progress, featured, onFeature }: {
           return (
             <button key={b.id} type="button" onClick={() => setOpen(b)} data-testid={`badge-${b.id}`} data-unlocked={on}
               className="relative flex flex-col items-center gap-1 rounded-2xl p-1 transition-transform duration-150 active:scale-95">
-              <img src={badgeImg(b.id)} alt={b.name} loading="lazy" className={`h-20 w-full object-contain ${on ? "drop-shadow-[0_0_10px_oklch(0.7_0.3_345/0.5)]" : "opacity-45 grayscale"}`} />
+              <BadgeImg id={b.id} alt={b.name} loading="lazy" className={`h-20 w-full object-contain ${on ? "drop-shadow-[0_0_10px_oklch(0.7_0.3_345/0.5)]" : "opacity-45 grayscale"}`} />
               {fav.includes(b.id) && <Star className="absolute right-1 top-1 h-4 w-4 fill-accent text-accent" />}
               {!on && pr && <span className="h-1 w-4/5 overflow-hidden rounded-full bg-muted"><span className="block h-full bg-sunset" style={{ width: `${pr.pct * 100}%` }} /></span>}
             </button>);
@@ -45,7 +46,7 @@ export function BadgeGallery({ unlocked, progress, featured, onFeature }: {
       <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
         <DialogContent className="max-w-xs text-center">
           {open && <>
-            <img src={badgeImg(open.id)} alt="" className={`mx-auto h-36 object-contain ${isOn ? "" : "opacity-50 grayscale"}`} />
+            <BadgeImg id={open.id} alt="" className={`mx-auto h-36 object-contain ${isOn ? "" : "opacity-50 grayscale"}`} />
             <DialogHeader><DialogTitle data-testid="badge-dialog-name" className="text-center">{open.name}</DialogTitle>
               <DialogDescription data-testid="badge-dialog-requirement" className="text-center">{open.requirement}</DialogDescription></DialogHeader>
             <p data-testid="badge-dialog-status" className={`text-sm font-semibold ${isOn ? "text-neon" : "text-muted-foreground"}`}>

@@ -6,20 +6,21 @@ import sonnenbarschImg from "@/assets/fishing/sonnenbarsch.webp";
 import neonMakreleImg from "@/assets/fishing/neon_makrele.webp";
 import palmenschnapperImg from "@/assets/fishing/palmenschnapper.webp";
 import leonidaMarlinImg from "@/assets/fishing/leonida_marlin.webp";
+import mythicMarlinImg from "@/assets/fishing/mythic_marlin.webp";
 
 /**
  * Leonida Fishing v2 (SQL 027). Der Server würfelt den Fisch beim Auswerfen und prüft das Zeitfenster beim Einholen;
  * der Client zeigt nur an. Werte unten spiegeln die Tabellen fishing_species / fishing_baits.
  */
-export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
-export type SpeciesId = "kuestenbarsch" | "sonnenbarsch" | "neon_makrele" | "palmenschnapper" | "leonida_marlin";
+export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic";
+export type SpeciesId = "kuestenbarsch" | "sonnenbarsch" | "neon_makrele" | "palmenschnapper" | "leonida_marlin" | "mythic_marlin";
 export type BaitId = `bait_${Rarity}`;
 export type FishSpecies = { id: SpeciesId; rarity: Rarity; name: string; baseChance: number; coins: number; image: string };
-export type Bait = { id: BaitId; rarity: Rarity; name: string; price: number; uses: number };
+export type Bait = { id: BaitId; rarity: Rarity; name: string; price: number; uses: number; boost: number; consumeOnCast: boolean };
 
 export const DAILY_CASTS = 15;
 export const BAIT_USES = 3;
-export const BAIT_BOOST = 4; // +300 % = ×4
+export const BAIT_BOOST = 4; // +300 % = ×4 (Mythischer Köder: ×2, siehe BAIT_RULES)
 
 export const RARITY_STYLE: Record<Rarity, { label: string; color: string; glow: string }> = {
   common: { label: tr("Gewöhnlich"), color: "#EDEAF7", glow: "rgba(237,234,247,0.45)" },
@@ -27,35 +28,41 @@ export const RARITY_STYLE: Record<Rarity, { label: string; color: string; glow: 
   rare: { label: tr("Selten"), color: "#3AA8FF", glow: "rgba(58,168,255,0.5)" },
   epic: { label: tr("Episch"), color: "#C04DFF", glow: "rgba(192,77,255,0.5)" },
   legendary: { label: tr("Legendär"), color: "#FFC83D", glow: "rgba(255,200,61,0.6)" },
+  mythic: { label: tr("Mythisch"), color: "#FF5FD2", glow: "rgba(176,38,255,0.7)" },
 };
 
 export const FISH: FishSpecies[] = [
   { id: "kuestenbarsch", rarity: "common", name: "Küstenbarsch", baseChance: 50, coins: 25, image: kuestenbarschImg },
   { id: "sonnenbarsch", rarity: "uncommon", name: "Sonnenbarsch", baseChance: 25, coins: 50, image: sonnenbarschImg },
-  { id: "neon_makrele", rarity: "rare", name: "Neon-Makrele", baseChance: 12.5, coins: 100, image: neonMakreleImg },
-  { id: "palmenschnapper", rarity: "epic", name: "Palmenschnapper", baseChance: 5, coins: 175, image: palmenschnapperImg },
-  { id: "leonida_marlin", rarity: "legendary", name: "Leonida-Marlín", baseChance: 7.5, coins: 250, image: leonidaMarlinImg },
+  { id: "neon_makrele", rarity: "rare", name: "Neon-Makrele", baseChance: 12, coins: 100, image: neonMakreleImg },
+  { id: "palmenschnapper", rarity: "epic", name: "Palmenschnapper", baseChance: 7.5, coins: 175, image: palmenschnapperImg },
+  { id: "leonida_marlin", rarity: "legendary", name: "Leonida-Marlín", baseChance: 5, coins: 250, image: leonidaMarlinImg },
+  { id: "mythic_marlin", rarity: "mythic", name: "Mythischer Leonida-Marlín", baseChance: 0.5, coins: 5000, image: mythicMarlinImg },
 ];
 export const fishById = (id: string | null | undefined) => FISH.find((f) => f.id === id);
 export const fishByRarity = (rarity: Rarity) => FISH.find((f) => f.rarity === rarity)!;
 
 const BAIT_NAMES: Record<Rarity, string> = {
-  common: tr("Gewöhnlicher Köder"), uncommon: tr("Ungewöhnlicher Köder"), rare: tr("Seltener Köder"), epic: tr("Epischer Köder"), legendary: tr("Legendärer Köder"),
+  common: tr("Gewöhnlicher Köder"), uncommon: tr("Ungewöhnlicher Köder"), rare: tr("Seltener Köder"), epic: tr("Epischer Köder"), legendary: tr("Legendärer Köder"), mythic: tr("Mythischer Köder"),
 };
-/** Köderpreis = halbe Belohnung des Ziel-Fisches, abgerundet. */
-export const baitPrice = (rarity: Rarity) => Math.floor(fishByRarity(rarity).coins / 2);
-export const BAITS: Bait[] = FISH.map((f) => ({ id: `bait_${f.rarity}` as BaitId, rarity: f.rarity, name: BAIT_NAMES[f.rarity], price: baitPrice(f.rarity), uses: BAIT_USES }));
+/** Sonderregeln: Mythischer Köder 150 Coins, ×2 (0,5 % → 1 %), Nutzung pro Angelversuch. */
+const BAIT_RULES: Partial<Record<Rarity, { price: number; boost: number; consumeOnCast: boolean }>> = { mythic: { price: 150, boost: 2, consumeOnCast: true } };
+/** Köderpreis = halbe Belohnung des Ziel-Fisches, abgerundet (außer Sonderregel). */
+export const baitPrice = (rarity: Rarity) => BAIT_RULES[rarity]?.price ?? Math.floor(fishByRarity(rarity).coins / 2);
+export const BAITS: Bait[] = FISH.map((f) => ({ id: `bait_${f.rarity}` as BaitId, rarity: f.rarity, name: BAIT_NAMES[f.rarity], price: baitPrice(f.rarity), uses: BAIT_USES,
+  boost: BAIT_RULES[f.rarity]?.boost ?? BAIT_BOOST, consumeOnCast: BAIT_RULES[f.rarity]?.consumeOnCast ?? false }));
 export const baitById = (id: string | null | undefined) => BAITS.find((b) => b.id === id);
 
 /**
- * Fangchancen in Prozent. Ohne Köder = Grundchancen. Mit Köder: Ziel-Chance ×4 (max. 100 %),
+ * Fangchancen in Prozent. Ohne Köder = Grundchancen. Mit Köder: Ziel-Chance ×4 (Mythisch ×2, max. 100 %),
  * alle anderen werden mit (100 − neu) / (100 − alt) skaliert → Summe immer exakt 100 %.
  * Identisch zu public.fishing_odds() in SQL 027.
  */
 export function fishingOdds(baitRarity: Rarity | null): Record<SpeciesId, number> {
   const out = {} as Record<SpeciesId, number>;
   const target = baitRarity ? fishByRarity(baitRarity) : null;
-  const boosted = target ? Math.min(100, target.baseChance * BAIT_BOOST) : 0;
+  const boost = baitRarity ? (BAIT_RULES[baitRarity]?.boost ?? BAIT_BOOST) : 1;
+  const boosted = target ? Math.min(100, target.baseChance * boost) : 0;
   const scale = target ? (target.baseChance >= 100 ? 0 : (100 - boosted) / (100 - target.baseChance)) : 1;
   for (const f of FISH) out[f.id] = !target ? f.baseChance : f.id === target.id ? boosted : f.baseChance * scale;
   return out;

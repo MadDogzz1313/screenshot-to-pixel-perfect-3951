@@ -1,0 +1,118 @@
+{
+  "iteration": 46,
+  "mode": "retest",
+  "summary": "Retest/extension of Leonida Fishing mythic-fish feature (migration 031): SQL selftests 16/16 ok=t, unit tests 64/64, typecheck clean, backend pytest 73/73. Updated iteration-44 checks that still asserted the old 5-fish/old-odds spec (collection sheet, Neoshop bait tab) to the new 6-fish/mythic-bait spec, added 2 new browser checks for the mythic catch animation and the profile badge gallery entry, and re-ran all existing fishing/neoshop/garage/profile/highway regression checks unchanged. All 14 checks pass; no bugs found.",
+  "passed": 14,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "checks": [
+    {
+      "criterion": "Server odds/prices/uses/rewards/badge",
+      "name": "sqltest-run.sh (004,013,016,018,019,022,023,024,027,031,032) + yarn test + typecheck",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "bash scripts/sqltest/run.sh ... 031_mythischer_fisch.sql 032_selbsttest_mythisch.sql -> 16 rows, all ok=t (0,5%/1% mythic odds, 49.7487/24.8744/11.9397/7.4623/4.9749/1 mythic-bait odds, 150-coin bait, 3 uses/attempt, +5000 once, badge once, 15/day unchanged). `yarn test` -> 7 files, 64 tests passed (incl. src/lib/fishing.test.ts). `cd frontend && yarn typecheck` -> tsc --noEmit clean."
+    },
+    {
+      "criterion": "Backend API health/regression (non-fishing, FastAPI+Mongo)",
+      "name": "backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd backend && python -m pytest -q -> 73 passed, 1 warning (no failures). Fishing feature has no FastAPI surface; all game logic is Supabase RPC, verified above."
+    },
+    {
+      "criterion": "Collection shows 6 fish",
+      "name": "fishing-collection-sheet-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated to assert 6 fish cards incl. mythic_marlin: .fishing-crown frame attached, chance '0.5 %', coins '5,000', count '1x' when owned, name '???' silhouette when collection has no mythic entry (second reload with empty collection)."
+    },
+    {
+      "criterion": "Neoshop Angelköder shows 6 baits",
+      "name": "neoshop-baits-tab-purchase-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated to assert 6 bait cards incl. mythic (150 coins, bonus text), dialog shows price 150, bonus '+100', uses '3 fishing attempts/Angelversuche'; other (uncommon) bait dialog still shows '+300' bonus, 25-coin price, confirmed purchase RPC call recorded once."
+    },
+    {
+      "criterion": "Mythic catch animation (mocked reel: species mythic_marlin, coins 5000)",
+      "name": "fishing-mythic-catch-animation-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "New check: cast->bite->reel with mocked reel_fishing_cast returning species_id mythic_marlin/coins 5000; fishing-mythic-catch overlay shown with title 'MYTHISCHER FANG!'/'MYTHIC CATCH!', coins '+5,000', fishing-mythic-badge visible with 'Neues Badge freigeschaltet!/New badge unlocked' (collection had 0 mythic catches beforehand); reel RPC called exactly once; 'Weiter'/close button returns to idle cast-button view."
+    },
+    {
+      "criterion": "Badge gallery lists Mythischer Fang community badge",
+      "name": "badge-gallery-mythic-catch-badge-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "New check: mocked user_badges containing mythic_catch; profil route shows badge-mythic_catch unlocked (data-unlocked=true), <picture> with <source media=\"(prefers-reduced-motion: reduce)\" srcset=\"/badges/mythic_catch-static.webp\"> present; dialog shows name 'Mythischer Fang'/'Mythic Catch', requirement text, status 'Freigeschaltet'/'Unlocked'."
+    },
+    {
+      "criterion": "Regression: fishing screen layout iPhone",
+      "name": "fishing-screen-layout-iphone",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: cast->bite->reel flow",
+      "name": "fishing-cast-bite-reel-flow-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: missed bite",
+      "name": "fishing-missed-bite-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: daily limit UI",
+      "name": "fishing-daily-limit-reached-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: bait selection sheet",
+      "name": "fishing-bait-sheet-selection-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: Neoshop bait insufficient balance",
+      "name": "neoshop-bait-insufficient-balance-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran unchanged; passed."
+    },
+    {
+      "criterion": "Regression: Neon Highway / vehicle designs / garage / profile frames unaffected",
+      "name": "neoshop-six-designs-halved-prices, neoshop-purchase-deducts-coins-once-mocked, neoshop-insufficient-coins-dialog-mocked, garage-equip-locked-states-mocked, profile-frame-displayed-own-and-public, neon-highway-full-game-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "All 6 persisted regression checks re-ran unchanged and passed."
+    },
+    {
+      "criterion": "Public preview ingress sanity",
+      "name": "preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran against https://leonida-karte--6tt5kohx.preview.emergentagent.com; home screen loads."
+    }
+  ],
+  "bugs": [],
+  "notes": [
+    "Locale: this environment's default browser locale renders English UI strings (e.g. '0.5 %', '3 fishing attempts') rather than German even though the app is German-first; checks assert both language variants with regex so results are robust regardless of default locale.",
+    "Real-DB play remains impossible until the user applies docs/migrations/027 and 031 on the live Supabase project (per briefing). All mythic-fish UI criteria verified via Playwright route mocks per the established pattern.",
+    "leonida-fishing-full-game-flow (pre-v2 UI, old canvas game) remains superseded/untouched as noted in iteration 44 — outside this iteration's matrix."
+  ],
+  "action_items": [],
+  "retest_needed": false
+}

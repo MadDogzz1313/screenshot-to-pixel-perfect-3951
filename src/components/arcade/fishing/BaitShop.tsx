@@ -51,7 +51,7 @@ export function BaitShop() {
         </article>;
       })}
     </div>
-    <p data-testid="neoshop-baits-info" className="rounded-2xl border border-border bg-card/55 p-4 text-center text-xs text-muted-foreground">{tr("Ein Köder vervierfacht die Fangchance seiner Seltenheit (+300 %) und hält 3 erfolgreiche Fänge. Die anderen Chancen sinken anteilig, zusammen immer 100 %.")}</p>
+    <p data-testid="neoshop-baits-info" className="rounded-2xl border border-border bg-card/55 p-4 text-center text-xs text-muted-foreground">{tr("Ein Köder vervierfacht die Fangchance seiner Seltenheit (+300 %) und hält 3 erfolgreiche Fänge. Die anderen Chancen sinken anteilig, zusammen immer 100 %.")} {tr("Der Mythische Köder verdoppelt die Chance auf den Mythischen Leonida-Marlín (0,5 % → 1 %) und verbraucht pro Angelversuch eine Nutzung.")}</p>
 
     <AlertDialog open={!!confirm} onOpenChange={(o) => { if (!o && !buy.isPending) setConfirm(null); }}>
       <AlertDialogContent data-testid="neoshop-bait-dialog" className="border-[#FF2E97]/60 bg-[#1E0C38] text-white shadow-[0_0_30px_rgba(255,46,151,0.3)]">
@@ -63,8 +63,8 @@ export function BaitShop() {
           <div className="space-y-1.5 rounded-2xl border border-white/10 bg-[#120624] p-3 text-sm">
             <Row label={tr("Preis")} testId="neoshop-bait-dialog-price"><span className="text-[#FFD12A]">{tr("{0} Coins", fmt(b.price))}</span></Row>
             <Row label={tr("Seltenheit")} testId="neoshop-bait-dialog-rarity"><span style={{ color: style.color }}>{style.label}</span></Row>
-            <Row label={tr("Chancenbonus")} testId="neoshop-bait-dialog-bonus">{tr("+300 % · {0} → {1}", pct(fish.baseChance), pct(fishingOdds(b.rarity)[fish.id]))}</Row>
-            <Row label={tr("Nutzungen")} testId="neoshop-bait-dialog-uses">{tr("{0} erfolgreiche Fänge", b.uses)}</Row>
+            <Row label={tr("Chancenbonus")} testId="neoshop-bait-dialog-bonus">{tr("+{0} % · {1} → {2}", (b.boost - 1) * 100, pct(fish.baseChance), pct(fishingOdds(b.rarity)[fish.id]))}</Row>
+            <Row label={tr("Nutzungen")} testId="neoshop-bait-dialog-uses">{b.consumeOnCast ? tr("{0} Angelversuche", b.uses) : tr("{0} erfolgreiche Fänge", b.uses)}</Row>
             <Row label={tr("Dein Guthaben")} testId="neoshop-bait-dialog-balance">{tr("{0} Coins", fmt(coins))}</Row>
             {missing === 0 && <Row label={tr("Danach")}><span className="text-[#22E4F2]">{tr("{0} Coins", fmt(coins - b.price))}</span></Row>}
           </div>

@@ -127,7 +127,14 @@
 .fishing-gold-spark { animation: fishing-gold-spark 1500ms ease-out infinite; }
 .fishing-bite-pulse { animation: fishing-bite-pulse 700ms ease-in-out infinite; }
 .fishing-crown { animation: fishing-crown-bob 1800ms ease-in-out infinite; }
+@keyframes fishing-rays-spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes fishing-mythic-rise { 0% { opacity: 0; transform: translateY(50px) scale(.8); filter: drop-shadow(0 0 0 rgb(255 46 151 / 0)); } 60% { opacity: 1; transform: translateY(-6px) scale(1.04); } 100% { opacity: 1; transform: none; filter: drop-shadow(0 0 18px rgb(255 46 151 / .85)) drop-shadow(0 0 30px rgb(139 44 255 / .7)); } }
+@keyframes fishing-mythic-glow { 0%, 100% { filter: drop-shadow(0 0 14px rgb(255 46 151 / .8)) drop-shadow(0 0 26px rgb(139 44 255 / .6)); } 50% { filter: drop-shadow(0 0 22px rgb(255 200 61 / .9)) drop-shadow(0 0 38px rgb(255 46 151 / .7)); } }
+.fishing-mythic-rays { background: repeating-conic-gradient(from 0deg, rgb(255 200 61 / .22) 0deg 6deg, transparent 6deg 18deg, rgb(255 46 151 / .2) 18deg 24deg, transparent 24deg 36deg); mask-image: radial-gradient(circle, #000 0%, transparent 55%); -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 55%); transform: translate(-50%, -50%); animation: fishing-rays-spin 18s linear infinite; }
+.fishing-mythic-fish { animation: fishing-mythic-rise 900ms cubic-bezier(.2,.9,.3,1.1) both, fishing-mythic-glow 2400ms 900ms ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
+  .fishing-mythic-rays, .fishing-mythic-fish { animation: none !important; }
+  .fishing-mythic-fish { filter: drop-shadow(0 0 16px rgb(255 46 151 / .8)); }
   .fishing-catch-pop, .fishing-coin-rise, .fishing-gold-spark, .fishing-bite-pulse, .fishing-crown { animation: none !important; }
   .fishing-gold-spark { opacity: .8; }
 }

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CoinBalance } from "@/components/arcade/CoinBalance";
 import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
 import { FishCard } from "@/components/arcade/fishing/FishCard";
+import { BadgeImg } from "@/components/BadgeImg";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import sceneUrl from "@/assets/fishing/scene.webp";
 import {
@@ -31,6 +32,7 @@ export function LeonidaFishingGame() {
   const selectBait = useSelectBait(user?.id);
   const [phase, setPhaseState] = useState<Phase>("idle");
   const [result, setResult] = useState<ReelResult | null>(null);
+  const [firstMythic, setFirstMythic] = useState(false);
   const [sheet, setSheet] = useState<"bait" | "collection" | null>(null);
   const [leaderboard, setLeaderboard] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -55,6 +57,7 @@ export function LeonidaFishingGame() {
     void qc.invalidateQueries({ queryKey: ["coin-balance"] });
     void qc.invalidateQueries({ queryKey: ["arcade-stats", GAME] });
     void qc.invalidateQueries({ queryKey: ["arcade-leaderboard", GAME] });
+    if (r?.species_id === "mythic_marlin") void qc.invalidateQueries({ queryKey: ["badges", user?.id] });
   };
 
   // Biss-Zeitpunkt aus Server-Angaben (Restzeit) – Geräteuhr spielt keine Rolle.
@@ -71,6 +74,8 @@ export function LeonidaFishingGame() {
     setPhase("reeling");
     try {
       const r = await reelFishingCast(id, take);
+      // Erstes Mythisch-Badge: Sammlung vor dem Fang hatte noch keinen mythischen Marlín (Badge vergibt der Server).
+      setFirstMythic(r.status === "caught" && r.species_id === "mythic_marlin" && !r.already_processed && (data?.collection.mythic_marlin ?? 0) === 0);
       s.castId = null; setResult(r); setPhase("result"); refresh(r);
       if (r.status === "caught" && navigator.vibrate) navigator.vibrate(r.species_id === "leonida_marlin" ? [40, 60, 80] : 35);
     } catch (error) {
@@ -168,7 +173,8 @@ export function LeonidaFishingGame() {
       {!user && <p data-testid="fishing-login-hint" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#22E4F2]/40 bg-[#0B0418]/85 p-3 text-center text-sm text-[#BFAAD9]">{tr("Melde dich an, um zu angeln, Coins zu verdienen und deine Sammlung zu füllen.")}</p>}
       {limitReached && !busy && phase !== "result" && <p data-testid="fishing-limit-message" role="status" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#FF2E97]/50 bg-[#0B0418]/85 p-4 text-center text-sm font-semibold text-[#FFB3D9]">{tr("Deine 15 Angelversuche für heute sind aufgebraucht. Komm morgen wieder!")}</p>}
 
-      {phase === "result" && result && <ResultCard result={result} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
+      {phase === "result" && result && result.status === "caught" && result.species_id === "mythic_marlin" && <MythicCatch result={result} firstBadge={firstMythic} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
+      {phase === "result" && result && !(result.status === "caught" && result.species_id === "mythic_marlin") && <ResultCard result={result} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
     </div>
 
     <nav className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-end gap-3 border-t border-[#FF2E97]/25 bg-[#120A24]/90 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.9rem)] backdrop-blur-md" aria-label={tr("Angel-Steuerung")}>
@@ -177,7 +183,7 @@ export function LeonidaFishingGame() {
         className={`grid h-[5.5rem] w-[5.5rem] place-items-center rounded-full border-[3px] px-2 text-center text-sm font-bold leading-tight transition-[transform,opacity,background-color] duration-150 active:scale-95 disabled:opacity-60 ${mainButton.accent ? "fishing-bite-pulse border-[#FFD12A] bg-[#FFD12A] text-[#2B0B47]" : "border-[#FF2E97] bg-[#2B0B47] text-white shadow-[0_0_22px_rgba(255,46,151,0.55)]"}`}>
         {phase === "reeling" || phase === "casting" ? <Loader2 className="h-6 w-6 animate-spin" /> : null}{mainButton.label}
       </button>
-      <SideButton testId="fishing-collection-button" label={tr("Sammlung")} badge={discovered} badgeSuffix="/5" color="#FF5FB4" onClick={() => setSheet("collection")}><BookOpen className="h-5 w-5" /></SideButton>
+      <SideButton testId="fishing-collection-button" label={tr("Sammlung")} badge={discovered} badgeSuffix={`/${FISH.length}`} color="#FF5FB4" onClick={() => setSheet("collection")}><BookOpen className="h-5 w-5" /></SideButton>
     </nav>
 
     <Sheet open={sheet === "bait"} onOpenChange={(o) => setSheet(o ? "bait" : null)}>
@@ -189,6 +195,7 @@ export function LeonidaFishingGame() {
             const stock = baitStock(data, b.id); const fish = FISH.find((f) => f.rarity === b.rarity)!; const style = RARITY_STYLE[b.rarity];
             return <BaitRow key={b.id} testId={`fishing-bait-option-${b.rarity}`} color={style.color} title={b.name}
               subtitle={tr("{0}: {1} → {2}", fish.name, formatPercent(fish.baseChance, locale()), formatPercent(fishingOdds(b.rarity)[fish.id], locale()))}
+              note={b.consumeOnCast ? tr("Verbraucht pro Angelversuch eine Nutzung") : undefined}
               stock={stock.items ? (stock.items > 1 ? tr("{0}/3 Nutzungen übrig · +{1} weitere", stock.current, stock.items - 1) : tr("{0}/3 Nutzungen übrig", stock.current)) : tr("Nicht im Inventar")}
               active={selected?.id === b.id} disabled={busy || selectBait.isPending || !stock.items}
               onSelect={() => selectBait.mutate(b.id as BaitId, { onError: (e) => toast.error(fishingError(e as { message?: string })) })}
@@ -201,9 +208,9 @@ export function LeonidaFishingGame() {
 
     <Sheet open={sheet === "collection"} onOpenChange={(o) => setSheet(o ? "collection" : null)}>
       <SheetContent side="bottom" data-testid="fishing-collection-sheet" className="z-[60] max-h-[88vh] overflow-y-auto rounded-t-3xl border-[#FF2E97]/50 bg-[#1A0C33] pb-[max(env(safe-area-inset-bottom),1rem)] text-white">
-        <SheetHeader><SheetTitle className="font-display text-xl text-neon-gradient">{tr("Fischsammlung · {0}/5 entdeckt", discovered)}</SheetTitle><SheetDescription className="text-[#BFAAD9]">{tr("Grundchancen ohne Köder. Noch nicht gefangene Fische erscheinen als Silhouette.")}</SheetDescription></SheetHeader>
+        <SheetHeader><SheetTitle className="font-display text-xl text-neon-gradient">{tr("Fischsammlung · {0}/{1} entdeckt", discovered, FISH.length)}</SheetTitle><SheetDescription className="text-[#BFAAD9]">{tr("Grundchancen ohne Köder. Noch nicht gefangene Fische erscheinen als Silhouette.")}</SheetDescription></SheetHeader>
         <div className="mt-4 grid grid-cols-2 gap-3 pb-2 sm:grid-cols-3">
-          {FISH.map((f) => { const n = data?.collection[f.id] ?? 0; return <FishCard key={f.id} testId={`fishing-collection-${f.id}`} fish={f} chance={f.baseChance} count={n} silhouette={n === 0} className={f.rarity === "legendary" ? "col-span-2 mx-auto w-[calc(50%-0.375rem)] sm:col-span-1 sm:w-auto" : ""} />; })}
+          {FISH.map((f) => { const n = data?.collection[f.id] ?? 0; return <FishCard key={f.id} testId={`fishing-collection-${f.id}`} fish={f} chance={f.baseChance} count={n} silhouette={n === 0} />; })}
         </div>
       </SheetContent>
     </Sheet>
@@ -219,10 +226,10 @@ function SideButton({ testId, label, badge, badgeSuffix = "", color, onClick, ch
   </button>;
 }
 
-function BaitRow({ testId, title, subtitle, stock, color = "#BFAAD9", active, disabled, onSelect, shopLink = false }: { testId: string; title: string; subtitle: string; stock?: string; color?: string; active: boolean; disabled: boolean; onSelect: () => void; shopLink?: boolean }) {
+function BaitRow({ testId, title, subtitle, note, stock, color = "#BFAAD9", active, disabled, onSelect, shopLink = false }: { testId: string; title: string; subtitle: string; note?: string | undefined; stock?: string; color?: string; active: boolean; disabled: boolean; onSelect: () => void; shopLink?: boolean }) {
   return <div data-testid={testId} className={`flex items-center gap-3 rounded-2xl border bg-[#120724] p-3 transition-[border-color,box-shadow] duration-150 ${active ? "shadow-[0_0_16px_rgba(34,228,242,0.35)]" : ""}`} style={{ borderColor: active ? "#22E4F2" : `${color}66` }}>
     <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border text-lg" style={{ borderColor: color, boxShadow: `0 0 10px ${color}55` }}>🪝</span>
-    <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold" style={{ color }}>{title}</p><p className="text-[11px] text-[#BFAAD9]">{subtitle}</p>{stock && <p data-testid={`${testId}-stock`} className="text-[11px] font-semibold text-white/85">{stock}</p>}</div>
+    <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold" style={{ color }}>{title}</p><p className="text-[11px] text-[#BFAAD9]">{subtitle}</p>{note && <p className="text-[11px] text-[#FFB3D9]">{note}</p>}{stock && <p data-testid={`${testId}-stock`} className="text-[11px] font-semibold text-white/85">{stock}</p>}</div>
     {active ? <span data-testid={`${testId}-active`} className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-[#22E4F2] px-3 text-xs font-black text-[#0B0418]"><Check className="h-4 w-4" />{tr("Aktiv")}</span>
       : shopLink ? <Link to="/neoshop" search={{ tab: "baits" }} data-testid={`${testId}-shop-link`} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-[#FF2E97]/70 px-3 text-xs font-bold text-[#FFB3D9] active:scale-95"><ShoppingCart className="h-4 w-4" />{tr("Kaufen")}</Link>
       : <button type="button" data-testid={`${testId}-select`} disabled={disabled} onClick={onSelect} className="min-h-10 rounded-xl border border-[#22E4F2]/70 px-3 text-xs font-bold text-[#22E4F2] transition-transform duration-150 active:scale-95 disabled:opacity-50">{tr("Auswählen")}</button>}
@@ -240,9 +247,29 @@ function ResultCard({ result, canAgain, onAgain, onClose }: { result: ReelResult
         <div className="fishing-catch-pop"><FishCard testId="fishing-result-card" fish={fish} /></div>
         <p data-testid="fishing-result-coins" className="fishing-coin-rise pointer-events-none absolute inset-x-0 -top-2 text-center font-display text-2xl text-[#FFD12A] [text-shadow:0_0_14px_rgba(255,209,42,0.9)]">{tr("+{0} Coins", result.coins.toLocaleString(locale()))}</p>
         <p data-testid="fishing-result-summary" className="mt-3 rounded-2xl bg-[#0B0418]/80 p-2 text-center text-sm text-[#E9DDF7]">{tr("{0} gefangen! +{1} Coins{2}", fish.name, result.coins.toLocaleString(locale()), result.xp > 0 ? tr(" · +{0} Arcade-XP", result.xp) : "")}</p>
-      </> : <div data-testid="fishing-result-escaped" className="fishing-catch-pop rounded-3xl border-2 border-[#FF2E97]/70 bg-[#1A0C33]/95 p-5 text-center shadow-[0_0_24px_rgba(255,46,151,0.4)]"><p className="text-4xl" aria-hidden>💦</p><h2 className="mt-2 font-display text-2xl text-neon-gradient">{tr("Der Fisch ist entkommen!")}</h2><p className="mt-2 text-sm text-[#BFAAD9]">{outcome} {tr("Der Versuch zählt, dein Köder bleibt erhalten.")}</p></div>}
+      </> : <div data-testid="fishing-result-escaped" className="fishing-catch-pop rounded-3xl border-2 border-[#FF2E97]/70 bg-[#1A0C33]/95 p-5 text-center shadow-[0_0_24px_rgba(255,46,151,0.4)]"><p className="text-4xl" aria-hidden>💦</p><h2 className="mt-2 font-display text-2xl text-neon-gradient">{tr("Der Fisch ist entkommen!")}</h2><p className="mt-2 text-sm text-[#BFAAD9]">{outcome} {baitById(result.bait_id)?.consumeOnCast ? tr("Der Versuch zählt, eine Köder-Nutzung wurde verbraucht.") : result.bait_id ? tr("Der Versuch zählt, dein Köder bleibt erhalten.") : tr("Der Versuch zählt.")}</p></div>}
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button type="button" data-testid="fishing-result-close-button" onClick={onClose} className="min-h-12 rounded-full border border-white/25 bg-[#0B0418]/80 text-sm font-semibold transition-transform duration-150 active:scale-95">{tr("Schließen")}</button>
+        <button type="button" data-testid="fishing-result-again-button" disabled={!canAgain} onClick={onAgain} className="min-h-12 rounded-full bg-gradient-to-r from-[#FF2E97] to-[#B026FF] text-sm font-bold transition-transform duration-150 active:scale-95 disabled:opacity-50">{canAgain ? tr("Nochmal angeln") : tr("Für heute fertig")}</button>
+      </div>
+    </div>
+  </div>;
+}
+
+/** Exklusive Mythisch-Animation: Abdunkeln, Lichtstrahlen, leuchtender Fisch, „MYTHISCHER FANG!“, +5.000, ggf. Badge. Gutschrift ist bereits serverseitig erfolgt. */
+function MythicCatch({ result, firstBadge, canAgain, onAgain, onClose }: { result: ReelResult; firstBadge: boolean; canAgain: boolean; onAgain: () => void; onClose: () => void }) {
+  const fish = fishById("mythic_marlin")!;
+  return <div data-testid="fishing-mythic-catch" role="dialog" aria-modal="true" aria-label={tr("MYTHISCHER FANG!")} className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-[#07020F]/80 p-4 animate-in fade-in duration-500">
+    <div aria-hidden className="fishing-mythic-rays pointer-events-none absolute left-1/2 top-[42%] h-[140vmax] w-[140vmax]" />
+    <div className="relative w-full max-w-[20rem] text-center">
+      <p data-testid="fishing-mythic-title" className="fishing-catch-pop font-display text-3xl tracking-wide text-transparent bg-gradient-to-r from-[#FFD76A] via-[#FF5FD2] to-[#A855FF] bg-clip-text [filter:drop-shadow(0_0_14px_rgba(255,46,151,0.9))]">{tr("MYTHISCHER FANG!")}</p>
+      <img src={fish.image} alt={fish.name} className="fishing-mythic-fish mx-auto mt-3 w-full select-none" draggable={false} />
+      <p className="mt-1 font-bold italic text-white">{fish.name}</p>
+      <p data-testid="fishing-mythic-coins" className="fishing-catch-pop mt-2 font-display text-4xl text-[#FFD12A] [text-shadow:0_0_18px_rgba(255,209,42,0.95)]">{tr("+{0} Coins", result.coins.toLocaleString(locale()))}</p>
+      {result.xp > 0 && <p className="text-xs text-[#E9DDF7]">{tr("+{0} Arcade-XP", result.xp)}</p>}
+      {firstBadge && <div data-testid="fishing-mythic-badge" className="fishing-catch-pop mx-auto mt-3 flex w-fit items-center gap-3 rounded-2xl border border-[#FF5FD2]/70 bg-[#1A0C33]/90 p-2 pr-4 shadow-[0_0_20px_rgba(255,46,151,0.5)]"><BadgeImg id="mythic_catch" alt={tr("Mythischer Fang")} className="h-16 w-16" /><span className="text-left"><span className="block text-xs font-bold uppercase tracking-wider text-[#FFD76A]">{tr("Neues Badge freigeschaltet!")}</span><span className="block font-display text-base">{tr("Mythischer Fang")}</span></span></div>}
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <button type="button" data-testid="fishing-result-close-button" onClick={onClose} className="min-h-12 rounded-full border border-white/25 bg-[#0B0418]/80 text-sm font-semibold transition-transform duration-150 active:scale-95">{tr("Weiter")}</button>
         <button type="button" data-testid="fishing-result-again-button" disabled={!canAgain} onClick={onAgain} className="min-h-12 rounded-full bg-gradient-to-r from-[#FF2E97] to-[#B026FF] text-sm font-bold transition-transform duration-150 active:scale-95 disabled:opacity-50">{canAgain ? tr("Nochmal angeln") : tr("Für heute fertig")}</button>
       </div>
     </div>
