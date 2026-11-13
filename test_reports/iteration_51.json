@@ -1,0 +1,73 @@
+{
+  "iteration": 51,
+  "mode": "retest",
+  "summary": "Adapted the mythic-catch check to the new feature: mythic_marlin now gets its own 25s fangvideo (/videos/mythic-catch.mp4) via the shared CatchVideo component before the CatchReward 'mythic' variant (formerly MythicCatch.tsx, now unified with LegendaryCatch into CatchReward.tsx). Discovered and fixed a real selector regression across 4 PRE-EXISTING checks: since legendary's and mythic's <video> elements now stay permanently co-mounted (both preload simultaneously), the shared data-testid='fishing-catch-video-overlay' resolves to 2 DOM nodes, breaking strict-mode Playwright locators that previously assumed a single instance. Rescoped all affected checks to the currently-active (non-'.invisible') overlay instance; all pass again. Backend suite unaffected (83/83, no DB changes in this UI-only feature).",
+  "passed": 7,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [],
+  "action_items": [
+    "Stale browser check 'leonida-fishing-full-game-flow' (from iteration 9, targets an obsolete canvas mini-game UI) remains un-fixed per scope -- unrelated to this feature, not re-run this iteration since it was already carried as a known note in iteration 50 and no criterion in this briefing touches it."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Backend regression (no DB change expected for this UI-only feature)",
+      "name": "backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 83 passed in 8.82s. No backend code touched by this change (video/reward screen is purely client-side; coins already granted by reel_fishing_cast as before)."
+    },
+    {
+      "criterion": "Mythischer Fang startet eigenes Video (/videos/mythic-catch.mp4, nicht legendary)",
+      "name": "fishing-mythic-catch-animation-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked reel_fishing_cast (species_id mythic_marlin, coins 5000). Rescoped overlay check to the currently-visible video instance (both legendary+mythic <video> elements stay mounted for preload, sharing the testid) -- asserted its <source src> is exactly /videos/mythic-catch.mp4 and not /videos/legendary-catch.mp4. In Chromium (no H.264) resolved to the fishing-mythic-catch reward within the watchdog window (up to ~31s for the 25s clip + buffer); Skip button also exercised when visible. reel_fishing_cast called exactly once. Re-ran twice, both green (no flake)."
+    },
+    {
+      "criterion": "Neuer mythischer Belohnungsbildschirm (CatchReward variant mythic)",
+      "name": "fishing-mythic-catch-animation-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Same check: fishing-mythic-catch visible with fishing-mythic-title containing '🏆' + MYTHISCHER FANG/MYTHIC CATCH, fishing-mythic-coins counting to '+5,000'/'+5.000', 'LEONIDA COINS' text present, fishing-mythic-badge visible (collection had no prior mythic_marlin -> first-unlock badge shown) with 'New badge unlocked'/'Neues Badge freigeschaltet' text. fishing-mythic-continue returns to fishing-cast-button."
+    },
+    {
+      "criterion": "Legendär unverändert (video /videos/legendary-catch.mp4 -> +250)",
+      "name": "fishing-legendary-catch-video-fallback-flow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run after rescoping the overlay/video locators to the active (non-'.invisible') instance (previously broken by strict-mode violation caused by the new co-mounted mythic <video>). Full flow verified again: video overlay with source legendary-catch.mp4 (200/206, video/mp4), mid-video tap does not close it, Chromium fallback -> fishing-legendary-catch with '+250', 'Weiter' returns to cast button, reel_fishing_cast called exactly once."
+    },
+    {
+      "criterion": "Legendär: Skip-Button + 404-Fallback unverändert",
+      "name": "fishing-legendary-catch-skip-button / fishing-legendary-catch-video-404-fallback",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Both re-run after the same selector fix. Skip button (top-right) closes the overlay straight to the reward; 404'd video source still falls back to the reward within the watchdog window. Both green."
+    },
+    {
+      "criterion": "Coins genau einmal pro Fang, unabhängig von Video/Skip/Weiter",
+      "name": "fishing-mythic-catch-animation-mocked / fishing-legendary-catch-* (combined)",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "reelCalls/startCalls asserted ==1 throughout every mythic and legendary check, after skip, after fallback-close, and after 'Weiter' -- no extra RPC calls observed in any run."
+    },
+    {
+      "criterion": "Andere Fische (epic) unverändert -- bisherige fishing-result Karte ohne Video",
+      "name": "fishing-cast-bite-reel-flow-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run after rescoping the two now-co-mounted video-overlay instances (.first()/.last()) to assert both are CSS visibility:hidden for a non-legendary/mythic species (palmenschnapper, epic, +175); fishing-result/fishing-result-card render as before, fishing-legendary-catch has count 0."
+    },
+    {
+      "criterion": "Regression: Bonus-Angelversuche weiterhin nicht gesperrt / öffentlicher Preview-Pfad lädt",
+      "name": "fishing-bonus-casts-not-locked / preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Both re-run unchanged, green."
+    }
+  ]
+}

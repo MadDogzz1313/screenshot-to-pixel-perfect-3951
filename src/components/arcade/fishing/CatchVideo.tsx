@@ -11,7 +11,8 @@ export type CatchVideoHandle = {
 
 const START_TIMEOUT_MS = 6000; // Video startet nicht → Belohnung
 const STALL_TIMEOUT_MS = 4000; // Video hängt → Belohnung
-const MAX_MS = 16000;          // Absolute Obergrenze für die 10-s-Sequenz
+const idOf = (src: string) => src.split("/").pop()?.replace(/\.\w+$/, "") ?? "video";
+const MAX_EXTRA_MS = 6000;     // Absolute Obergrenze: Videolänge + Puffer
 
 /**
  * Vollbild-Fangsequenz (HTML5, playsInline – kein externer Player). Das <video> bleibt dauerhaft eingehängt und lädt vor,
@@ -53,7 +54,7 @@ export function CatchVideo({ video, active, onDone, ref }: { video: CatchVideoSp
     const started = performance.now();
     const watchdog = window.setInterval(() => {
       const now = performance.now();
-      if (now - started > MAX_MS) return finish();
+      if (now - started > video.durationMs + MAX_EXTRA_MS) return finish();
       if (v.error || v.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) return finish();
       if (v.currentTime === 0 && now - started > START_TIMEOUT_MS) return finish();
       if (v.currentTime > 0 && !v.paused && now - lastProgress > STALL_TIMEOUT_MS) return finish();
@@ -79,13 +80,13 @@ export function CatchVideo({ video, active, onDone, ref }: { video: CatchVideoSp
       v.removeEventListener("ended", finish); v.removeEventListener("error", finish);
       v.removeEventListener("playing", onPlaying); v.removeEventListener("timeupdate", onTime);
     };
-  }, [active, video.type]);
+  }, [active, video.type, video.durationMs]);
 
   if (!mounted) return null;
   return createPortal(
-    <div data-testid="fishing-catch-video-overlay" aria-hidden={!active} role={active ? "dialog" : undefined} aria-modal={active || undefined} aria-label={active ? tr("Legendärer Fang") : undefined}
+    <div data-testid={active ? "fishing-catch-video-overlay" : `fishing-catch-video-overlay-idle-${idOf(video.src)}`} aria-hidden={!active} role={active ? "dialog" : undefined} aria-modal={active || undefined} aria-label={active ? tr("Fangsequenz") : undefined}
       className={`fixed inset-0 z-[100] grid place-items-center bg-[#07020F] transition-opacity duration-300 ${active ? "opacity-100" : "pointer-events-none invisible opacity-0"}`}>
-      <video ref={el} data-testid="fishing-catch-video" className="h-full w-full object-contain" playsInline autoPlay={false} muted={false} preload="auto" poster={video.poster}
+      <video ref={el} data-testid={active ? "fishing-catch-video" : `fishing-catch-video-idle-${idOf(video.src)}`} className="h-full w-full object-contain" playsInline autoPlay={false} muted={false} preload="auto" poster={video.poster}
         disablePictureInPicture controls={false} controlsList="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny">
         <source src={video.src} type={video.type} />
       </video>

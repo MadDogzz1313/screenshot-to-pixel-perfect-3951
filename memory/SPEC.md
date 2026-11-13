@@ -265,3 +265,5 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - `LegendaryCatch.tsx`: Belohnung (Strahlen gold/pink, Funken, Fischbild, pulsierendes „🏆 LEGENDÄRER FANG!“, Zähler „+250“ + „LEONIDA COINS“, „Weiter“). Coins aus Server-Ergebnis (`result.coins`).
 - Spiel: `catchStage` "video" | "reward"; Video nur für frisch eingeholte Fänge mit Video-Eintrag (auch bei already_processed durch Netz-Wiederholung); andere Fische unverändert (ResultCard), Mythisch unverändert (MythicCatch). Fang + Coins sind vor dem Video gespeichert (reel_fishing_cast), Video hat keinen Einfluss.
 - Playwright-Chromium kann kein H.264 → dort greift sofort der Belohnungs-Fallback.
+
+- Mythischer Fang (Nutzerwunsch): eigenes Video `public/videos/mythic-catch.mp4` (Original 25 s, 1280×720 H.264/AAC; neu kodiert 7,9 MB) + Poster. Danach neuer Belohnungsbildschirm im Stil des legendären (`CatchReward.tsx`, variant "mythic": violett/pink/türkis, „🏆 MYTHISCHER FANG!“, +5.000-Zähler, Badge-Hinweis beim ersten mythischen Fang). Alte MythicCatch-Komponente entfernt; Testids `fishing-mythic-catch/-title/-coins/-badge/-continue` bleiben. Obergrenze je Video = durationMs + 6 s.

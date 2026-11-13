@@ -7,9 +7,8 @@ import { CoinBalance } from "@/components/arcade/CoinBalance";
 import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
 import { FishCard } from "@/components/arcade/fishing/FishCard";
 import { CatchVideo, type CatchVideoHandle } from "@/components/arcade/fishing/CatchVideo";
-import { LegendaryCatch } from "@/components/arcade/fishing/LegendaryCatch";
+import { CatchReward } from "@/components/arcade/fishing/CatchReward";
 import { CATCH_VIDEOS, catchVideoFor } from "@/lib/catch-videos";
-import { BadgeImg } from "@/components/BadgeImg";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import sceneUrl from "@/assets/fishing/scene.webp";
 import {
@@ -184,8 +183,9 @@ export function LeonidaFishingGame() {
       {!user && <p data-testid="fishing-login-hint" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#22E4F2]/40 bg-[#0B0418]/85 p-3 text-center text-sm text-[#BFAAD9]">{tr("Melde dich an, um zu angeln, Coins zu verdienen und deine Sammlung zu füllen.")}</p>}
       {limitReached && !busy && phase !== "result" && <p data-testid="fishing-limit-message" role="status" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#FF2E97]/50 bg-[#0B0418]/85 p-4 text-center text-sm font-semibold text-[#FFB3D9]">{tr("Deine 15 Angelversuche für heute sind aufgebraucht. Komm morgen wieder!")}</p>}
 
-      {phase === "result" && result && result.status === "caught" && result.species_id === "leonida_marlin" && catchStage === "reward" && <LegendaryCatch coins={result.coins} xp={result.xp} onContinue={() => { setResult(null); setCatchStage(null); setPhase("idle"); }} />}
-      {phase === "result" && result && result.status === "caught" && result.species_id === "mythic_marlin" && <MythicCatch result={result} firstBadge={firstMythic} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
+      {phase === "result" && result && result.status === "caught" && (result.species_id === "leonida_marlin" || result.species_id === "mythic_marlin") && catchStage === "reward" &&
+        <CatchReward variant={result.species_id === "mythic_marlin" ? "mythic" : "legendary"} coins={result.coins} xp={result.xp} firstBadge={result.species_id === "mythic_marlin" && firstMythic}
+          onContinue={() => { setResult(null); setCatchStage(null); setPhase("idle"); }} />}
       {phase === "result" && result && catchStage !== "video" && !(result.status === "caught" && (result.species_id === "mythic_marlin" || result.species_id === "leonida_marlin")) && <ResultCard result={result} canAgain={!limitReached} onAgain={() => void cast()} onClose={() => { setResult(null); setPhase("idle"); }} />}
     </div>
 
@@ -267,26 +267,6 @@ function ResultCard({ result, canAgain, onAgain, onClose }: { result: ReelResult
       </> : <div data-testid="fishing-result-escaped" className="fishing-catch-pop rounded-3xl border-2 border-[#FF2E97]/70 bg-[#1A0C33]/95 p-5 text-center shadow-[0_0_24px_rgba(255,46,151,0.4)]"><p className="text-4xl" aria-hidden>💦</p><h2 className="mt-2 font-display text-2xl text-neon-gradient">{tr("Der Fisch ist entkommen!")}</h2><p className="mt-2 text-sm text-[#BFAAD9]">{outcome} {baitById(result.bait_id)?.consumeOnCast ? tr("Der Versuch zählt, eine Köder-Nutzung wurde verbraucht.") : result.bait_id ? tr("Der Versuch zählt, dein Köder bleibt erhalten.") : tr("Der Versuch zählt.")}</p></div>}
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button type="button" data-testid="fishing-result-close-button" onClick={onClose} className="min-h-12 rounded-full border border-white/25 bg-[#0B0418]/80 text-sm font-semibold transition-transform duration-150 active:scale-95">{tr("Schließen")}</button>
-        <button type="button" data-testid="fishing-result-again-button" disabled={!canAgain} onClick={onAgain} className="min-h-12 rounded-full bg-gradient-to-r from-[#FF2E97] to-[#B026FF] text-sm font-bold transition-transform duration-150 active:scale-95 disabled:opacity-50">{canAgain ? tr("Nochmal angeln") : tr("Für heute fertig")}</button>
-      </div>
-    </div>
-  </div>;
-}
-
-/** Exklusive Mythisch-Animation: Abdunkeln, Lichtstrahlen, leuchtender Fisch, „MYTHISCHER FANG!“, +5.000, ggf. Badge. Gutschrift ist bereits serverseitig erfolgt. */
-function MythicCatch({ result, firstBadge, canAgain, onAgain, onClose }: { result: ReelResult; firstBadge: boolean; canAgain: boolean; onAgain: () => void; onClose: () => void }) {
-  const fish = fishById("mythic_marlin")!;
-  return <div data-testid="fishing-mythic-catch" role="dialog" aria-modal="true" aria-label={tr("MYTHISCHER FANG!")} className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-[#07020F]/80 p-4 animate-in fade-in duration-500">
-    <div aria-hidden className="fishing-mythic-rays pointer-events-none absolute left-1/2 top-[42%] h-[140vmax] w-[140vmax]" />
-    <div className="relative w-full max-w-[20rem] text-center">
-      <p data-testid="fishing-mythic-title" className="fishing-catch-pop font-display text-3xl tracking-wide text-transparent bg-gradient-to-r from-[#FFD76A] via-[#FF5FD2] to-[#A855FF] bg-clip-text [filter:drop-shadow(0_0_14px_rgba(255,46,151,0.9))]">{tr("MYTHISCHER FANG!")}</p>
-      <img src={fish.image} alt={fish.name} className="fishing-mythic-fish mx-auto mt-3 w-full select-none" draggable={false} />
-      <p className="mt-1 font-bold italic text-white">{fish.name}</p>
-      <p data-testid="fishing-mythic-coins" className="fishing-catch-pop mt-2 font-display text-4xl text-[#FFD12A] [text-shadow:0_0_18px_rgba(255,209,42,0.95)]">{tr("+{0} Coins", result.coins.toLocaleString(locale()))}</p>
-      {result.xp > 0 && <p className="text-xs text-[#E9DDF7]">{tr("+{0} Arcade-XP", result.xp)}</p>}
-      {firstBadge && <div data-testid="fishing-mythic-badge" className="fishing-catch-pop mx-auto mt-3 flex w-fit items-center gap-3 rounded-2xl border border-[#FF5FD2]/70 bg-[#1A0C33]/90 p-2 pr-4 shadow-[0_0_20px_rgba(255,46,151,0.5)]"><BadgeImg id="mythic_catch" alt={tr("Mythischer Fang")} className="h-16 w-16" /><span className="text-left"><span className="block text-xs font-bold uppercase tracking-wider text-[#FFD76A]">{tr("Neues Badge freigeschaltet!")}</span><span className="block font-display text-base">{tr("Mythischer Fang")}</span></span></div>}
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <button type="button" data-testid="fishing-result-close-button" onClick={onClose} className="min-h-12 rounded-full border border-white/25 bg-[#0B0418]/80 text-sm font-semibold transition-transform duration-150 active:scale-95">{tr("Weiter")}</button>
         <button type="button" data-testid="fishing-result-again-button" disabled={!canAgain} onClick={onAgain} className="min-h-12 rounded-full bg-gradient-to-r from-[#FF2E97] to-[#B026FF] text-sm font-bold transition-transform duration-150 active:scale-95 disabled:opacity-50">{canAgain ? tr("Nochmal angeln") : tr("Für heute fertig")}</button>
       </div>
     </div>
