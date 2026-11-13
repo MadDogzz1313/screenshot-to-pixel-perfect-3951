@@ -1,0 +1,61 @@
+{
+  "iteration": 40,
+  "mode": "generate",
+  "feature": "SQL 023: first-five-free foreign spot unlocks then 500 Coins, 500-Coin crew creation (joining stays free)",
+  "summary": "All 6 acceptance-matrix criteria exercised (5 browser checks + 1 backend static-content test file). 10/10 backend assertions passed (64/64 full backend suite), 6/6 browser checks passed.",
+  "passed": 6,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Fundort pricing and copy",
+      "name": "locked-spot-shows-server-price-free-and-paid",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844, authenticated mocked user with my_spot_access=false on an approved foreign spot: locked panel text mentions 'first five'/'ersten fünf' and '500'; with preview cost=0 (unlocked_count=2) price label reads 'Free unlock' and button never shows 150/10; with preview cost=500 (unlocked_count=5) price label reads 'Unlock for 500 Coins' and the confirm() dialog message contains '500' and not '150'/'10 Coins'."
+    },
+    {
+      "criterion": "Crew creation costs 500 and joining remains free",
+      "name": "crew-new-form-submit-navigates",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked authenticated user + coin balance 770 on /crew/neu: page shows CoinBalance(770) and 'Create: 500 coins · Join free'; submit button reads 'Create for 500 coins'. Dismissing the confirm() dialog (which mentions 500 and that joining is free) resulted in 0 create_crew RPC calls; accepting it called rpc/create_crew with the form's _description etc. and navigated to /crew/<newId>. Edit mode (?edit=<id>) showed no '500 Coins' text anywhere, submit reads 'Save changes', clicking it fired zero confirm dialogs and called rpc/update_crew instead, with createCalls still at 1 (unchanged)."
+    },
+    {
+      "criterion": "Insufficient Coins handling",
+      "name": "insufficient-coins-crew-and-spot-toast",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "create_crew mocked to return 400 'INSUFFICIENT_COINS: not enough coins': after confirming creation, toast 'Eine neue Crew kostet 500 Coins'/'Creating a new crew costs 500 coins' appeared, createCalls=1, and the URL never became /crew/<id>. unlock_spot mocked the same error on a 6th-spot paid unlock: toast 'Ab dem 6. Fundort brauchst du genau 500 Coins'/'...6th spot onward, exactly 500 coins are required' appeared."
+    },
+    {
+      "criterion": "Joining does not charge",
+      "name": "joining-does-not-charge-coins",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Open crew (not a member) on /crew with request_join_crew mocked to succeed: clicking the join action called rpc/request_join_crew exactly once, create_crew was never called (0), no coin_wallets/coin_ledger/unlock_spot RPC fired, and the UI showed the 'Anfrage gesendet'/'Request sent' success toast."
+    },
+    {
+      "criterion": "Server migration is safe and complete",
+      "name": "test_tscheck_sql023_crew_unlock_costs.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "10 static assertions against docs/migrations/023_freischaltungen_crew_kosten.sql, pytest 10 passed in 0.02s: declares 013/018/019/022 as prerequisites; preserves `cost in (0,150,500)` constraint (old 150 rows stay valid); unlock_spot charges 0 for unlocked_count<5 or premium else 500, with is_owner/is_admin short-circuited free; preview RPC mirrors `greatest(0,5-n)` and the same 0/500 split; both unlock_spot and create_crew lock coin_wallets `FOR UPDATE`; create_crew only debits/ledgers after `insert into crews` then `insert into crew_members` succeed (INSUFFICIENT_COINS raised and ordered before any insert, so a plpgsql exception rolls the whole function back); ledger reasons are 'spot_unlock' and 'crew_create'; request_join_crew/update_crew are untouched by this file; create_crew's EXECUTE grant is revoked from public/anon and granted to authenticated only. Full backend suite: 64/64 passed. Per the briefing's spec_deviations, the migration itself is NOT run against a live DB (manual Lovable step) - this test only verifies the authored SQL text."
+    },
+    {
+      "criterion": "Regression navigation",
+      "name": "bottom-nav-regression-no-fresh-param",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "As guest at 390x844: /karte, /entdecken, /arcade, /beitrag, /community, /profil (via bottom-nav taps) and /crew/neu (direct goto) all rendered without 'This page didn't load', and none of the resulting page.url() values contained a _fresh query parameter."
+    }
+  ],
+  "notes": [
+    "The matrix criterion 'Server migration is safe and complete' has no UI surface and explicitly forbids treating the un-run external Lovable migration as an app bug, so it is covered only by the backend static-content test file, consistent with the sql018/sql019/sql022 precedent already in this repo.",
+    "locked-spot-shows-server-price-free-and-paid and crew-new-form-submit-navigates were pre-existing checks authored for the prior 150/10-coin pricing; they were rewritten in place (previous versions auto-backed up by the tool) to assert the new 5-free/500-coin behavior - old pricing strings (150, 10 Coins) are now explicitly asserted absent.",
+    "bottom-nav-regression-no-fresh-param was extended with a direct /crew/neu navigation step to cover that route explicitly named in the criterion; the other 5 routes were already covered by its existing bottom-nav loop.",
+    "One check (public-preview-guest-pin-gate) was re-run against the public preview URL per the environment instruction and passed, confirming the ingress path is healthy alongside the localhost-based checks."
+  ]
+}

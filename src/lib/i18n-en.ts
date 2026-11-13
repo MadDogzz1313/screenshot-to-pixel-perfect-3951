@@ -869,4 +869,13 @@ export const EN: Record<string, string> = {
   "Zurück zum Profil": "Back to profile",
   "Öffentlich": "Public",
   "Sprache, Rechtliches, Version": "Language, legal, version",
+  "Du hast nicht genug Leonida Coins. Ab dem 6. Fundort brauchst du genau 500 Coins.": "You don't have enough Leonida Coins. From the 6th spot onward, exactly 500 coins are required.",
+  "Du hast nicht genug Leonida Coins. Eine neue Crew kostet 500 Coins.": "You don't have enough Leonida Coins. Creating a new crew costs 500 coins.",
+  "Eine neue Crew kostet 500 Leonida Coins. Beim Beitreten zu einer Crew werden keine Coins abgezogen. Crew jetzt erstellen?": "Creating a new crew costs 500 Leonida Coins. Joining a crew is free. Create the crew now?",
+  "Erstellen: 500 Coins · Beitreten kostenlos": "Create: 500 coins · Join free",
+  "Für 500 Coins erstellen": "Create for 500 coins",
+  "Schalte die vollständigen Details dieses Fundorts dauerhaft frei. Die ersten fünf Fundorte anderer Spieler sind kostenlos, danach kostet jeder weitere exakt 500 Leonida Coins.": "Permanently unlock the full details of this spot. Your first five spots from other players are free; every additional one costs exactly 500 Leonida coins.",
+  "Fundort freischalten? Die ersten fünf Fundorte anderer Spieler sind kostenlos, danach werden exakt 500 Leonida Coins abgezogen.": "Unlock this spot? Your first five spots from other players are free; exactly 500 Leonida coins will be deducted afterward.",
+  "Freischaltung für 500 Coins": "Unlock for 500 coins",
+  "Für 500 Coins freischalten": "Unlock for 500 coins",
 };

@@ -34,7 +34,7 @@ export function spotUnlockError(error: { code?: string; message?: string; detail
   if (isMissing(error)) return tr("Die Fundort-Freischaltung ist in der Datenbank noch nicht eingerichtet. Bitte SQL 013 in Lovable ausführen.");
   const text = [error.message, error.details].filter(Boolean).join(" ");
   if (text.includes("AUTH_REQUIRED")) return tr("Bitte melde dich an, um Fundorte freizuschalten.");
-  if (text.includes("INSUFFICIENT_COINS")) return tr("Du hast nicht genug Leonida Coins. Ab dem 11. Fundort brauchst du genau 150 Coins.");
+  if (text.includes("INSUFFICIENT_COINS")) return tr("Du hast nicht genug Leonida Coins. Ab dem 6. Fundort brauchst du genau 500 Coins.");
   if (text.includes("SPOT_NOT_FOUND")) return tr("Dieser Fundort ist nicht mehr verfügbar.");
   if (error.code === "23505") return tr("Dieser Fundort ist bereits freigeschaltet. Lade die Seite kurz neu.");
   if (error.code === "42501") return tr("Du hast keine Berechtigung, diesen Fundort freizuschalten.");

@@ -206,3 +206,9 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 - Aus /profil entfernt (keine Doppelungen): Profil bearbeiten, Privatsphäre, Push, Sprache, Abmelden, Konto löschen, Rechtliches. Profil behält Coins, Freunde, Spenden (nur Web), Admin-Link.
 - Nicht vorhanden (bewusst nicht angezeigt): Profilbanner ändern, Design/Theme, Ton & Vibration, Likes/Kommentar-Mitteilungen, E-Mail-Benachrichtigungen, Hilfe-Center.
 - Komponenten: `src/components/settings/SettingsUi.tsx` (Section/LinkRow/ButtonRow/InfoRow/ExpandRow – Radix-Accordion), `AccountForms.tsx`; Store: `changeEmail`, `changePassword`.
+
+## Fundort- und Crew-Kosten – SQL 023 (Entwurf, vom Nutzer in Lovable auszuführen)
+- Nutzerentscheidung: Fundort-Freischaltungen gelten pro Nutzer nur für fremde Fundorte; die ersten 5 unterschiedlichen fremden Fundorte sind kostenlos, ab dem 6. kostet jeder weitere exakt 500 Coins. Eigene approved/hidden Fundorte bleiben durch SQL 022 kostenlos offen und zählen nicht. Premium/Admin bleiben kostenlos.
+- Crew-Erstellung kostet immer 500 Coins und wird atomar beim Erstellen abgezogen. Das Beitreten bzw. Senden einer Beitrittsanfrage ist kostenlos. Bearbeiten bestehender Crews ist kostenlos.
+- Neue Migration `docs/migrations/023_freischaltungen_crew_kosten.sql`: ersetzt `unlock_spot`, `my_spot_unlock_preview` und `create_crew`; Wallet-FOR-UPDATE, Prüfung vor Abbuchung, Ledger-Gründe `spot_unlock`/`crew_create`, Transaktion rollt bei Fehlern zurück. Bestehende Guthaben und bereits bezahlte Freischaltungen bleiben unverändert. Migration muss nach 022 manuell in Lovable ausgeführt werden.
+- Frontend: `fundort.$id.tsx` zeigt 5/500; `crew.neu.tsx` zeigt aktuellen Coinstand, bestätigt vor neuer Crew, beschriftet „Für 500 Coins erstellen“. Join-Flow bleibt unverändert kostenlos. `crewError` zeigt verständliche Meldung bei zu wenig Coins.
