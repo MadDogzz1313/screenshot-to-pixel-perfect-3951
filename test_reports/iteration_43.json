@@ -1,0 +1,68 @@
+{
+  "iteration": 43,
+  "mode": "retest",
+  "feature": "Fix verification: NeonGarage SSR guard + NeonHighwayGame client-only ?garage=1 open",
+  "passed": 7,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "summary": "Re-ran the 3 previously-failing checks plus 4 related no-regression checks from iteration 42. All 7 now pass. The createPortal SSR-guard (typeof document === 'undefined' return null) and client-only useEffect gating of ?garage=1 are present in source and no longer throw. Root cause of the residual failures on the first re-run attempt was NOT the SSR bug recurring (0 fresh 'document is not defined' entries in /var/log/supervisor/frontend.err.log for this whole session) but two separate issues found and fixed in the test artifacts themselves: (1) the checks clicked onClick-driven buttons immediately after 'load', before the client had hydrated - a supervisorctl restart of the frontend (to drop a stale Vite SSR module cache from before the fix) plus a short hydration wait (page.waitForLoadState('load') + 1.5s) in the 3 checks resolved this; (2) the neoshop purchase check's own mocked buy_vehicle_skin RPC response shape was wrong (returned a bare object instead of the array-of-rows the app's buyWithRetry() expects), which made the app itself correctly treat the malformed mock as SKIN_NOT_FOUND and close the dialog - fixing the mock to return [{skin_id,charged,balance,already_owned}] let the real success path (dialog -> confirm -> success title -> close -> card shows Ausrüsten) verify end-to-end.",
+  "checks": [
+    {
+      "criterion": "Garage button opens Neon Garage",
+      "name": "highway-garage-button-opens-dialog",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Added hydration wait (load + 1.5s) to the persisted check. Tapping highway-garage-button on /arcade/highway now opens neon-garage with preview image, skin list and coin balance; close + Start round still work."
+    },
+    {
+      "criterion": "Purchase deducts once (mocked logged-in, balance 2000)",
+      "name": "neoshop-purchase-deducts-coins-once-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Fixed mock buy_vehicle_skin RPC to return [{skin_id,charged,balance,already_owned}] (array row, matching app's buyWithRetry()). Buy circuit -> neoshop-buy-dialog shows 600 -> confirm click calls buy_vehicle_skin exactly once (buyCalls===1) -> neoshop-buy-success-title shown -> close -> card shows neoshop-skin-circuit-equip-button."
+    },
+    {
+      "criterion": "Insufficient coins (mocked balance 100)",
+      "name": "neoshop-insufficient-coins-dialog-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Added hydration wait. Buy galaxy with balance 100 shows neoshop-insufficient-coins alert and neoshop-buy-confirm-button has count 0."
+    },
+    {
+      "criterion": "No regressions - garage equip/locked states",
+      "name": "garage-equip-locked-states-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Opened via ?garage=1 path; equip/locked/buy-in-shop states and equip_vehicle_skin RPC call all verified unchanged."
+    },
+    {
+      "criterion": "No regressions - selection persists after reload",
+      "name": "garage-selection-persists-after-reload-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Server-sourced equipped skin (circuit) survives full page.reload(); start overlay shows current skin."
+    },
+    {
+      "criterion": "No regressions - 6 designs halved prices",
+      "name": "neoshop-six-designs-halved-prices",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Exactly 6 skin cards with halved prices rendered correctly."
+    },
+    {
+      "criterion": "No regressions - SQL025 fallback hint + round still plays",
+      "name": "neoshop-garage-fallback-sql025-hint",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Unmocked real Supabase (SQL 025 not applied): setup hints shown on both /neoshop and garage, Neon Highway round still starts/plays. 2 unrelated 404 console warnings, non-blocking."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "Frontend fix confirmed working end-to-end; no 'document is not defined' recurrence in /var/log/supervisor/frontend.err.log during this session.",
+    "Real-DB purchase flow (SQL 025) still not executable until the user applies it in Lovable/Supabase - unchanged from iteration 42, not a regression."
+  ],
+  "retest_needed": false
+}

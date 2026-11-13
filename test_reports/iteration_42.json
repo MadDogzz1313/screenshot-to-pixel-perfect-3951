@@ -1,0 +1,90 @@
+{
+  "iteration": 42,
+  "mode": "generate",
+  "feature": "Neoshop vehicle designs (halved prices, buy/insufficient-coins flows) + Neon Garage (equip/locked states, persistence) + Neon Highway garage entry button",
+  "passed": 7,
+  "failed": 3,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "summary": "Backend (SQL migrations 013-026) 13/13 ok, yarn test 55/55 passing, typecheck clean. Of 8 UI/mechanics criteria: 1 (six designs/halved prices), 6 (persistence after reload), 7 (SQL-025 fallback hint + round still plays), and 8 (game mechanics/unit tests) pass cleanly. 3 browser checks found a REAL, reproducible frontend bug (criteria 2, 3, 4): clicking the 'highway-garage-button' on a freshly-loaded /arcade/highway start screen, and clicking tab/buy buttons on a freshly-loaded /neoshop page, silently does nothing (no state change, no dialog, no error). Root cause (confirmed via server logs): NeonGarage.tsx line 88 calls createPortal(..., document.body) with no SSR guard; TanStack Start's SSR throws 'document is not defined' when that component (or a route that Link-preloads it) is rendered server-side, and the subsequent 'switched to client rendering' recovery leaves plain onClick-driven buttons on that page inert (Link/anchor navigation still works). Opening the garage via the ?garage=1 search param (bypassing the broken button) proves NeonGarage's own internal logic (locked/equipped states, skin selection, equip rpc call, server-truth persistence after reload) all work correctly once mounted that way - so criteria 5 and 6 were additionally verified successfully through that side door. Criteria 2, 3 and 4 remain failing as reported because the primary documented user path (tap-to-open) is broken.",
+  "checks": [
+    {
+      "criterion": "SQL 025/026 migrations apply cleanly (foundation for garage/skins RPCs)",
+      "name": "scripts/sqltest/run.sh (013..026)",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "bash scripts/sqltest/run.sh ... 025_neon_garage_fahrzeugdesigns.sql 026_selbsttest_garage.sql -> 13/13 ok rows returned, no failures"
+    },
+    {
+      "criterion": "Game mechanics unchanged / yarn test passes / typecheck clean",
+      "name": "yarn test + yarn typecheck",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "yarn test: 55 tests passed (Test Files pass, ~67s incl. highway engine/gestures/i18n); cd frontend && yarn typecheck: tsc --noEmit exits 0 with no errors"
+    },
+    {
+      "criterion": "Neoshop shows exactly 6 fictional vehicle designs with halved prices",
+      "name": "neoshop-six-designs-halved-prices",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/neoshop skins tab: classic Free/Kostenlos, circuit 600/1,200, sunset 750/1,500, flamingo 800/1,600, stripe 900/1,800, galaxy 1,000/2,000; exactly 6 cards; no real car brand names found in card text. Re-verified on public preview URL."
+    },
+    {
+      "criterion": "Purchase deducts the server price exactly once",
+      "name": "neoshop-purchase-deducts-coins-once-mocked",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "Mocked logged-in session + balance 2000 (localStorage sb-daxzwbkacxllrejaghym-auth-token, route-mocked rpc/my_vehicle_garage, my_coin_balance, buy_vehicle_skin). Clicking 'neoshop-skin-circuit-buy-button' does not open 'neoshop-buy-dialog' (element not found after 5-8s). Tab-switch sanity check on the same fresh page load (click 'neoshop-tab-effects') also failed to change aria-selected or render 'neoshop-catalog', while the unrelated Link-based 'neoshop-back-button' click DID navigate correctly -- isolating the bug to plain onClick/useState-driven buttons, not navigation."
+    },
+    {
+      "criterion": "Insufficient coins message",
+      "name": "neoshop-insufficient-coins-dialog-mocked",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "Mocked balance=100, clicking 'neoshop-skin-galaxy-buy-button' never shows 'neoshop-insufficient-coins' (timeout). Same root cause as above (buttons inert on first /neoshop load)."
+    },
+    {
+      "criterion": "Garage button in Neon Highway start menu",
+      "name": "highway-garage-button-opens-dialog",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "Button is present, labelled 'Neon Garage', and correctly positioned below the 'Runde starten' start button (positioning assertion passed, screenshot captured). Clicking it never renders 'neon-garage' dialog (timeout after 8s). Sanity check on the same page: clicking 'highway-start-overlay-button' right after the failed garage click DOES start the round (pause button appears) -- so the Start button recovers, but the one-time garage click opportunity was lost. Server logs show 'ReferenceError: document is not defined at NeonGarage.tsx:88:1' during renderToReadableStream (SSR), because NeonGarage's createPortal(..., document.body) is not SSR-guarded; this fires on /neoshop and on any route that link-preloads a destination containing NeonGarage, and the framework's 'switched to client rendering' recovery leaves plain onClick buttons on the affected page non-interactive."
+    },
+    {
+      "criterion": "Garage equip / locked states",
+      "name": "garage-equip-locked-states-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Opened garage via /arcade/highway?garage=1 (bypassing the broken open-button) with mocked owned=[classic,circuit], equipped=classic: 'garage-skin-classic-status' shows 'Ausgerüstet', 'garage-skin-sunset-status' shows '750 Coins' with lock. Selecting 'garage-skin-circuit' + tapping 'garage-equip-button' called rpc equip_vehicle_skin with {_skin:'circuit'} exactly as expected. Selecting locked 'garage-skin-sunset' showed 'garage-buy-in-shop-button' with href containing /neoshop?design=sunset&from=garage. All interactions INSIDE an already-open garage work correctly; only the opening tap is broken (see highway-garage-button-opens-dialog)."
+    },
+    {
+      "criterion": "Selection persists after restart",
+      "name": "garage-selection-persists-after-reload-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked my_vehicle_garage returning equipped='circuit'. Garage opened via ?garage=1 showed 'Neon Circuit' as 'Ausgerüstet' and as the preview name; after a full page.reload(), the server-sourced state again showed circuit equipped; closing the garage ('garage-close-button') showed 'highway-garage-current-skin' containing 'Neon Circuit' on the start overlay. Confirms server (my_vehicle_garage) is the source of truth across reloads."
+    },
+    {
+      "criterion": "Fallback without SQL 025 (current real state)",
+      "name": "neoshop-garage-fallback-sql025-hint",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Unmocked (real Supabase, SQL 025 not applied): /neoshop shows 'neoshop-setup-hint', classic card shows Equipped/Ausgerüstet, all 5 paid skins still show working Buy buttons (fallback catalog). Garage screen (opened via ?garage=1 to avoid the open-button bug) shows 'garage-setup-hint'. Neon Highway round still starts and plays ('highway-pause-button' visible after tapping Start) with no page errors during play."
+    }
+  ],
+  "bugs": [
+    {
+      "severity": "high",
+      "criterion": "Garage button in Neon Highway start menu / Purchase flow / Insufficient coins dialog",
+      "description": "NeonGarage.tsx line 88 does `createPortal(<dialog/>, document.body)` without any SSR guard (no typeof document check / client-only gating). TanStack Start's SSR throws 'ReferenceError: document is not defined' whenever this component is server-rendered -- which happens not only when /arcade/highway?garage=1 is the requested URL, but also in the background whenever a route that could render it is reached (observed on a plain /neoshop load too, likely via router Link-preloading of /arcade/highway?garage=1). The framework recovers by switching to full client rendering, but on the affected page plain onClick/useState-driven buttons (tab switches, Buy buttons, the 'Neon Garage' open button) stop responding to taps -- while <Link>-based navigation keeps working. Net effect: the primary documented entry point to the Neon Garage (tapping the button) does not open it, and the Neoshop's buy / insufficient-coins dialogs never appear on a user's first visit to that page.",
+      "evidence": "Server log (/var/log/supervisor/frontend.err.log): 'Error in renderToReadableStream: ReferenceError: document is not defined at NeonGarage (/app/src/components/arcade/NeonGarage.tsx:88:1)'. Reproduced in 3 independent browser checks (highway-garage-button-opens-dialog, neoshop-purchase-deducts-coins-once-mocked, neoshop-insufficient-coins-dialog-mocked); screenshots captured for each showing the click having no visible effect. Workaround confirmed: opening the same dialog via the ?garage=1 URL avoids the bug entirely and all subsequent interactivity (equip, skin selection, reload-persistence) works correctly, isolating the defect to the SSR-crash/recovery path rather than NeonGarage's own logic."
+    }
+  ],
+  "action_items": [
+    "Fix: guard NeonGarage's createPortal target, e.g. render only when `typeof document !== 'undefined'` (or mount via useEffect/useState so the portal only ever runs client-side), so SSR never touches `document.body` for this component.",
+    "After the fix, re-run (by name only) highway-garage-button-opens-dialog, neoshop-purchase-deducts-coins-once-mocked, and neoshop-insufficient-coins-dialog-mocked to confirm the button-driven flows work end-to-end.",
+    "Matrix has 8 criteria; all 8 were exercised (7 browser checks + 1 combined backend/unit-test lane entry covering SQL migrations, yarn test and typecheck)."
+  ],
+  "retest_needed": true
+}

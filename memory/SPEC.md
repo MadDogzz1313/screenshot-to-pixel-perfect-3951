@@ -220,4 +220,10 @@ TanStack Start + Lovable Cloud (Supabase). Mobile-first GTA-VI-Community-Karte.
 
 ## Neoshop / Arcade-CTA
 - Es gab keine vorhandene Shop-Route. `src/components/arcade/ArcadeHub.tsx` ersetzt ausschließlich das sichtbare Badge „Arcade-XP separat“ durch einen responsiven cyanfarbenen Link `data-testid="neoshop-button"` nach `/neoshop`; `CoinBalance` und Arcade-XP-Logik bleiben unverändert.
-- Neue Route `src/routes/neoshop.tsx` und Ansicht `src/components/arcade/NeoshopView.tsx`: Neon-Miami-Shopseite mit synchronisiertem CoinBalance, sicherer iPhone-Darstellung und Zurück-Button `data-testid="neoshop-back-button"` nach `/arcade`. Der Katalog zeigt kommende Erweiterungen ohne nicht implementierte Kaufaktionen.
+- Route `src/routes/neoshop.tsx` (Search `design?`, `from?=garage`) und `src/components/arcade/NeoshopView.tsx`: Tabs Fahrzeug-Skins (kaufbar) / Effekte / Extras (bald verfügbar). Zurück-Button nach `/arcade` bzw. `/arcade/highway?garage=1`.
+
+## Neoshop-Fahrzeugdesigns + Neon Garage (SQL 025 – ENTWURF, vom Nutzer in Lovable auszuführen; Selbsttest 026, lokal 13/13)
+- 6 fiktive Designs (`src/lib/vehicle-skins.ts`, Bilder `src/assets/highway/skins/<id>-rear|high.webp`, Standard = `player-*.webp`, Markenlogo entfernt): classic 0 (kostenlos), circuit 1200→600, sunset 1500→750, flamingo 1600→800, stripe 1800→900, galaxy 2000→1000. Preis = floor(base/2), Server-Spalte `vehicle_skins.price generated (base_price/2)`; Shop zeigt Serverpreis.
+- DB: `vehicle_skins` (öffentlich lesbar), `user_vehicle_skins` (unique user+skin, nur eigene lesbar), `vehicle_loadouts` (Auswahl). RPCs: `my_vehicle_garage()` (anon+auth), `buy_vehicle_skin(_skin)` (Wallet FOR UPDATE, bereits besessen -> charged 0, INSUFFICIENT_COINS, Ledger reason `vehicle_skin`), `equip_vehicle_skin(_skin)` (SKIN_LOCKED). Ohne 025: Hinweis „SQL 025“, nur Standard.
+- Garage `src/components/arcade/NeonGarage.tsx` (Portal, öffnet über `highway-garage-button` im Startmenü oder `/arcade/highway?garage=1`): Vorschau, horizontale Auswahl, „Design ausrüsten“, „Zum Neoshop“/„Im Neoshop kaufen“, Coins. Auswahl serverseitig + localStorage `leonida-highway-skin:<uid>`.
+- Renderer `setSkin({rear,high,glow})` tauscht nur Textur + Unterbodenlicht des Spielerautos (gleiche Bildgröße 512×326 / 512×509 -> identische Hitbox); Spiellogik unverändert.

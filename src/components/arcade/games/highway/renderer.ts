@@ -34,9 +34,13 @@ export type HighwayFrame = {
 export interface HighwayRenderer {
   resize(width: number, height: number, dpr: number): void;
   setView(view: HighwayView): void;
+  /** Fahrzeugdesign des Spielerautos (nur Bild + Unterbodenlicht, gleiche Größe/Hitbox). */
+  setSkin(skin: PlayerSkin): void;
   render(frame: HighwayFrame): void;
   dispose(): void;
 }
+
+export type PlayerSkin = { rear: string; high: string; glow: string };
 
 // Abbildung der Spiel-Koordinaten auf die 3D-Straße: gemeinsame Werte in ./geometry (auch für die Hitboxen).
 const SCROLL_PER_MS = 0.03;
@@ -310,6 +314,22 @@ export function createHighwayRenderer(
     return { group, bodies, offsets };
   };
   const player = makeCar("player");
+  // Designs: Texturen werden erst bei Auswahl geladen und danach wiederverwendet (flüssiger Wechsel auf dem iPhone).
+  // Erst nach dem Laden tauschen, damit das Auto nie kurz unsichtbar ist.
+  const skinTextures = new Map<string, Promise<THREE.Texture>>();
+  const loadSkin = (url: string) => {
+    let pending = skinTextures.get(url);
+    if (!pending) {
+      pending = new Promise<THREE.Texture>((resolve, reject) => {
+        const tex = track(loader.load(url, () => resolve(tex), undefined, reject));
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+      });
+      skinTextures.set(url, pending);
+    }
+    return pending;
+  };
+  let skinToken = 0;
   const pools: Record<"cyan" | "pink", Car[]> = { cyan: [], pink: [] };
 
   let view: HighwayView = initialView;
@@ -354,6 +374,17 @@ export function createHighwayRenderer(
     setView(next) {
       view = next;
       placeCamera();
+    },
+    setSkin(skin) {
+      const token = ++skinToken;
+      glowMats.player.color.set(skin.glow);
+      for (const v of ["chase", "high"] as const) {
+        const mat = player.bodies[v].material as THREE.MeshBasicMaterial;
+        loadSkin(v === "chase" ? skin.rear : skin.high).then(
+          (tex) => { if (token === skinToken && mat.map !== tex) { mat.map = tex; mat.needsUpdate = true; } },
+          () => { /* Bild nicht ladbar: bisheriges Design bleibt sichtbar */ },
+        );
+      }
     },
     render(frame) {
       const now = performance.now();
