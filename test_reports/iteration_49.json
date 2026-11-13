@@ -1,0 +1,71 @@
+{
+  "iteration": 49,
+  "mode": "retest",
+  "summary": "Retest of fix in src/lib/admin-players.ts (mark_admin_grant_notices_seen now triggered via .then() instead of being dropped as a dangling lazy PostgrestBuilder). All 7 rerun checks from iteration_48 pass, including the previously-failing admin-grant-notice-toast-marks-seen. Backend suite 83/83 green.",
+  "passed": 8,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "SQL 035/036 server self-test (regression)",
+      "name": "test_tscheck_sql035_admin_spielerverwaltung.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 83 passed, 1 warning in 9.48s. No regressions."
+    },
+    {
+      "criterion": "Spieler-Meldung wird als gesehen markiert: Nach dem Toast für my_admin_grant_notices-Eintrag wird genau ein Aufruf mark_admin_grant_notices_seen mit _ids=[<id>] gesendet; kein zweiter Toast",
+      "name": "admin-grant-notice-toast-marks-seen",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED (previously failed in iteration_48). Full captured ALL REQUESTS list now includes '.../rest/v1/rpc/mark_admin_grant_notices_seen' following my_admin_grant_notices, in addition to the toast rendering correctly. Confirms src/lib/admin-players.ts fix (mark_admin_grant_notices_seen now invoked with .then() so the lazy PostgrestBuilder's fetch actually fires)."
+    },
+    {
+      "criterion": "Regression: Spieler-App Bonus-Angelversuche, Angeln-Button nicht gesperrt",
+      "name": "fishing-bonus-casts-not-locked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED, no change from iteration_48."
+    },
+    {
+      "criterion": "Regression: Coins vergeben mit Bestätigung, Idempotenz bei Netzfehler",
+      "name": "admin-grant-coins-confirmation-single-call",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED, no change from iteration_48. 5 console 404/ERR_FAILED entries are pre-existing noise from dev-server source-map/asset requests, unrelated to the grant flow assertions."
+    },
+    {
+      "criterion": "Regression: Admin Spielerverwaltung Suche + Detailansicht",
+      "name": "admin-player-manager-search-and-detail",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED, no change from iteration_48."
+    },
+    {
+      "criterion": "Regression: Admin-Gutschriften-Protokoll zeigt Historie",
+      "name": "admin-grant-log-lists-history",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED, no change from iteration_48."
+    },
+    {
+      "criterion": "Regression: Nicht-Admin wird clientseitig umgeleitet",
+      "name": "admin-player-manager-nonadmin-redirects",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run PASSED, no change from iteration_48."
+    },
+    {
+      "criterion": "Regression: öffentlicher Preview-Pfad lädt weiterhin",
+      "name": "preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-run against https://leonida-karte--6tt5kohx.preview.emergentagent.com PASSED."
+    }
+  ]
+}

@@ -76,11 +76,11 @@ export type CastInfo = {
   coins: number; xp: number; bait_uses_left: number | null; resolved_at: string | null;
 };
 export type FishingState = {
-  logged_in: boolean; setupMissing?: boolean; limit: number; used: number; next_reset_at: string | null;
+  logged_in: boolean; setupMissing?: boolean; limit: number; used: number; bonus_casts: number; next_reset_at: string | null;
   selected_bait_id: BaitId | null; inventory: { id: string; bait_id: BaitId; uses_left: number }[];
   collection: Partial<Record<SpeciesId, number>>; pending: CastInfo | null; last: CastInfo | null;
 };
-const EMPTY: Omit<FishingState, "logged_in"> = { limit: DAILY_CASTS, used: 0, next_reset_at: null, selected_bait_id: null, inventory: [], collection: {}, pending: null, last: null };
+const EMPTY: Omit<FishingState, "logged_in"> = { limit: DAILY_CASTS, used: 0, bonus_casts: 0, next_reset_at: null, selected_bait_id: null, inventory: [], collection: {}, pending: null, last: null };
 export const fishingKey = (uid: string | undefined) => ["fishing-state", uid ?? "guest"] as const;
 
 export function useFishingState(uid: string | undefined) {
@@ -91,7 +91,7 @@ export function useFishingState(uid: string | undefined) {
       const { data, error } = await sb.rpc("my_fishing_state");
       if (error) { if (isMissing(error)) return { ...EMPTY, logged_in: !!uid, setupMissing: true }; throw error; }
       const d = (data ?? {}) as Partial<FishingState>;
-      return { ...EMPTY, ...d, logged_in: !!d.logged_in, inventory: d.inventory ?? [], collection: d.collection ?? {}, limit: d.limit ?? DAILY_CASTS, used: Number(d.used ?? 0) };
+      return { ...EMPTY, ...d, logged_in: !!d.logged_in, inventory: d.inventory ?? [], collection: d.collection ?? {}, limit: d.limit ?? DAILY_CASTS, used: Number(d.used ?? 0), bonus_casts: Number(d.bonus_casts ?? 0) };
     },
   });
 }
@@ -107,7 +107,7 @@ export function fishingError(error: { code?: string; message?: string; details?:
   if (isMissing(error)) return tr("Leonida Fishing wird nach dem Datenbank-Update (SQL 027) aktiv.");
   const text = `${error.message ?? ""} ${error.details ?? ""}`;
   if (text.includes("AUTH_REQUIRED")) return tr("Bitte melde dich an, um zu angeln und Köder zu kaufen.");
-  if (text.includes("FISHING_DAILY_LIMIT")) return tr("Deine 15 Angelversuche für heute sind aufgebraucht. Komm morgen wieder!");
+  if (text.includes("FISHING_DAILY_LIMIT")) return tr("Deine 15 Angelversuche für heute und alle Bonus-Angelversuche sind aufgebraucht. Komm morgen wieder!");
   if (text.includes("INSUFFICIENT_COINS")) return tr("Du hast nicht genug Leonida Coins für diesen Köder.");
   if (text.includes("BAIT_EMPTY")) return tr("Von diesem Köder hast du keine Nutzungen mehr.");
   if (text.includes("BAIT_NOT_FOUND") || text.includes("CAST_NOT_FOUND")) return tr("Das ist nicht mehr verfügbar. Bitte lade neu.");
@@ -128,7 +128,7 @@ async function rpcWithRetry<T>(fn: string, args: Record<string, unknown>): Promi
   }
 }
 export type ReelResult = CastInfo & { already_processed: boolean; balance: number | null };
-export const startFishingCast = (nonce: string) => rpcWithRetry<CastInfo & { resumed: boolean; used: number; limit: number }>("start_fishing_cast", { _nonce: nonce });
+export const startFishingCast = (nonce: string) => rpcWithRetry<CastInfo & { resumed: boolean; used: number; limit: number; bonus_casts?: number }>("start_fishing_cast", { _nonce: nonce });
 export const reelFishingCast = (castId: string, reel: boolean) => rpcWithRetry<ReelResult>("reel_fishing_cast", { _cast: castId, _reel: reel });
 
 export function useBuyBait(uid: string | undefined) {

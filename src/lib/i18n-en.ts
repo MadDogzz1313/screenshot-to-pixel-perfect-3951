@@ -1054,4 +1054,10 @@ export const EN: Record<string, string> = {
   "Neues Badge freigeschaltet!": "New badge unlocked!",
   "Verbraucht pro Angelversuch eine Nutzung": "Uses one charge per fishing attempt",
   "{0} Angelversuche": "{0} fishing attempts",
+  "Tägliche Versuche: {0}/{1}": "Daily attempts: {0}/{1}",
+  "Bonus-Angelversuche: {0}": "Bonus fishing attempts: {0}",
+  "Du hast {0} Leonida Coins erhalten!": "You received {0} Leonida Coins!",
+  "Du hast {0} Bonus-Angelversuche erhalten!": "You received {0} bonus fishing attempts!",
+  "Gutschrift vom Leonida-Team": "A gift from the Leonida team",
+  "Deine 15 Angelversuche für heute und alle Bonus-Angelversuche sind aufgebraucht. Komm morgen wieder!": "You've used your 15 fishing attempts for today and all bonus attempts. Come back tomorrow!",
 };

@@ -12,6 +12,7 @@ import { AdminUserManagement } from "@/components/social/AdminUserManagement";
 import { CrewActivityAdmin } from "@/components/crew/CrewActivityAdmin";
 import { StripeDonationsAdmin } from "@/components/StripeDonationsAdmin";
 import { PushServerAdmin } from "@/components/social/PushServerAdmin";
+import { AdminPlayerManager } from "@/components/admin/AdminPlayerManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Leonida Explorer" }, { name: "robots", content: "noindex" }, { name: "description", content: "Moderation" }, { property: "og:title", content: "Admin" }, { property: "og:description", content: "Moderation" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -36,6 +37,7 @@ function Admin() {
   return (
     <AppShell title="Moderation">
       <div className="space-y-3 px-3">
+        <AdminPlayerManager />
         <AdminUserManagement myId={user.id} />
         <PushServerAdmin />
         <CrewActivityAdmin />

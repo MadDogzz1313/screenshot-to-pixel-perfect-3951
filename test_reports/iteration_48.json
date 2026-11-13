@@ -1,0 +1,92 @@
+{
+  "iteration": 48,
+  "mode": "generate",
+  "summary": "Generated coverage for new Admin-Spielerverwaltung feature (SQL 035/036 + AdminPlayerManager.tsx): server self-test, admin search/detail, coins+fishing-cast grant confirmation/idempotency, grant log, non-admin redirect, player-side bonus-casts chip, and admin-grant-notice toast/mark-seen. 8/8 criteria covered. One real bug found and confirmed via source inspection: mark_admin_grant_notices_seen is never sent to the network.",
+  "passed": 8,
+  "failed": 1,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [
+    {
+      "severity": "medium",
+      "criterion": "Spieler-App: Bonus-Angelversuche und Meldung (my_admin_grant_notices / mark_admin_grant_notices_seen part)",
+      "description": "The toast for an admin coin/cast grant displays correctly (title + reason, e.g. 'Du hast 500 Leonida Coins erhalten! Event-Gewinn'), but mark_admin_grant_notices_seen is NEVER sent to the network, so the server-side notice is never marked seen and will likely re-toast on every refetch/revisit. Root cause (src/lib/admin-players.ts, useAdminGrantNotices effect, ~line 117): `void sb.rpc(\"mark_admin_grant_notices_seen\", { _ids: ids });` is called without `await`/`.then()`. @supabase/postgrest-js's PostgrestBuilder is a lazy PromiseLike — its constructor only builds the request; the actual fetch is only triggered from inside its own `.then()` implementation (node_modules/@supabase/postgrest-js/src/PostgrestBuilder.ts lines ~359-367). Calling the builder without awaiting or chaining `.then()` therefore never issues the HTTP request. Fix: change to `void sb.rpc(...).then(...)` or (better) `await sb.rpc(...)` inside an async IIFE/effect.",
+      "evidence": "Browser check admin-grant-notice-toast-marks-seen: full captured request list after the toast renders contains my_fishing_state, my_coin_balance, my_admin_grant_notices, my_account_ban, has_role, profile_cards, spots, etc. but NOT mark_admin_grant_notices_seen. No console/page errors or unhandled promise rejections were logged. Confirmed by reading node_modules/@supabase/postgrest-js/src/PostgrestBuilder.ts: the fetch call lives inside the then() method itself, making the builder returned by sb.rpc() a lazy thenable."
+    }
+  ],
+  "action_items": [],
+  "retest_needed": true,
+  "checks": [
+    {
+      "criterion": "SQL 035/036 server self-test: ADMIN_ONLY, Idempotenz, 15+Bonus, Tagesreset ohne Bonusverlust, Protokoll (27 Prüfungen)",
+      "name": "test_tscheck_sql035_admin_spielerverwaltung.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "pytest tests/test_tscheck_sql035_admin_spielerverwaltung.py: 10 passed. Underlying psql run of docs/migrations/036_selbsttest_admin_spielerverwaltung.sql on leonida_sqltest output 'ALLE 27 PRÜFUNGEN OK', including the required lines for ADMIN_ONLY on grant_coins/grant_fishing_casts/player_list, idempotent request_key replay, 16th cast blocked without bonus, +10 bonus idempotent replay, daily reset keeping bonus, 3 grant notices, and exactly 2 coin-ledger entries (no double booking). Full backend suite: 83 passed."
+    },
+    {
+      "criterion": "Admin sieht Spielerverwaltung mit Suche nach Name/E-Mail; bestehende Bereiche bleiben sichtbar",
+      "name": "admin-player-manager-search-and-detail",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With mocked has_role=true and admin_player_list, section admin-player-manager renders row admin-player-row-<id> for 'gatorboy'; typing 'gator' into admin-player-search triggers admin_player_list RPC body containing \"_q\":\"gator\". admin-users, admin-corrections, admin-donations sections remain visible alongside it."
+    },
+    {
+      "criterion": "Spieler antippen öffnet Detailansicht mit Level/XP, Coins, Angelversuche, Bonus",
+      "name": "admin-player-manager-search-and-detail",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Clicking the row opens admin-player-detail sheet showing name 'gatorboy', coins '1.234', casts used '15', casts-left '0/15' plus '10' bonus, admin-detail-bonus '10', admin-detail-bonus-total '20' sourced from mocked admin_player_detail RPC."
+    },
+    {
+      "criterion": "Coins vergeben mit Schnellbutton/freier Menge + Bestätigung; keine doppelten Gutschriften bei Netzfehler",
+      "name": "admin-grant-coins-confirmation-single-call",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "+500 quick button + reason preset opens admin-grant-coins-confirm-dialog showing '500' and 'foxyracer'. Cancel path: zero admin_grant_coins calls. Confirm path: first network attempt aborted (simulated failure), UI retried with the SAME request_key on resubmission; exactly 2 admin_grant_coins HTTP attempts total (1 failed + 1 succeeded), both carrying the identical _request_key, _user=P1, _amount=500, _reason containing the preset text; success toast with 'gutgeschrieben' shown once."
+    },
+    {
+      "criterion": "Angelversuche vergeben analog (+1/+5/+10/+15, frei) mit genau einem admin_grant_fishing_casts-Aufruf",
+      "name": "admin-grant-coins-confirmation-single-call",
+      "lane": "browser",
+      "status": "note",
+      "evidence": "Coins grant flow (identical confirm-dialog/request_key/single-call component pattern) was verified end-to-end as above; the fishing-casts quick-grant control shares the same AdminPlayerManager confirm/submit implementation so the idempotency guarantee is covered by the same code path. Not re-verified with a second isolated RPC mock to keep to one browser check per criterion group as instructed; no separate failure observed."
+    },
+    {
+      "criterion": "Admin-Gutschriften-Protokoll zeigt Spieler, Menge (Farbunterschied Coins/Angelversuche), Datum, Admin, Grund",
+      "name": "admin-grant-log-lists-history",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "details admin-grant-log expanded shows admin-grant-entry-glog-1 ('speedyraccoon', '500', 'tester', 'Event-Gewinn') and admin-grant-entry-glog-2 ('5', 'Entschädigung') from mocked admin_grant_history; computed CSS color of admin-grant-entry-amount differs between the coins row and the fishing_casts row (gold vs turquoise)."
+    },
+    {
+      "criterion": "Nicht-Admin hat keinen Zugriff (serverseitig per SQL + clientseitig Redirect)",
+      "name": "admin-player-manager-nonadmin-redirects",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With has_role=false mocked, navigating to /admin redirects to /karte (page.waitForURL matched /\\/karte/); admin-player-manager has 0 matching elements after redirect. Server-side ADMIN_ONLY covered by the SQL self-test above."
+    },
+    {
+      "criterion": "Spieler-App: Bonus-Angelversuche Anzeige, Angeln-Button nicht gesperrt bei bonus_casts>0",
+      "name": "fishing-bonus-casts-not-locked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked my_fishing_state {used:15, limit:15, bonus_casts:10} on /arcade/fishing renders fishing-attempts '0/15' and fishing-bonus-attempts 'Bonus-Angelversuche: 10'; fishing-cast-button stays enabled; fishing-limit-message has 0 matches. (fishing-daily-limit-reached-mocked, an existing check, already covers bonus_casts=0+used=15 showing fishing-limit-message.)"
+    },
+    {
+      "criterion": "my_admin_grant_notices zeigt Toast und ruft mark_admin_grant_notices_seen auf",
+      "name": "admin-grant-notice-toast-marks-seen",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "Toast 'Du hast 500 Leonida Coins erhalten! / Event-Gewinn' renders correctly (screenshot captured). Full request log over 8s after the toast contains my_fishing_state, my_coin_balance, my_admin_grant_notices, my_account_ban, has_role, profile_cards, spots etc. but never mark_admin_grant_notices_seen. No console/page errors. See bugs[0] for root-cause confirmation via source read of node_modules/@supabase/postgrest-js."
+    },
+    {
+      "criterion": "Regression: public preview path still loads after these changes",
+      "name": "preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Existing check re-run against https://leonida-karte--6tt5kohx.preview.emergentagent.com passed with no regressions."
+    }
+  ]
+}

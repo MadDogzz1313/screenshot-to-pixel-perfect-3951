@@ -45,7 +45,9 @@ export function LeonidaFishingGame() {
   const data = state.data;
   const used = data?.used ?? 0;
   const limit = data?.limit ?? DAILY_CASTS;
-  const limitReached = !!data?.logged_in && used >= limit;
+  const bonus = data?.bonus_casts ?? 0;
+  // Erst die 15 Tagesversuche, danach vom Admin vergebene Bonusversuche (verfallen nicht um Mitternacht)
+  const limitReached = !!data?.logged_in && used >= limit && bonus <= 0;
   const selected = baitById(data?.selected_bait_id);
   const selectedStock = selected ? baitStock(data, selected.id) : null;
   const busy = phase === "casting" || phase === "waiting" || phase === "bite" || phase === "reeling";
@@ -95,7 +97,7 @@ export function LeonidaFishingGame() {
     try {
       const c = await startFishingCast(newNonce());
       if (c.status !== "pending") { setResult({ ...c, already_processed: true, balance: null }); setPhase("result"); refresh(); return; }
-      qc.setQueryData<FishingState>(fishingKey(user.id), (old) => (old ? { ...old, used: c.used } : old));
+      qc.setQueryData<FishingState>(fishingKey(user.id), (old) => (old ? { ...old, used: c.used, bonus_casts: typeof c.bonus_casts === "number" ? Number(c.bonus_casts) : old.bonus_casts } : old));
       schedule(c);
     } catch (error) {
       toast.error(fishingError(error as { code?: string; message?: string }));
@@ -157,7 +159,8 @@ export function LeonidaFishingGame() {
 
       <div className="absolute inset-x-3 top-3 flex flex-wrap items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span data-testid="fishing-attempts" className="w-fit rounded-full border border-[#22E4F2]/60 bg-[#0B0418]/75 px-3 py-1.5 text-xs font-bold text-[#22E4F2] backdrop-blur-sm">{tr("Angelversuche heute: {0}/{1}", Math.min(used, limit), limit)}</span>
+          <span data-testid="fishing-attempts" className="w-fit rounded-full border border-[#22E4F2]/60 bg-[#0B0418]/75 px-3 py-1.5 text-xs font-bold text-[#22E4F2] backdrop-blur-sm">{tr("Tägliche Versuche: {0}/{1}", Math.max(0, limit - used), limit)}</span>
+          {bonus > 0 && <span data-testid="fishing-bonus-attempts" className="w-fit rounded-full border border-[#22E4F2] bg-[#22E4F2]/15 px-3 py-1.5 text-xs font-bold text-[#22E4F2] shadow-[0_0_12px_rgba(34,228,242,0.35)] backdrop-blur-sm">{tr("Bonus-Angelversuche: {0}", bonus.toLocaleString(locale()))}</span>}
           <span data-testid="fishing-active-bait" className="w-fit max-w-full truncate rounded-full border bg-[#0B0418]/75 px-3 py-1.5 text-xs font-semibold backdrop-blur-sm" style={{ borderColor: selected ? RARITY_STYLE[selected.rarity].color : "rgba(255,255,255,0.25)", color: selected ? RARITY_STYLE[selected.rarity].color : "#BFAAD9" }}>
             {selected && selectedStock ? tr("{0} · {1}/3 Nutzungen übrig", selected.name, selectedStock.current) : tr("Ohne Köder")}
           </span>

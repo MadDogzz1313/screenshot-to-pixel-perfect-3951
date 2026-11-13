@@ -5,6 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
 import { initNativePush, rememberPushTarget, storePushTarget, syncPushSubscription, takePushTarget } from "@/lib/push";
 import { requestBanReview, socialError, useMyBan, useSocialRealtime, type AccountBan } from "@/lib/friends";
+import { useAdminGrantNotices } from "@/lib/admin-players";
 import bg from "@/assets/bg-sunset.jpg";
 
 import { tr, locale } from "@/lib/i18n";
@@ -15,6 +16,7 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale(), { day: "2-digit",
 export function BanGate({ children }: { children: ReactNode }) {
   const { user } = useStore();
   useSocialRealtime(user?.id);
+  useAdminGrantNotices(user?.id);
   const ban = useMyBan(user?.id);
   const nav = useNavigate();
   const userRef = useRef(user); userRef.current = user;
