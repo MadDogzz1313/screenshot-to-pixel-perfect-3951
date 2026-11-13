@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Award, CalendarDays, Heart, Lock, MapPin } from "lucide-react";
+import { Award, CalendarDays, Heart, Lock, MapPin, Settings } from "lucide-react";
 import { LevelBadge } from "./LevelBadge";
 import { SpotCard } from "./SpotCard";
 import { BadgeGallery, featuredDefs } from "./BadgeGallery";
@@ -33,7 +33,9 @@ export function ProfileView({ profile, spots, own, progress, onFeature }: {
   return (
     <div className="space-y-4 px-3">
       <div className="neon-card overflow-hidden !p-0">
-        <div className="relative h-28"><img src={banner} alt="" className="h-full w-full object-cover object-[50%_70%]" /><div className="absolute inset-0 bg-gradient-to-b from-transparent to-card" /></div>
+        <div className="relative h-28"><img src={banner} alt="" className="h-full w-full object-cover object-[50%_70%]" /><div className="absolute inset-0 bg-gradient-to-b from-transparent to-card" />
+          {own && <Link to="/einstellungen" aria-label={tr("Einstellungen")} data-testid="profile-settings-button"
+            className="absolute left-3 top-3 z-20 grid h-11 w-11 place-items-center rounded-full border border-neon/70 bg-[#1a0b26]/75 text-white shadow-[0_0_16px_oklch(0.7_0.3_345/0.55)] backdrop-blur-md transition-transform duration-150 hover:rotate-45 active:scale-90"><Settings className="h-6 w-6" /></Link>}</div>
         <div className="relative z-10 -mt-14 flex items-end gap-3 px-4">
           <img data-testid="profile-avatar" src={profile.avatar} alt="" className="h-28 w-28 shrink-0 rounded-full border-4 border-neon object-cover shadow-[0_0_24px_oklch(0.7_0.3_345/0.6)]" />
           <div className="min-w-0 pb-1">

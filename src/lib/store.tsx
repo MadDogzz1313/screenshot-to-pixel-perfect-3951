@@ -22,6 +22,8 @@ interface Store {
   signOut: () => Promise<void>; continueAsGuest: () => void;
   requestPasswordReset: (email: string) => Promise<AuthResult>;
   updatePassword: (password: string) => Promise<AuthResult>;
+  changePassword: (current: string, next: string) => Promise<AuthResult>;
+  changeEmail: (email: string) => Promise<AuthResult>;
   spotsLoading: boolean;
   addSpot: (s: Omit<Spot, "id" | "likes" | "status" | "createdAt" | "author" | "images">, files: File[]) => Promise<{ error: string | null; photoWarning?: boolean }>;
   setStatus: (id: string, s: Status) => Promise<string | null>;
@@ -222,6 +224,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       setRecovery(false);
       return { error: null };
+    },
+    // Einstellungen: aktuelles Passwort zuerst prüfen, dann ändern (schützt offene Sitzungen auf fremden Geräten)
+    changePassword: async (current, next) => {
+      if (!user?.email) return { error: tr("Bitte anmelden") };
+      const check = await supabase.auth.signInWithPassword({ email: user.email, password: current });
+      if (check.error) return { error: check.error.code === "invalid_credentials" || check.error.message.toLowerCase().includes("invalid login") ? tr("Das aktuelle Passwort ist falsch.") : authMessage(check.error) };
+      const { error } = await supabase.auth.updateUser({ password: next });
+      if (error) return { error: error.code === "same_password" ? tr("Das neue Passwort muss sich vom alten unterscheiden.") : authMessage(error) };
+      return { error: null };
+    },
+    // Neue E-Mail wird erst nach Klick auf den Bestätigungslink aktiv (Supabase sendet ihn an die neue, ggf. auch an die alte Adresse)
+    changeEmail: async (email) => {
+      const { error } = await supabase.auth.updateUser({ email: email.trim() }, { emailRedirectTo: `${window.location.origin}/einstellungen` });
+      if (error) {
+        if (error.code === "email_exists" || error.message.toLowerCase().includes("already been registered")) return { error: tr("Diese E-Mail-Adresse wird bereits verwendet.") };
+        if (error.code === "email_address_invalid" || error.code === "validation_failed") return { error: tr("Bitte gib eine gültige E-Mail-Adresse ein.") };
+        return { error: authMessage(error) };
+      }
+      return { error: null, needsConfirm: true };
     },
     addSpot: async (spot, files) => {
       if (!user) return { error: tr("Bitte anmelden") };

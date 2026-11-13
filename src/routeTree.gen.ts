@@ -15,6 +15,7 @@ import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as BeitragRouteImport } from './routes/beitrag'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
+import { Route as EinstellungenRouteImport } from './routes/einstellungen'
 import { Route as EntdeckenRouteImport } from './routes/entdecken'
 import { Route as FreundeRouteImport } from './routes/freunde'
 import { Route as KarteRouteImport } from './routes/karte'
@@ -62,6 +63,11 @@ const CommunityRoute = CommunityRouteImport.update({
 const DatenschutzRoute = DatenschutzRouteImport.update({
   id: '/datenschutz',
   path: '/datenschutz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EinstellungenRoute = EinstellungenRouteImport.update({
+  id: '/einstellungen',
+  path: '/einstellungen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntdeckenRoute = EntdeckenRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/datenschutz': typeof DatenschutzRoute
+  '/einstellungen': typeof EinstellungenRoute
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/datenschutz': typeof DatenschutzRoute
+  '/einstellungen': typeof EinstellungenRoute
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/beitrag': typeof BeitragRoute
   '/community': typeof CommunityRouteWithChildren
   '/datenschutz': typeof DatenschutzRoute
+  '/einstellungen': typeof EinstellungenRoute
   '/entdecken': typeof EntdeckenRoute
   '/freunde': typeof FreundeRoute
   '/karte': typeof KarteRoute
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/beitrag'
     | '/community'
     | '/datenschutz'
+    | '/einstellungen'
     | '/entdecken'
     | '/freunde'
     | '/karte'
@@ -269,6 +279,7 @@ export interface FileRouteTypes {
     | '/beitrag'
     | '/community'
     | '/datenschutz'
+    | '/einstellungen'
     | '/entdecken'
     | '/freunde'
     | '/karte'
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
     | '/beitrag'
     | '/community'
     | '/datenschutz'
+    | '/einstellungen'
     | '/entdecken'
     | '/freunde'
     | '/karte'
@@ -322,6 +334,7 @@ export interface RootRouteChildren {
   BeitragRoute: typeof BeitragRoute
   CommunityRoute: typeof CommunityRouteWithChildren
   DatenschutzRoute: typeof DatenschutzRoute
+  EinstellungenRoute: typeof EinstellungenRoute
   EntdeckenRoute: typeof EntdeckenRoute
   FreundeRoute: typeof FreundeRoute
   KarteRoute: typeof KarteRoute
@@ -381,6 +394,13 @@ declare module '@tanstack/react-router' {
       path: '/datenschutz'
       fullPath: '/datenschutz'
       preLoaderRoute: typeof DatenschutzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/einstellungen': {
+      id: '/einstellungen'
+      path: '/einstellungen'
+      fullPath: '/einstellungen'
+      preLoaderRoute: typeof EinstellungenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entdecken': {
@@ -544,6 +564,7 @@ const rootRouteChildren: RootRouteChildren = {
   BeitragRoute: BeitragRoute,
   CommunityRoute: CommunityRouteWithChildren,
   DatenschutzRoute: DatenschutzRoute,
+  EinstellungenRoute: EinstellungenRoute,
   EntdeckenRoute: EntdeckenRoute,
   FreundeRoute: FreundeRoute,
   KarteRoute: KarteRoute,

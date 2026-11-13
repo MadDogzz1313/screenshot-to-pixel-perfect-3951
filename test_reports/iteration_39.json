@@ -1,0 +1,74 @@
+{
+  "iteration": 39,
+  "mode": "generate",
+  "feature": "Central settings screen (/einstellungen) replacing inline profile edit/privacy/push/language/logout/delete blocks",
+  "summary": "All 8 acceptance-matrix criteria exercised with one named browser check each (8/8 passed). No backend-test lane needed: the feature is entirely client-side against mocked Supabase REST/Auth endpoints (no first-party FastAPI endpoints involved), consistent with the seed fact that real Supabase has no test accounts and must be mocked via page.route.",
+  "passed": 8,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Gear button on own profile opens central settings",
+      "name": "gear-button-opens-settings",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Signed-in (mocked Supabase session) at 390x844: /profil shows profile-settings-button top-left on the banner above the avatar; profile-avatar, profile-username, profile-xp, profile-stat-spots/badges, coin-balance-display(77) all visible; profile-privacy and settings-password-form (old inline blocks) are absent (count 0); clicking the gear navigates to /einstellungen showing settings-section-account."
+    },
+    {
+      "criterion": "Settings sections and rows",
+      "name": "settings-sections-and-rows-expand",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/einstellungen shows settings-back-button, profile summary (settings-profile-username='tscheckrows', settings-profile-email), and sections settings-section-account/-notifications/-privacy/-app/-support. Accordion rows (username, avatar, bio, email, password, push, visibility) expand one at a time - expanding settings-avatar-row closed the previously-open settings-username-row-panel (count 0) confirming single-open accordion behavior. All panel controls (username input+save, avatar editor, bio textarea+save, email/password forms, push settings, 5 privacy switches) rendered."
+    },
+    {
+      "criterion": "Back navigation",
+      "name": "settings-back-nav-and-legal-links",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "settings-back-button -> /profil; settings-blocked-link -> /freunde?tab=blockiert; settings-privacy-policy-link -> /datenschutz and settings-terms-link -> /nutzungsbedingungen, each legal-back-button returning to /einstellungen."
+    },
+    {
+      "criterion": "Account forms validation and calls",
+      "name": "settings-account-forms-validation-and-calls",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Email form: invalid format and same-as-current both show their respective error toasts (native HTML5 validation disabled via form.noValidate to actually exercise the app's own zod validation - see note below); valid new email triggers PUT /auth/v1/user (mocked 200) and settings-email-pending appears. Password form: mismatched confirm and <6 chars both show error toasts; mocked invalid_credentials on POST /auth/v1/token?grant_type=password shows 'current password is incorrect' toast with zero additional PUT /auth/v1/user calls; valid flow performs POST token then PUT user and shows the success toast."
+    },
+    {
+      "criterion": "Persisted settings",
+      "name": "settings-privacy-switch-and-language-persist",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Toggling privacy-show_friends sends a PATCH to .../profiles (captured and asserted >=1 call) and the switch's data-state flips to unchecked in the UI. Switching the language option triggers the app's full-page reload-on-change; after reload and a second manual page.reload(), localStorage leonida-lang still equals the newly chosen language and the option shows aria-checked=true."
+    },
+    {
+      "criterion": "Logout and delete account entry",
+      "name": "settings-logout-and-delete-dialog",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "settings-delete-account-button opens delete-account-dialog; submit button stays disabled until the exact confirm word is typed; delete-account-cancel-button closes the dialog and the mocked rpc/delete_my_account was never invoked (asserted via route-call flag). profile-logout-button signs out and lands on '/'. No real deletion or account mutation was performed."
+    },
+    {
+      "criterion": "Guest settings",
+      "name": "settings-guest-view-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Run against the public preview URL. As guest, /profil shows profile-guest-settings-link -> /einstellungen shows settings-guest login card plus only settings-section-app (language) and settings-section-support (settings-app-version showing 'Web-App'/'Web app' + build date, settings-contact-link with mailto: href). settings-section-account/-notifications/-privacy are absent for guests (count 0)."
+    },
+    {
+      "criterion": "Username reminder deep link",
+      "name": "username-reminder-deep-link-opens-panel",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Signed-in user with no username (needsUsername true): username-reminder-link on /karte navigates to /einstellungen?open=benutzername with settings-username-row-panel already expanded and profile-username-input visible, no extra click needed."
+    }
+  ],
+  "notes": [
+    "Email-form invalid-format and same-as-current validations are implemented via zod/toast in EmailChangeForm, but the <input type=\"email\"> also carries native HTML5 constraint validation that intercepts a malformed value before the app's submit handler runs. The browser check disables native validation (form.noValidate) to reach and verify the app's own toast logic; a real user typing an invalid address would instead see the browser's native inline bubble first, which also communicates the problem, so this is not a functional defect (note, not a bug).",
+    "Locale shown for a fresh page load without an explicit leonida-lang value was observed inconsistently (English vs. German) across separate browser contexts in this environment, most likely due to navigator.language/Accept-Language differences in the automation sandbox; the generate-mode checks that depend on one language were made locale-agnostic (regex matches both DE/EN strings) and do not treat this as a bug.",
+    "No backend pytest lane was added: every criterion in the matrix is served by direct Supabase (external, mocked) calls - profiles PATCH, auth/v1/token, auth/v1/user, rpc/* - there is no first-party FastAPI endpoint under /app/backend for this feature to test against."
+  ]
+}

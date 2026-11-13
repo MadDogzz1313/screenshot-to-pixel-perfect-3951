@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
+import { RowBody, rowCls } from "@/components/settings/SettingsUi";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -45,8 +46,8 @@ export function DeleteAccount({ userId }: { userId: string }) {
   return (
     <AlertDialog onOpenChange={(o) => !o && setText("")}>
       <AlertDialogTrigger asChild>
-        <button type="button" data-testid="profile-delete-account-button" className="flex w-full items-center justify-center gap-2 py-2 text-xs font-semibold text-destructive transition-opacity duration-150 active:opacity-60">
-          <Trash2 className="h-4 w-4" />{tr("Konto löschen")}</button>
+        <button type="button" data-testid="settings-delete-account-button" className={rowCls}>
+          <RowBody icon={Trash2} label={tr("Konto löschen")} hint={tr("Alle Daten dauerhaft entfernen")} danger /></button>
       </AlertDialogTrigger>
       <AlertDialogContent data-testid="delete-account-dialog">
         <AlertDialogHeader>

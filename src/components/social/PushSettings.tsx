@@ -17,7 +17,7 @@ const ERR: Record<string, string> = { PUSH_NO_DEVICE: tr("Auf diesem Konto ist n
 const errText = (e: unknown) => { const m = (e as { message?: string }).message ?? ""; return Object.entries(ERR).find(([k]) => m.includes(k))?.[1] ?? tr("Das hat nicht geklappt. Bitte versuche es erneut."); };
 
 /** Profil → Einstellungen → Benachrichtigungen (echte System-Push-Mitteilungen) */
-export function PushSettings() {
+export function PushSettings({ embedded = false }: { embedded?: boolean }) {
   const { user } = useStore();
   const prefs = usePushPrefs(user?.id);
   const save = useSavePushPrefs(user?.id);
@@ -42,8 +42,8 @@ export function PushSettings() {
   };
   const disableDevice = async () => { setBusy(true); try { await disablePushOnDevice(); setSubscribed(false); toast.success(tr("Push auf diesem Gerät deaktiviert.")); } finally { setBusy(false); } };
 
-  return <div data-testid="push-settings" className="space-y-3 border-t border-border pt-3">
-    <p className="flex items-center gap-2 font-semibold"><BellRing className="h-4 w-4 text-neon" />{tr("Benachrichtigungen")}</p>
+  return <div data-testid="push-settings" className={embedded ? "space-y-3" : "space-y-3 border-t border-border pt-3"}>
+    {!embedded && <p className="flex items-center gap-2 font-semibold"><BellRing className="h-4 w-4 text-neon" />{tr("Benachrichtigungen")}</p>}
     {prefs.data === null && <p className="text-xs text-muted-foreground">{tr("Push wird nach dem Datenbank-Update (SQL 010) aktiv. Die Glocke funktioniert unabhängig davon.")}</p>}
     {support === "ios-browser" && <div data-testid="push-install-hint" className="space-y-2 rounded-2xl border border-neon/40 bg-primary/10 p-3 text-sm">
       <p className="font-semibold">{tr("Auf dem iPhone funktionieren Push-Mitteilungen nur in der installierten App (ab iOS 16.4).")}</p>
