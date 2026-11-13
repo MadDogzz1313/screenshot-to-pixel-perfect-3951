@@ -7,7 +7,7 @@
  */
 import { carBox, laneX, maxExtents, overlaps, zOf, type Box, type HighwayView } from "./geometry";
 
-export type ObstacleVariant = "cyan" | "pink";
+export type ObstacleVariant = "cyan" | "pink" | "police";
 export type Obstacle = {
   lane: number;
   y: number;
@@ -35,12 +35,24 @@ export type Engine = {
   lastStagger: number;
   reach: number[];
   pending: PlannedRow | null;
+  /** Polizeijagd aktiv (mehr Zweierreihen, Streifenwagen im Verkehr) */
+  chase: boolean;
+  chaseStart: number;
+  nextChaseAt: number;
 };
 
 const LANES: readonly number[] = [0, 1, 2];
 /** Spurwechsel-Gleiten (1/s) – identisch zur bisherigen Grafik-Animation. */
 export const LANE_EASE = 18;
-const COLORS: Record<ObstacleVariant, string> = { cyan: "#22e4f2", pink: "#ff6aa9" };
+const COLORS: Record<ObstacleVariant, string> = { cyan: "#22e4f2", pink: "#ff6aa9", police: "#ff2340" };
+/** Polizeijagd: erste nach 20 s Spielzeit, dauert 20 s, danach 40 s Ruhe bis zur nächsten. */
+export const CHASE_FIRST_MS = 20_000;
+export const CHASE_MS = 20_000;
+export const CHASE_PAUSE_MS = 40_000;
+/** Zusätzliche Wahrscheinlichkeit für Zweierreihen während der Jagd (eine Spur bleibt immer frei, Fairness-Regel unverändert). */
+export const CHASE_PAIR_BONUS = 0.15;
+/** Anteil Streifenwagen an neuen Autos während der Jagd. */
+export const CHASE_POLICE_SHARE = 0.65;
 const STAGGER_MAX = 0.035;
 const SAFETY = 1.12;
 
@@ -75,6 +87,9 @@ export function createEngine(): Engine {
     lastStagger: 0,
     reach: [0, 1, 2],
     pending: null,
+    chase: false,
+    chaseStart: 0,
+    nextChaseAt: CHASE_FIRST_MS,
   };
 }
 
@@ -91,6 +106,9 @@ export function resetRound(e: Engine, now: number) {
   e.reach = [0, 1, 2];
   e.pending = null;
   e.lastStagger = 0;
+  e.chase = false;
+  e.chaseStart = 0;
+  e.nextChaseAt = CHASE_FIRST_MS;
   e.sinceRow = baseGapAt(0) - speedAt(0) * 1100;
 }
 
@@ -111,7 +129,7 @@ export function planRow(e: Engine, rng: () => number): PlannedRow {
   const t = e.elapsed;
   const v = speedAt(t);
   const ext = maxExtents(e.aspect);
-  const two = rng() < pairChanceAt(t);
+  const two = rng() < Math.min(0.7, pairChanceAt(t) + (e.chase ? CHASE_PAIR_BONUS : 0));
   const clear = ext.ahead + ext.behind + e.lastStagger;
   for (let attempt = 0; attempt < 12; attempt++) {
     let lanes: number[];
@@ -158,7 +176,10 @@ export function stepEngine(
       const row = e.pending;
       const y = e.sinceRow - row.gap;
       row.lanes.forEach((lane, i) => {
-        const variant: ObstacleVariant = rng() > 0.5 ? "cyan" : "pink";
+        const r = rng();
+        const variant: ObstacleVariant = e.chase
+          ? r < CHASE_POLICE_SHARE ? "police" : r < (1 + CHASE_POLICE_SHARE) / 2 ? "cyan" : "pink"
+          : r > 0.5 ? "cyan" : "pink";
         e.obstacles.push({
           lane,
           y: y - (i === 1 ? row.stagger : 0),
@@ -181,4 +202,19 @@ export function stepEngine(
   if (e.obstacles.some((ob) => overlaps(me, obstacleBox(e, ob)))) return true;
   e.score += dt * 0.035;
   return false;
+}
+
+/** Polizeijagd nach Spielzeit starten/beenden (nach stepEngine aufrufen). */
+export function updateChase(e: Engine): "start" | "end" | null {
+  if (!e.chase && e.elapsed >= e.nextChaseAt) {
+    e.chase = true;
+    e.chaseStart = e.elapsed;
+    return "start";
+  }
+  if (e.chase && e.elapsed >= e.chaseStart + CHASE_MS) {
+    e.chase = false;
+    e.nextChaseAt = e.elapsed + CHASE_PAUSE_MS;
+    return "end";
+  }
+  return null;
 }

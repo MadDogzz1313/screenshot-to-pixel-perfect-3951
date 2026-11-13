@@ -10,3 +10,6 @@ export const CATCH_VIDEOS: Partial<Record<SpeciesId, CatchVideoSpec>> = {
 };
 
 export const catchVideoFor = (species: SpeciesId | null | undefined) => (species ? CATCH_VIDEOS[species] : undefined);
+
+/** Neon Highway: kurzer Film beim Start jeder Polizeijagd (Video des Nutzers, 2 s, 9:16). */
+export const POLICE_CHASE_VIDEO: CatchVideoSpec = { src: "/videos/police-chase.mp4", poster: "/videos/police-chase-poster.jpg", type: "video/mp4", durationMs: 2_000 };

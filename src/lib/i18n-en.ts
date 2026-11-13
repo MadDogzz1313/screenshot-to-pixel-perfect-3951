@@ -1061,6 +1061,8 @@ export const EN: Record<string, string> = {
   "Gutschrift vom Leonida-Team": "A gift from the Leonida team",
   "Legendärer Fang": "Legendary catch",
   "Fangsequenz": "Catch sequence",
+  "Polizeijagd": "Police chase",
+  "Die Polizei verfolgt dich!": "The police are chasing you!",
   "LEGENDÄRER FANG!": "LEGENDARY CATCH!",
   "+{0} LEONIDA COINS": "+{0} LEONIDA COINS",
   "LEONIDA COINS": "LEONIDA COINS",

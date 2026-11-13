@@ -4,7 +4,7 @@
  * damit Kollisionen genau dort passieren, wo die sichtbaren Karosserien sich berühren.
  */
 export type HighwayView = "chase" | "high";
-export type CarVariant = "player" | "cyan" | "pink";
+export type CarVariant = "player" | "cyan" | "pink" | "police";
 
 export const LANE_W = 3.2;
 export const ROAD_HALF = 5.4;
@@ -20,6 +20,8 @@ export const SHAPES: Record<CarVariant, Record<HighwayView, { aspect: number; le
   player: { chase: { aspect: 326 / 512, lean: 12 }, high: { aspect: 509 / 512, lean: 52 } },
   cyan: { chase: { aspect: 264 / 384, lean: 12 }, high: { aspect: 616 / 384, lean: 72 } },
   pink: { chase: { aspect: 266 / 384, lean: 12 }, high: { aspect: 697 / 384, lean: 80 } },
+  // Streifenwagen: Bilder in exakt den Maßen des Cyan-Autos (gleiche Silhouette) → gleiche Hitbox
+  police: { chase: { aspect: 264 / 384, lean: 12 }, high: { aspect: 616 / 384, lean: 72 } },
 };
 
 export const CAMERA: Record<
@@ -51,6 +53,7 @@ export function cameraFor(view: HighwayView, aspect: number) {
 const BODY: Record<CarVariant, { width: number; rear: number; front: number }> = {
   player: { width: 0.93, rear: 0.02, front: 0.985 },
   cyan: { width: 0.91, rear: 0.03, front: 0.98 },
+  police: { width: 0.91, rear: 0.03, front: 0.98 },
   pink: { width: 0.94, rear: 0.02, front: 0.985 },
 };
 
@@ -109,7 +112,7 @@ export function maxExtents(aspect: number) {
   let behind = 0;
   let player = 0;
   for (const view of ["chase", "high"] as const) {
-    for (const v of ["cyan", "pink"] as const) {
+    for (const v of ["cyan", "pink", "police"] as const) {
       const box = carBox(v, view, 0, 0, aspect);
       ahead = Math.max(ahead, -box.front / DEPTH);
       behind = Math.max(behind, box.rear / DEPTH);

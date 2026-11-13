@@ -283,3 +283,27 @@ describe("Neon Highway – Spurbegrenzung und Punkte", () => {
     expect(e.lane).toBe(1);
   });
 });
+
+describe("Polizeijagd", () => {
+  it("startet nach 20 s, endet nach 20 s, nächste 40 s später; Streifenwagen nur während der Jagd", async () => {
+    const { CHASE_FIRST_MS, CHASE_MS, CHASE_PAUSE_MS, updateChase } = await import("./engine");
+    const e = createEngine(); resetRound(e, 0);
+    const events: [string, number][] = []; let policeOutside = 0; let policeInside = 0;
+    for (let t = 0; t < 130_000; t += 16) {
+      stepEngine(e, 16, Math.random, true);
+      const ev = updateChase(e); if (ev) events.push([ev, Math.round(e.elapsed / 1000)]);
+      for (const ob of e.obstacles) if (ob.variant === "police") { if (e.chase) policeInside++; else if (ob.y < 0) policeOutside++; }
+    }
+    expect(events.map((x) => x[0])).toEqual(["start", "end", "start", "end"]);
+    expect(events[0]![1]).toBe(CHASE_FIRST_MS / 1000);
+    expect(events[1]![1]).toBe((CHASE_FIRST_MS + CHASE_MS) / 1000);
+    expect(events[2]![1]).toBe((CHASE_FIRST_MS + CHASE_MS + CHASE_PAUSE_MS) / 1000);
+    expect(policeInside).toBeGreaterThan(0);
+    expect(policeOutside).toBe(0);
+  });
+  it("neue Runde setzt die Jagd zurück", () => {
+    const e = createEngine(); resetRound(e, 0); e.chase = true; e.nextChaseAt = 99;
+    resetRound(e, 0);
+    expect(e.chase).toBe(false); expect(e.nextChaseAt).toBe(20_000);
+  });
+});

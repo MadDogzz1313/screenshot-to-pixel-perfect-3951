@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { CoinBalance } from "@/components/arcade/CoinBalance";
 import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
 import { FishCard } from "@/components/arcade/fishing/FishCard";
-import { CatchVideo } from "@/components/arcade/fishing/CatchVideo";
+import { CinematicVideo } from "@/components/arcade/CinematicVideo";
 import { CatchReward } from "@/components/arcade/fishing/CatchReward";
 import { CATCH_VIDEOS, catchVideoFor } from "@/lib/catch-videos";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -226,7 +226,7 @@ export function LeonidaFishingGame() {
       </SheetContent>
     </Sheet>
 
-    {!!user && Object.entries(CATCH_VIDEOS).map(([species, video]) => <CatchVideo key={species} video={video}
+    {!!user && Object.entries(CATCH_VIDEOS).map(([species, video]) => <CinematicVideo key={species} video={video}
       active={phase === "result" && catchStage === "video" && result?.status === "caught" && result.species_id === species}
       onDone={() => setCatchStage("reward")} />)}
 

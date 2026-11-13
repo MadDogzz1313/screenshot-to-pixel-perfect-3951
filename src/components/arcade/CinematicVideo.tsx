@@ -9,7 +9,7 @@ const STALL_TIMEOUT_MS = 4000; // Video hängt → Belohnung
 const MAX_EXTRA_MS = 6000;     // Absolute Obergrenze: Videolänge + Puffer
 const PRELOAD_DELAY_MS = 1500; // Spiel-Assets zuerst laden
 
-// Vorladen: Datei einmal pro Sitzung komplett herunterladen und lokal (blob:) abspielen → keine Ladepause beim Fang.
+// Vorladen: Datei einmal pro Sitzung komplett herunterladen und lokal (blob:) abspielen → keine Ladepause.
 const preloaded = new Map<string, Promise<string | null>>();
 function preloadVideo(spec: CatchVideoSpec): Promise<string | null> {
   let p = preloaded.get(spec.src);
@@ -24,11 +24,11 @@ function preloadVideo(spec: CatchVideoSpec): Promise<string | null> {
 }
 
 /**
- * Vollbild-Fangsequenz (HTML5, playsInline – kein externer Player, iPhone/Capacitor/Web).
+ * Vollbild-Filmsequenz (Fangvideos, Polizeijagd; HTML5, playsInline – kein externer Player, iPhone/Capacitor/Web).
  * Das <video> wird erst beim Fang SICHTBAR eingehängt (iOS/WKWebView friert Videos ein, die versteckt eingehängt waren).
  * Ende, Überspringen, Fehler und Hänger führen immer zu onDone (Belohnungsbildschirm).
  */
-export function CatchVideo({ video, active, onDone }: { video: CatchVideoSpec; active: boolean; onDone: () => void }) {
+export function CinematicVideo({ video, active, onDone, testId = "fishing-catch-video", label = "Fangsequenz" }: { video: CatchVideoSpec; active: boolean; onDone: () => void; testId?: string; label?: string }) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -39,10 +39,10 @@ export function CatchVideo({ video, active, onDone }: { video: CatchVideoSpec; a
   }, [video]);
 
   if (!mounted || !active) return null;
-  return createPortal(<ActivePlayer video={video} initialSrc={blobUrl ?? video.src} onDone={onDone} />, document.body);
+  return createPortal(<ActivePlayer video={video} initialSrc={blobUrl ?? video.src} onDone={onDone} testId={testId} label={label} />, document.body);
 }
 
-function ActivePlayer({ video, initialSrc, onDone }: { video: CatchVideoSpec; initialSrc: string; onDone: () => void }) {
+function ActivePlayer({ video, initialSrc, onDone, testId, label }: { video: CatchVideoSpec; initialSrc: string; onDone: () => void; testId: string; label: string }) {
   const el = useRef<HTMLVideoElement>(null);
   const doneRef = useRef(onDone); doneRef.current = onDone;
   const [src, setSrc] = useState(initialSrc);
@@ -90,15 +90,15 @@ function ActivePlayer({ video, initialSrc, onDone }: { video: CatchVideoSpec; in
     };
   }, [src, video]);
 
-  return <div data-testid="fishing-catch-video-overlay" role="dialog" aria-modal="true" aria-label={tr("Fangsequenz")}
+  return <div data-testid={`${testId}-overlay`} role="dialog" aria-modal="true" aria-label={tr(label)}
     className="fixed inset-0 z-[100] grid place-items-center bg-[#07020F] animate-in fade-in duration-300">
-    <video key={src} ref={el} data-testid="fishing-catch-video" src={src} className="h-full w-full object-contain" playsInline preload="auto" poster={video.poster}
+    <video key={src} ref={el} data-testid={testId} src={src} className="h-full w-full object-contain" playsInline preload="auto" poster={video.poster}
       disablePictureInPicture controls={false} controlsList="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" />
-    {!playing && <div data-testid="fishing-catch-video-loading" className="pointer-events-none absolute inset-0 grid place-items-center"><Loader2 className="h-10 w-10 animate-spin text-[#FFD12A] drop-shadow-[0_0_12px_rgba(255,209,42,0.8)]" /></div>}
+    {!playing && <div data-testid={`${testId}-loading`} className="pointer-events-none absolute inset-0 grid place-items-center"><Loader2 className="h-10 w-10 animate-spin text-[#FFD12A] drop-shadow-[0_0_12px_rgba(255,209,42,0.8)]" /></div>}
     <div className="absolute right-[max(env(safe-area-inset-right),0.75rem)] top-[max(env(safe-area-inset-top),0.75rem)] flex items-center gap-2">
-      {needsSound && <button type="button" data-testid="fishing-catch-video-sound" onClick={() => { const v = el.current; if (v) { v.muted = false; void v.play().catch(() => undefined); } setNeedsSound(false); }}
+      {needsSound && <button type="button" data-testid={`${testId}-sound`} onClick={() => { const v = el.current; if (v) { v.muted = false; void v.play().catch(() => undefined); } setNeedsSound(false); }}
         className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-white/30 bg-black/45 px-3 text-xs font-semibold text-white/90 backdrop-blur-sm transition-[transform,background-color] duration-150 active:scale-95"><Volume2 className="h-4 w-4" />{tr("Ton an")}</button>}
-      <button type="button" data-testid="fishing-catch-video-skip" onClick={() => { el.current?.pause(); doneRef.current(); }}
+      <button type="button" data-testid={`${testId}-skip`} onClick={() => { el.current?.pause(); doneRef.current(); }}
         className="min-h-10 rounded-full border border-white/30 bg-black/45 px-4 text-xs font-semibold text-white/90 backdrop-blur-sm transition-[transform,background-color] duration-150 active:scale-95">{tr("Überspringen")}</button>
     </div>
   </div>;

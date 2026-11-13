@@ -12,6 +12,9 @@ import pinkRearUrl from "@/assets/highway/pink-rear.webp";
 import pinkHighUrl from "@/assets/highway/pink-high.webp";
 import skylineUrl from "@/assets/highway/skyline.webp";
 import palmUrl from "@/assets/highway/palm.webp";
+import policeRearUrl from "@/assets/highway/police-rear.webp";
+import policeHighUrl from "@/assets/highway/police-high.webp";
+import policeHeliUrl from "@/assets/highway/police-heli.webp";
 import {
   CAMERA,
   CAR_W,
@@ -28,8 +31,10 @@ export type HighwayFrame = {
   lane: number;
   /** tatsächliche Querposition (Spur-Einheiten) aus der Spiellogik; ohne Angabe gleitet die Grafik selbst zur Spur */
   x?: number;
-  obstacles: readonly { lane: number; y: number; color: string }[];
+  obstacles: readonly { lane: number; y: number; color: string; variant?: "cyan" | "pink" | "police" }[];
   elapsed: number;
+  /** Polizeijagd: Hubschrauber mit Suchscheinwerfer + Blaulicht */
+  chase?: boolean;
 };
 export interface HighwayRenderer {
   resize(width: number, height: number, dpr: number): void;
@@ -62,8 +67,36 @@ const ASSETS: Record<Variant, Record<HighwayView, Asset>> = {
     chase: { url: pinkRearUrl, ...SHAPES.pink.chase },
     high: { url: pinkHighUrl, ...SHAPES.pink.high },
   },
+  police: {
+    chase: { url: policeRearUrl, ...SHAPES.police.chase },
+    high: { url: policeHighUrl, ...SHAPES.police.high },
+  },
 };
-const GLOW: Record<Variant, string> = { player: "#ff2e97", cyan: "#22e4f2", pink: "#ff6aa9" };
+const GLOW: Record<Variant, string> = { player: "#ff2e97", cyan: "#22e4f2", pink: "#ff6aa9", police: "#ff2340" };
+/** Höhe der Lichtleiste im Bild (Anteil von unten) und halber Abstand rot/blau (Weltmaß) je Ansicht. */
+const LIGHTBAR: Record<HighwayView, { f: number; dx: number }> = { chase: { f: 0.74, dx: 0.3 }, high: { f: 0.66, dx: 0.32 } };
+const POLICE_RED = new THREE.Color("#ff2340");
+const POLICE_BLUE = new THREE.Color("#2f6bff");
+
+/** Lichtkegel: oben schmal und hell, unten breit und weich. */
+function beamTexture() {
+  const c = document.createElement("canvas");
+  c.width = 64; c.height = 256;
+  const g = c.getContext("2d");
+  if (g) {
+    const v = g.createLinearGradient(0, 0, 0, 256);
+    v.addColorStop(0, "rgba(255,255,255,0.95)");
+    v.addColorStop(1, "rgba(255,255,255,0.18)");
+    g.fillStyle = v;
+    g.beginPath(); g.moveTo(26, 0); g.lineTo(38, 0); g.lineTo(64, 256); g.lineTo(0, 256); g.closePath(); g.fill();
+    const h = g.createLinearGradient(0, 0, 64, 0);
+    h.addColorStop(0, "rgba(0,0,0,1)"); h.addColorStop(0.5, "rgba(0,0,0,0)"); h.addColorStop(1, "rgba(0,0,0,1)");
+    g.globalCompositeOperation = "destination-out"; g.fillStyle = h; g.fillRect(0, 0, 64, 256);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
 
 const groundVert = /* glsl */ `
 varying vec3 vW; varying float vDepth;
@@ -271,7 +304,21 @@ export function createHighwayRenderer(
         depthWrite: false,
       }),
     ),
+    police: track(
+      new THREE.MeshBasicMaterial({
+        map: glowTex,
+        color: GLOW.police,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    ),
   };
+  // Blaulicht: rote und blaue Lichtpunkte auf der Lichtleiste, abwechselnd blinkend
+  const flashMat = (color: THREE.Color) => track(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+  const flashRed = flashMat(POLICE_RED);
+  const flashBlue = flashMat(POLICE_BLUE);
   type Car = {
     group: THREE.Group;
     bodies: Record<HighwayView, THREE.Mesh>;
@@ -306,6 +353,16 @@ export function createHighwayRenderer(
       const body = new THREE.Mesh(geo, mat);
       body.rotation.x = -lean;
       body.position.y = 0.05;
+      if (variant === "police") {
+        const lb = LIGHTBAR[view];
+        for (const [mat2, side] of [[flashRed, -1], [flashBlue, 1]] as const) {
+          const s = new THREE.Sprite(mat2);
+          s.position.set(side * lb.dx, h * lb.f, 0.08);
+          s.scale.set(1.1, 1.1, 1);
+          s.renderOrder = 2;
+          body.add(s);
+        }
+      }
       bodies[view] = body;
       offsets[view] = (h * Math.sin(lean)) / 2;
       group.add(body);
@@ -330,7 +387,28 @@ export function createHighwayRenderer(
     return pending;
   };
   let skinToken = 0;
-  const pools: Record<"cyan" | "pink", Car[]> = { cyan: [], pink: [] };
+  const pools: Record<"cyan" | "pink" | "police", Car[]> = { cyan: [], pink: [], police: [] };
+
+  // Polizeihubschrauber mit Suchscheinwerfer (nur während der Jagd sichtbar)
+  const heliTex = texture(policeHeliUrl);
+  const heli = new THREE.Sprite(track(new THREE.SpriteMaterial({ map: heliTex, transparent: true, alphaTest: 0.05, fog: false, depthWrite: false })));
+  heli.scale.set(7.2, 7.2 * (323 / 512), 1);
+  heli.renderOrder = 3;
+  heli.visible = false;
+  scene.add(heli);
+  const beamGeo = track(new THREE.PlaneGeometry(1, 1));
+  beamGeo.translate(0, -0.5, 0); // Ursprung oben (Scheinwerfer), Kegel zeigt nach -Y
+  const beam = new THREE.Mesh(beamGeo, track(new THREE.MeshBasicMaterial({ map: track(beamTexture()), transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })));
+  beam.renderOrder = 1;
+  beam.visible = false;
+  scene.add(beam);
+  const spot = new THREE.Mesh(glowGeo, track(new THREE.MeshBasicMaterial({ map: glowTex, color: "#fff7d6", transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })));
+  spot.rotation.x = -Math.PI / 2;
+  spot.scale.set(1.6, 1.1, 1);
+  spot.visible = false;
+  scene.add(spot);
+  const vTop = new THREE.Vector3(); const vSpot = new THREE.Vector3(); const vY = new THREE.Vector3(); const vZ = new THREE.Vector3(); const vX = new THREE.Vector3(); const basis = new THREE.Matrix4();
+  let chaseFade = 0;
 
   let view: HighwayView = initialView;
   let aspect = 1;
@@ -404,9 +482,15 @@ export function createHighwayRenderer(
       applyView(player);
       placeCar(player, visualX, 0);
       player.group.rotation.z = (visualX - goal) * 0.04;
-      const used = { cyan: 0, pink: 0 };
+      const used = { cyan: 0, pink: 0, police: 0 };
+      // Blaulicht-Takt: rot und blau abwechselnd, mit kurzem Doppelblitz
+      const phase = (now % 500) / 500;
+      const redOn = phase < 0.5 ? (phase % 0.25 < 0.16 ? 1 : 0.15) : 0.15;
+      const blueOn = phase >= 0.5 ? (phase % 0.25 < 0.16 ? 1 : 0.15) : 0.15;
+      flashRed.opacity = redOn; flashBlue.opacity = blueOn;
+      glowMats.police.color.copy(redOn > blueOn ? POLICE_RED : POLICE_BLUE);
       for (const ob of frame.obstacles) {
-        const variant = ob.color.toLowerCase() === "#22e4f2" ? "cyan" : "pink";
+        const variant = ob.variant ?? (ob.color.toLowerCase() === "#22e4f2" ? "cyan" : "pink");
         const pool = pools[variant];
         const car = pool[used[variant]] ?? (pool[used[variant]] = makeCar(variant));
         used[variant]++;
@@ -414,8 +498,32 @@ export function createHighwayRenderer(
         applyView(car);
         placeCar(car, laneX(ob.lane), zOf(ob.y));
       }
-      for (const variant of ["cyan", "pink"] as const)
+      for (const variant of ["cyan", "pink", "police"] as const)
         for (const car of pools[variant].slice(used[variant])) car.group.visible = false;
+      // Hubschrauber gleitet ein/aus, kreist leicht und folgt dem Spieler mit dem Suchscheinwerfer
+      chaseFade = THREE.MathUtils.clamp(chaseFade + (frame.chase ? 1 : -1) * Math.min(gap, 50) / 900, 0, 1);
+      const showHeli = chaseFade > 0.001;
+      heli.visible = beam.visible = spot.visible = showHeli;
+      if (showHeli) {
+        const t = now / 1000;
+        const ease = chaseFade * chaseFade * (3 - 2 * chaseFade);
+        const high = view === "high";
+        heli.position.set(4.2 + Math.sin(t * 0.6) * 2.4 + (1 - ease) * 14, (high ? 11 : 8.6) + Math.sin(t * 1.3) * 0.5, high ? -10 : -20);
+        (heli.material as THREE.SpriteMaterial).opacity = ease;
+        vTop.set(heli.position.x - 1.9, heli.position.y - 1.2, heli.position.z + 0.4);
+        vSpot.set(visualX + Math.sin(t * 1.7) * 1.1, 0.04, -2.5 + Math.cos(t * 1.1) * 2.2);
+        spot.position.copy(vSpot);
+        (spot.material as THREE.MeshBasicMaterial).opacity = 0.55 * ease;
+        // Kegel-Ebene: -Y zeigt zum Lichtfleck, Fläche möglichst zur Kamera gedreht
+        vY.subVectors(vTop, vSpot); const len = vY.length(); vY.normalize();
+        vZ.subVectors(camera.position, vTop); vZ.addScaledVector(vY, -vZ.dot(vY)).normalize();
+        vX.crossVectors(vY, vZ).normalize();
+        basis.makeBasis(vX, vY, vZ);
+        beam.position.copy(vTop);
+        beam.quaternion.setFromRotationMatrix(basis);
+        beam.scale.set(3.4, len, 1);
+        (beam.material as THREE.MeshBasicMaterial).opacity = 0.32 * ease;
+      }
       const span = PALM_GAP * PALM_COUNT;
       palms.forEach((s, i) => {
         const k = i >> 1;

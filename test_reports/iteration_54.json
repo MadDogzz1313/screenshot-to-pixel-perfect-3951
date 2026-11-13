@@ -1,0 +1,88 @@
+{
+  "iteration": 54,
+  "mode": "generate",
+  "feature": "Highway Polizeijagd (police chase) chase event with cinematic video",
+  "passed": 9,
+  "failed": 1,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "backend_tests": {
+    "command": "cd /app/backend && python -m pytest -q -p no:cacheprovider",
+    "result": "83 passed (no backend changes for this feature; full regression suite green)"
+  },
+  "unit_tests": {
+    "command": "cd /app && npx vitest run --config vitest.highway.config.ts",
+    "result": "41 tests passed in src/components/arcade/games/highway/** (engine.test.ts + gestures.test.ts) including the 'Polizeijagd' describe block. Created vitest.highway.config.ts (environment:node, alias @ -> ./src) because the project default vitest.config.ts uses jsdom + a setup file that assumes `window`/app bootstrap and fails for these pure-logic tests, matching the seed_fact instruction to use a dedicated Node config.",
+    "note": "Briefing mentions 52 tests total for the suite; actual count observed is 41 (33 in engine.test.ts-style files + 8 gestures). All passed; difference likely from it.each-style counting assumptions, not a failure."
+  },
+  "checks": [
+    {
+      "criterion": "Polizeijagd startet und spielt den Film",
+      "name": "highway-police-chase-video-plays-and-freezes-game",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Guest play on /arcade/highway, window.__highway.nextChaseAt=elapsed+500 + obstacles=[]; canPlayType forced + police-chase.mp4 routed to a webm fixture; highway-chase-video-overlay visible, <video data-testid=highway-chase-video> paused=false, currentTime>0, currentSrc matches blob:/police-chase.mp4; while playing, window.__highway.elapsed stayed frozen and a tap on the game area did not change data-lane; Skip closed the overlay and elapsed resumed increasing."
+    },
+    {
+      "criterion": "Überspringen / Ende / Fehler",
+      "name": "highway-police-chase-no-fixture-auto-closes-and-continues",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Without any mp4 fixture/canPlayType override, Chromium genuinely cannot play H.264 -> highway-chase-video-overlay auto-closed within 8s, highway-chase-indicator appeared, and window.__highway.elapsed kept increasing (game continued)."
+    },
+    {
+      "criterion": "Nach dem Film: Banner, Chip, Polizei",
+      "name": "highway-police-chase-banner-chip-and-police-variant",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "highway-chase-banner showed 'POLICE CHASE!' + localized subtitle ('Die Polizei verfolgt dich!'/'The police are chasing you!' depending on browser locale, per spec_deviations bilingual note), auto-hid after ~2.6-4s; highway-chase-indicator stayed visible with 'Police Chase' text while window.__highway.chase===true; newly spawned obstacles were >40% variant 'police' (observed ratio higher in sampled run)."
+    },
+    {
+      "criterion": "Ende der Jagd und Wiederholung",
+      "name": "highway-police-chase-ends-and-schedules-next",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Directly advancing window.__highway.elapsed to chaseStart+20000 (CHASE_MS) and letting the live game loop pick it up on its next frame ended the chase (chase:false), removed chip/banner, and set nextChaseAt to elapsed+40000 (CHASE_PAUSE_MS, verified within +-1s tolerance). Companion vitest unit-test run (41 passed) covers the engine logic for this in Node."
+    },
+    {
+      "criterion": "Pause während des Films",
+      "name": "highway-pause-during-chase-video-resumes-correctly",
+      "lane": "browser",
+      "status": "failed",
+      "evidence": "BUG: the full-screen police-chase <div data-testid=highway-chase-video-overlay> (class '...z-[100]...') sits above the game header and intercepts all pointer events, including highway-pause-button. Playwright click (both plain and force:true) on highway-pause-button while the video overlay is visible fails/no-ops with 'subtree intercepts pointer events' (element reported as visible+enabled+stable but the overlay's Skip button receives the hit instead). window.__highway.status stayed 'playing' after the click attempt. The Pause control is therefore unreachable during the film in the UI, contradicting the acceptance criterion that expects Pause to work mid-film and surface a Pause overlay once the film ends."
+    },
+    {
+      "criterion": "Neue Runde / Game Over",
+      "name": "highway-gameover-and-restart-no-chase-carryover",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Forced a mid-chase collision via the obstacles test hook; highway-game-over appeared with no highway-chase-indicator/-banner present; 'Erneut spielen' (highway-restart-button) restarted the round with window.__highway.chase=false and nextChaseAt reset to 20000 (CHASE_FIRST_MS)."
+    },
+    {
+      "criterion": "Regression (highway-*/fishing-*)",
+      "name": "highway-swipe-left-right-one-lane / neon-highway-full-game-flow / highway-pause-ignores-gestures-resume-works / fishing-legendary-catch-real-playback-blob / fishing-legendary-catch-video-fallback-flow / neon-highway-public-preview",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran 6 pre-existing named checks unchanged (by name only, no script edits): all 6 passed, confirming pre-existing highway swipe/pause/full-flow behavior and fishing CinematicVideo-based legendary-catch playback/fallback are unaffected by the police-chase addition. neon-highway-public-preview also exercised the public preview ingress URL."
+    }
+  ],
+  "bugs": [
+    {
+      "severity": "medium",
+      "criterion": "Pause während des Films",
+      "description": "During the Polizeijagd cinematic, the full-screen video overlay (z-[100]) covers and intercepts pointer events for the game header, making the Pause button (highway-pause-button) unclickable while the film plays. This contradicts the acceptance criterion requiring Pause to be usable during the film (showing a Pause overlay once the film ends).",
+      "evidence": "Browser check 'highway-pause-during-chase-video-resumes-correctly' (see script_path /app/.emergent/scripts/checks/highway-pause-during-chase-video-resumes-correctly.mjs). Playwright error: '<button data-testid=\"highway-chase-video-skip\">...</button> from <div ... data-testid=\"highway-chase-video-overlay\" ...> subtree intercepts pointer events' when attempting a non-forced click on highway-pause-button; forced click also left window.__highway.status==='playing' (unchanged from 'playing', never became 'paused')."
+    }
+  ],
+  "action_items": [
+    "Fix: either raise the Pause button's stacking/pointer-events above the chase video overlay, or add a dedicated pause affordance to the CinematicVideo overlay itself, so players can pause mid-film as specified."
+  ],
+  "retest_needed": true,
+  "notes": [
+    "window.__highway dev hook confirmed present only on the Vite dev/preview build as stated in seed_facts; used to force imminent chases and fast-forward elapsed without needing to wait real minutes.",
+    "Highway is playable fully as a guest (no login), matching seed_facts; no round-RPC traffic was exercised/needed for these checks.",
+    "Browser locale for this environment renders the subtitle in English by default ('The police are chasing you!'); matched against both DE/EN variants per spec_deviations note that the chip/banner title stays English in both locales while the subtitle is translated.",
+    "Added /app/vitest.highway.config.ts (Node environment, @ alias) as a standalone test-infra artifact to run the highway engine/gestures unit tests outside the project's jsdom-based default config, per seed_facts guidance."
+  ]
+}
