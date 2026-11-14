@@ -17,6 +17,13 @@ export interface AdRewardState {
 interface AdSession { session_id: string; mode: "test" | "live"; ad_unit_id: string | null; remaining: number }
 interface AdSessionStatus { session_id: string; status: "pending" | "granted" | "expired"; reward?: Record<string, unknown> | null; already_processed?: boolean }
 
+/** ZENTRALER WERBE-SCHALTER. `false` = Leonida Explorer ist komplett werbefrei:
+ *  keine Werbebuttons/-fenster, kein AdMob-SDK-Start, kein Google-Einwilligungsformular (UMP), keine Anzeigen-
+ *  oder Belohnungsanfragen (auch nicht im Hintergrund), keine Werbebelohnungen. Code, Plugin, IDs und SQL 037 bleiben
+ *  erhalten. Wiederaktivieren: hier `true` setzen, veröffentlichen – zusätzlich steuert der Admin-Bereich
+ *  „Werbung (AdMob)“ weiterhin Aus/Test/Live serverseitig. */
+export const ADS_ENABLED: boolean = false;
+
 /** Leonida Explorer fordert AUSSCHLIESSLICH nicht personalisierte Werbung an – unabhängig von der UMP-Einwilligung.
  *  Umsetzung (Plugin @capacitor-community/admob 8.3.0): jede Anfrage mit `npa: true` (Request-Extra npa=1) +
  *  nativ `publisherPrivacyPersonalizationState = .disabled` (scripts/admob-npa-patch.mjs, Codemagic). Keine ATT-Abfrage.
@@ -28,10 +35,10 @@ export const GOOGLE_TEST_REWARDED_IOS = "ca-app-pub-3940256099942544/1712485313"
 const PENDING_KEY = "leonida-ad-pending";
 
 export const adRewardKey = (uid: string | undefined) => ["ad-reward-state", uid ?? "guest"] as const;
-export const adsSupported = () => Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios" && Capacitor.isPluginAvailable("AdMob");
+export const adsSupported = () => ADS_ENABLED && Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios" && Capacitor.isPluginAvailable("AdMob");
 
 export function useAdRewardState(uid: string | undefined, enabled = true) {
-  return useQuery({ queryKey: adRewardKey(uid), enabled: !!uid && enabled, staleTime: 30_000, queryFn: async (): Promise<AdRewardState> => {
+  return useQuery({ queryKey: adRewardKey(uid), enabled: ADS_ENABLED && !!uid && enabled, staleTime: 30_000, queryFn: async (): Promise<AdRewardState> => {
     const { data, error } = await sb.rpc("my_ad_reward_state");
     if (error) { if (isMissing(error)) return { mode: "off" }; throw error; }
     return data as AdRewardState;
@@ -83,6 +90,7 @@ const loadAdMob = () => (admob ??= import("@capacitor-community/admob"));
  *  Schlägt die UMP-Abfrage fehl (z. B. noch keine DSGVO-Mitteilung in AdMob veröffentlicht), wird trotzdem gestartet –
  *  Google entscheidet dann selbst, ob (eingeschränkte) Werbung ausgeliefert wird. Keine Belohnung ohne echtes Reward-Ereignis. */
 export function initAds(mode: "test" | "live") {
+  if (!ADS_ENABLED) return Promise.reject(new AdError("ADS_DISABLED"));
   ready ??= (async () => {
     const { AdMob, AdmobConsentStatus, MaxAdContentRating } = await loadAdMob().catch((e) => { throw new AdError("SDK_INIT", `import: ${errText(e)}`); });
     let info: Awaited<ReturnType<typeof AdMob.requestConsentInfo>> | null = null;
@@ -109,14 +117,16 @@ export function initAds(mode: "test" | "live") {
 }
 /** Nur Status lesen (kein Formular, keine Anzeige): braucht der Nutzer den Button „Werbe-Datenschutz“? */
 export async function adPrivacyOptionsRequired() {
+  if (!ADS_ENABLED) return false;
   const { AdMob } = await loadAdMob();
   const info = await AdMob.requestConsentInfo({ tagForUnderAgeOfConsent: false });
   return String(info.privacyOptionsRequirementStatus) === "REQUIRED";
 }
-export async function showAdPrivacyOptions() { const { AdMob } = await loadAdMob(); await AdMob.showPrivacyOptionsForm(); }
+export async function showAdPrivacyOptions() { if (!ADS_ENABLED) return; const { AdMob } = await loadAdMob(); await AdMob.showPrivacyOptionsForm(); }
 
 /** Wartet auf das offizielle Reward-Ereignis. Vorzeitiges Schließen = kein Reward. */
 async function playRewarded(adId: string, testing: boolean, userId: string, sessionId: string): Promise<boolean> {
+  if (!ADS_ENABLED) return false;
   const { AdMob, RewardAdPluginEvents } = await loadAdMob();
   try {
     await AdMob.prepareRewardVideoAd({ adId, isTesting: testing, npa: NON_PERSONALIZED_ADS, ssv: { userId, customData: sessionId } });
@@ -154,6 +164,7 @@ async function confirm(sessionId: string, mode: "test" | "live"): Promise<AdSess
 
 /** Kompletter Ablauf: Limit prüfen → Anzeige laden/zeigen → Reward-Ereignis → Server-Bestätigung. */
 export async function watchRewardedAd(placement: AdPlacement, userId: string): Promise<AdSessionStatus> {
+  if (!ADS_ENABLED) throw new AdError("ADS_DISABLED"); // keine Sitzung, keine Anzeige, keine Belohnung
   const session = await rpc<AdSession>("start_ad_reward", { _placement: placement }, 2);
   await initAds(session.mode);
   const adId = session.mode === "test" ? GOOGLE_TEST_REWARDED_IOS : session.ad_unit_id;
@@ -168,6 +179,7 @@ export async function watchRewardedAd(placement: AdPlacement, userId: string): P
 
 /** Beim Öffnen des Spiels: unterbrochene Bestätigung nachholen (z. B. Verbindung nach dem Reward weg). */
 export async function resumePendingAdReward(): Promise<AdSessionStatus | null> {
+  if (!ADS_ENABLED) return null; // offene Bestätigung bleibt gespeichert, keine Belohnungsanfrage
   let p: { sessionId: string; mode: "test" | "live"; at: number } | null = null;
   try { p = JSON.parse(localStorage.getItem(PENDING_KEY) ?? "null"); } catch { p = null; }
   if (!p?.sessionId) return null;

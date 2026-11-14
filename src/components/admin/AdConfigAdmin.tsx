@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clapperboard } from "lucide-react";
 import { toast } from "sonner";
+import { ADS_ENABLED } from "@/lib/ads";
 import { isMissing, sb } from "@/lib/db";
 
 type Mode = "off" | "test" | "live";
@@ -31,6 +32,7 @@ export function AdConfigAdmin() {
   const d = cfg.data;
   return <details data-testid="admin-ad-config" className="neon-card p-3">
     <summary className="flex min-h-10 cursor-pointer items-center gap-2 font-display"><Clapperboard className="h-5 w-5 text-[#22E4F2]" />Werbung (AdMob){d ? ` · ${MODES.find((m) => m.id === d.mode)?.label}` : ""}</summary>
+    {!ADS_ENABLED && <p data-testid="admin-ad-globally-disabled" className="mt-2 rounded-xl border border-[#FFD12A]/50 bg-[#FFD12A]/10 p-2 text-xs text-[#FFE58A]">Werbung ist in der App vorübergehend komplett deaktiviert (zentraler Schalter <code>ADS_ENABLED = false</code> in <code>src/lib/ads.ts</code>). Es erscheinen keine Werbebuttons, keine Anzeigen und es werden keine Werbebelohnungen vergeben – unabhängig vom Modus unten. Empfehlung: Modus zusätzlich auf „Aus“ stellen.</p>}
     {d === null && <p className="mt-2 text-xs text-muted-foreground">Wird nach dem Datenbank-Update (SQL 037) aktiv.</p>}
     {d && <div className="mt-3 space-y-3">
       <div className="grid grid-cols-3 gap-2">{MODES.map((m) => <button key={m.id} type="button" data-testid={`admin-ad-mode-${m.id}`} onClick={() => setMode(m.id)}

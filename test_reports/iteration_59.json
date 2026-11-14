@@ -1,0 +1,73 @@
+{
+  "summary": "Ads-globally-disabled feature (ADS_ENABLED=false in src/lib/ads.ts) verified across all 7 matrix criteria: 11 browser checks passed (1 new, 10 updated regressions), vitest ads-disabled.test.ts passed, backend suite 114/114 passed. 0 failed, 0 flaky, 0 blocked.",
+  "passed": 12,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Ads globally disabled on /arcade/fishing (no strip/offer/limit-button, RPCs never requested) even with simulated iOS native + mode=test + offers available",
+      "name": "fishing-ads-disabled-native-no-rpc",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Simulated iOS Capacitor/AdMob bridge, my_fishing_state used=5/limit=15; fishing-ad-rewards/fishing-bonus-offer-open/fishing-limit-offer-button all toHaveCount(0); my_ad_reward_state/start_ad_reward/claim_ad_reward_test route calls array stayed empty (adsSupported() short-circuits before AdRewards/EpicBaitAdRow mount)."
+    },
+    {
+      "criterion": "Last cast used (used=14->15, reel->escaped) native: no bonus offer dialog after result (wait>=4s); fishing-limit-message shows correct German text",
+      "name": "fishing-bonus-offer-auto-open-after-last-cast",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated existing ad-ON check. After reel+result, waited 4s: fishing-bonus-offer toHaveCount(0); closed result; fishing-limit-message text === 'Alle Angelversuche für heute verbraucht. Morgen kannst du wieder angeln!'; fishing-limit-offer-button toHaveCount(0)."
+    },
+    {
+      "criterion": "Bait shop /neoshop?tab=baits native: no neoshop-bait-epic-ad-button, buy buttons present, purchase flow (mocked buy_fishing_bait RPC) works",
+      "name": "neoshop-bait-epic-ad-button-native-live",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated existing ad-ON check. Found adsSupported() short-circuits BaitShop.tsx line 55 so EpicBaitAdRow never mounts: neoshop-bait-epic-actions/epic-ad-button/test-mode toHaveCount(0) even with mode:'live' mocked + my_ad_reward_state never called; epic buy button -> dialog -> confirm triggered mocked buy_fishing_bait RPC exactly once (charged 87); all 6 rarities show plain buy buttons, zero ad buttons."
+    },
+    {
+      "criterion": "Normal fishing still works (mocked RPCs) web and native; 15/day counter unchanged",
+      "name": "fishing-cast-bite-reel-flow-mocked + fishing-daily-limit-reached-mocked + fishing-no-ad-rewards-in-web-browser",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Re-ran 3 existing checks unchanged: cast->bite->reel shows result-epic card (web); daily-limit-reached-mocked shows limit screen at used=15; no-ad-rewards-in-web-browser confirms web path unaffected. All passed, no counter/flow regressions."
+    },
+    {
+      "criterion": "Admin ad config panel shows admin-ad-globally-disabled notice; mode buttons still work",
+      "name": "admin-ad-config-save-and-errors",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated existing check: added assertion admin-ad-globally-disabled visible + contains 'ADS_ENABLED' inside admin-ad-config panel; existing mode-off/live-missing-units-error/save-success assertions still pass unchanged."
+    },
+    {
+      "criterion": "No console errors from disabled ads on fishing/neoshop pages",
+      "name": "(covered by console_errors field of all fishing-* / neoshop-bait-* checks above)",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "All runs reported only a benign pageerror 'PushNotifications plugin is not implemented on ios' (unrelated template Capacitor stub, pre-existing across the whole suite) — zero ad-related errors or error toasts."
+    },
+    {
+      "criterion": "Regression: update previous ad-ON checks to expect hidden state; all other existing checks pass; vitest ads-disabled.test.ts passes",
+      "name": "fishing-bonus-offer-decline-and-reopen, fishing-bonus-offer-hidden-during-legendary-catch, fishing-bonus-offer-not-shown-on-load-exhausted, neoshop-bait-epic-ad-test-mode-label, neoshop-bait-epic-ad-daily-limit-countdown, fishing-bonus-offer-all-ads-used-no-dialog, fishing-bonus-offer-web-browser-exhausted-no-dialog, neoshop-bait-epic-ad-button-hidden-web, neoshop-bait-epic-ad-hidden-mode-off, fishing-bonus-casts-not-locked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated 5 checks that previously asserted an ad dialog/button appearing (now assert hidden/no-reopen); reran 5 already-hidden checks unchanged. All 10 passed. vitest run src/lib/ads-disabled.test.ts -> all tests passed (0.93s)."
+    },
+    {
+      "criterion": "Backend regression (no API behavior changed by this feature, pure frontend gating)",
+      "name": "backend pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "cd /app/backend && python -m pytest -q: 114 passed, 1 warning (pre-existing deprecation notice, unrelated)."
+    },
+    {
+      "criterion": "Public preview smoke (ingress path)",
+      "name": "preview-app-loads",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Ran against https://leonida-karte--6tt5kohx.preview.emergentagent.com - home screen loads, screenshot captured, no crash."
+    }
+  ]
+}

@@ -82,3 +82,14 @@ Verwendetes Plugin: **@capacitor-community/admob 8.3.0** (Google Mobile Ads SDK 
 5. Datenschutzoptionen erneut öffnen: Button „Werbe-Datenschutz“ unter Leonida Fishing → Auswahl ändern/ablehnen → Werbung funktioniert weiter (nicht personalisiert), solange Zweck 1 erlaubt ist.
 6. Technischer Nachweis (optional, Mac mit Xcode): Gerät anschließen, Konsole nach `npa` filtern – die Anzeigenanfrage enthält `npa=1`; im Ad Inspector (Google Mobile Ads) erscheint die Anfrage als nicht personalisiert.
 7. Automatisch geprüft (`src/lib/admob-npa.test.ts`): Plugin-Version 8.3.0, Patch genau einmal vor `MobileAds.start`, jede Rewarded-Anfrage mit `npa`, keine Tracking-Abfrage.
+
+## Werbung vorübergehend deaktiviert (Stand: aktuell AUS)
+Zentraler Schalter **`ADS_ENABLED`** in `src/lib/ads.ts` – derzeit `false`. Dann gilt in der ganzen App:
+- Keine Werbebuttons (Leiste in Leonida Fishing, „+5 Fänge“-Fenster und Zähler-Button, „🎬 Werbung – Gratis“ beim Epischen Köder), keine Werbe-Pop-ups.
+- Kein Start des AdMob-SDKs, kein Google-Einwilligungsformular (UMP), keine Anzeigen- oder Belohnungsanfragen – auch nicht im Hintergrund. Keine Werbebelohnungen.
+- Angeln (15 Versuche/Tag), Köderkauf mit Coins und alles andere bleiben unverändert.
+- Erhalten bleiben: Plugin, App-ID in Info.plist, Anzeigenblock-IDs, Codemagic-Prüfungen, `scripts/admob-npa-patch.mjs`, SQL 037/038 und der gesamte Werbe-Code.
+
+**Zusätzlich empfohlen (serverseitig):** Admin-Bereich → „Werbung (AdMob)“ → **Aus** speichern. Dann lehnt auch die Datenbank jede Werbebelohnung ab.
+
+**Wiederaktivieren:** `ADS_ENABLED = true` setzen, veröffentlichen (die iPhone-App lädt die Website – kein neuer TestFlight-Build nötig, solange das Plugin im Build ist). Danach im Admin-Bereich „Test“ bzw. „Live“ wählen.
