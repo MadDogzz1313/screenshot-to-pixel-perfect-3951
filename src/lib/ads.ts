@@ -38,7 +38,13 @@ export function bonusAdsLeft(s: AdRewardState | undefined) {
   return Math.max(0, s.bonus.limit - s.bonus.used);
 }
 
-export class AdError extends Error { constructor(public code: string) { super(code); } }
+export class AdError extends Error { constructor(public code: string, public detail?: string) { super(code); } }
+const errText = (e: unknown) => (e instanceof Error ? e.message : typeof e === "string" ? e : (e as { message?: string })?.message ?? "").slice(0, 160);
+/** Technischer Hinweis für die Fehlermeldung (hilft bei der Fehlersuche in TestFlight). */
+export function adErrorDetail(e: unknown): string | undefined {
+  if (e instanceof AdError) return e.detail ? `${e.code}: ${e.detail}` : e.code;
+  const m = errText(e); return m || undefined;
+}
 export function adErrorMessage(e: unknown): string {
   const m = e instanceof AdError ? e.code : (e as { message?: string })?.message ?? "";
   if (m.includes("AD_DAILY_LIMIT")) return tr("Tageslimit erreicht. Morgen gibt es neue Werbebelohnungen.");
@@ -67,18 +73,32 @@ let admob: Promise<AdMobModule> | null = null;
 let ready: Promise<{ privacyOptionsRequired: boolean }> | null = null;
 const loadAdMob = () => (admob ??= import("@capacitor-community/admob"));
 
-/** Einwilligung (Google UMP: EWR/UK/Schweiz) → SDK starten. Nur nicht-personalisierte Werbung, keine Tracking-Abfrage. */
+/** Einwilligung (Google UMP: EWR/UK/Schweiz) → SDK starten. Nur nicht-personalisierte Werbung, keine Tracking-Abfrage.
+ *  Schlägt die UMP-Abfrage fehl (z. B. noch keine DSGVO-Mitteilung in AdMob veröffentlicht), wird trotzdem gestartet –
+ *  Google entscheidet dann selbst, ob (eingeschränkte) Werbung ausgeliefert wird. Keine Belohnung ohne echtes Reward-Ereignis. */
 export function initAds(mode: "test" | "live") {
   ready ??= (async () => {
-    const { AdMob, AdmobConsentStatus, MaxAdContentRating } = await loadAdMob();
-    let info = await AdMob.requestConsentInfo({ tagForUnderAgeOfConsent: false });
-    if (!info.canRequestAds && info.isConsentFormAvailable && info.status === AdmobConsentStatus.REQUIRED) info = await AdMob.showConsentForm();
+    const { AdMob, AdmobConsentStatus, MaxAdContentRating } = await loadAdMob().catch((e) => { throw new AdError("SDK_INIT", `import: ${errText(e)}`); });
+    let info: Awaited<ReturnType<typeof AdMob.requestConsentInfo>> | null = null;
+    let consentOk = true;
+    try {
+      info = await AdMob.requestConsentInfo({ tagForUnderAgeOfConsent: false });
+      if (!info.canRequestAds && info.isConsentFormAvailable && info.status === AdmobConsentStatus.REQUIRED) {
+        const shown = await AdMob.showConsentForm();
+        if (!shown.canRequestAds) throw new AdError("CONSENT");
+        info = { ...info, ...shown };
+      }
+    } catch (e) {
+      if (e instanceof AdError) throw e;
+      consentOk = false; // UMP nicht verfügbar → ohne Formular weiter, beim nächsten Mal erneut versuchen
+      console.warn("[ads] Einwilligungsabfrage fehlgeschlagen:", errText(e));
+    }
     try {
       await AdMob.initialize({ initializeForTesting: mode === "test", maxAdContentRating: MaxAdContentRating.Teen, tagForChildDirectedTreatment: false });
-    } catch { throw new AdError("SDK_INIT"); }
-    if (!info.canRequestAds) throw new AdError("CONSENT");
-    return { privacyOptionsRequired: String(info.privacyOptionsRequirementStatus) === "REQUIRED" };
-  })().catch((e) => { ready = null; throw e instanceof AdError ? e : new AdError("SDK_INIT"); });
+    } catch (e) { throw new AdError("SDK_INIT", errText(e)); }
+    if (!consentOk) ready = null;
+    return { privacyOptionsRequired: String(info?.privacyOptionsRequirementStatus) === "REQUIRED" };
+  })().catch((e) => { ready = null; throw e instanceof AdError ? e : new AdError("SDK_INIT", errText(e)); });
   return ready;
 }
 /** Nur Status lesen (kein Formular, keine Anzeige): braucht der Nutzer den Button „Werbe-Datenschutz“? */
@@ -94,7 +114,7 @@ async function playRewarded(adId: string, testing: boolean, userId: string, sess
   const { AdMob, RewardAdPluginEvents } = await loadAdMob();
   try {
     await AdMob.prepareRewardVideoAd({ adId, isTesting: testing, npa: true, ssv: { userId, customData: sessionId } });
-  } catch { throw new AdError("NO_FILL"); }
+  } catch (e) { throw new AdError("NO_FILL", errText(e)); }
   const handles: PluginListenerHandle[] = [];
   let rewarded = false;
   try {
