@@ -127,6 +127,11 @@
 .fishing-gold-spark { animation: fishing-gold-spark 1500ms ease-out infinite; }
 .fishing-bite-pulse { animation: fishing-bite-pulse 700ms ease-in-out infinite; }
 .fishing-crown { animation: fishing-crown-bob 1800ms ease-in-out infinite; }
+@keyframes fishing-hook-swing { 0%, 100% { transform: rotate(-12deg) translateY(0); } 50% { transform: rotate(12deg) translateY(4px); } }
+@keyframes fishing-offer-glow { 0%, 100% { box-shadow: 0 0 8px rgb(255 46 151 / .45); } 50% { box-shadow: 0 0 18px rgb(255 46 151 / .85), 0 0 26px rgb(176 38 255 / .5); } }
+.fishing-hook-swing { display: inline-block; transform-origin: 50% 10%; animation: fishing-hook-swing 1600ms ease-in-out infinite; }
+.fishing-offer-glow { animation: fishing-offer-glow 1800ms ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .fishing-hook-swing, .fishing-offer-glow { animation: none; } }
 @keyframes fishing-rays-spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
 @keyframes fishing-mythic-rise { 0% { opacity: 0; transform: translateY(50px) scale(.8); filter: drop-shadow(0 0 0 rgb(255 46 151 / 0)); } 60% { opacity: 1; transform: translateY(-6px) scale(1.04); } 100% { opacity: 1; transform: none; filter: drop-shadow(0 0 18px rgb(255 46 151 / .85)) drop-shadow(0 0 30px rgb(139 44 255 / .7)); } }
 @keyframes fishing-mythic-glow { 0%, 100% { filter: drop-shadow(0 0 14px rgb(255 46 151 / .8)) drop-shadow(0 0 26px rgb(139 44 255 / .6)); } 50% { filter: drop-shadow(0 0 22px rgb(255 200 61 / .9)) drop-shadow(0 0 38px rgb(255 46 151 / .7)); } }

@@ -8,6 +8,8 @@ import { LeaderboardModal } from "@/components/arcade/LeaderboardModal";
 import { FishCard } from "@/components/arcade/fishing/FishCard";
 import { CinematicVideo } from "@/components/arcade/CinematicVideo";
 import { AdRewards } from "@/components/arcade/fishing/AdRewards";
+import { BonusCastsDialog } from "@/components/arcade/fishing/BonusCastsOffer";
+import { adsSupported, bonusAdsLeft, useAdRewardState } from "@/lib/ads";
 import { CatchReward } from "@/components/arcade/fishing/CatchReward";
 import { CATCH_VIDEOS, catchVideoFor } from "@/lib/catch-videos";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -57,6 +59,14 @@ export function LeonidaFishingGame() {
   const selectedStock = selected ? baitStock(data, selected.id) : null;
   const busy = phase === "casting" || phase === "waiting" || phase === "bite" || phase === "reeling";
   const setupMissing = !!data?.setupMissing;
+  // Werbe-Angebot „+5 Fänge“ (nur iPhone-App, max. 2× täglich – Server prüft)
+  const adsOn = !!user && adsSupported();
+  const adState = useAdRewardState(user?.id, adsOn);
+  const canOffer = adsOn && limitReached && !setupMissing && bonusAdsLeft(adState.data) > 0;
+  const [offerOpen, setOfferOpen] = useState(false);
+  const offerDue = useRef(false);
+  // Vollbild-Fangsequenz (Video / Belohnungsbildschirm Legendär/Mythisch) läuft noch
+  const catchOverlay = phase === "result" && result?.status === "caught" && (catchStage === "video" || (catchStage === "reward" && (result.species_id === "leonida_marlin" || result.species_id === "mythic_marlin")));
 
   const refresh = (r?: ReelResult) => {
     if (r && typeof r.balance === "number") qc.setQueryData(["coin-balance"], Number(r.balance));
@@ -112,6 +122,17 @@ export function LeonidaFishingGame() {
     }
   };
 
+  // Letzter verfügbarer Fang abgeschlossen (Ergebnis ist serverseitig gespeichert) → Angebot fällig
+  useEffect(() => { if (phase === "result" && limitReached) offerDue.current = true; }, [phase, limitReached]);
+  // Fenster erst öffnen, wenn keine Fanganimation, kein Video und kein Menü mehr offen ist
+  useEffect(() => {
+    if (!offerDue.current || offerOpen || busy || catchOverlay || sheet !== null) return;
+    if (!limitReached || (adsOn && !adState.data && adState.isLoading)) { if (!limitReached) offerDue.current = false; return; }
+    if (!canOffer) { offerDue.current = false; return; }
+    const id = window.setTimeout(() => { offerDue.current = false; setOfferOpen(true); }, phase === "result" ? 1800 : 400);
+    return () => window.clearTimeout(id);
+  }, [phase, catchOverlay, busy, sheet, limitReached, canOffer, offerOpen, adsOn, adState.data, adState.isLoading]);
+
   // Laufenden Wurf nach Neustart / Netzabbruch wiederherstellen
   const pendingId = data?.pending?.cast_id;
   useEffect(() => {
@@ -166,7 +187,11 @@ export function LeonidaFishingGame() {
 
       <div className="absolute inset-x-3 top-3 flex flex-wrap items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span data-testid="fishing-attempts" className="w-fit rounded-full border border-[#22E4F2]/60 bg-[#0B0418]/75 px-3 py-1.5 text-xs font-bold text-[#22E4F2] backdrop-blur-sm">{tr("Tägliche Versuche: {0}/{1}", Math.max(0, limit - used), limit)}</span>
+          <div className="flex items-center gap-1.5">
+            <span data-testid="fishing-attempts" className="w-fit rounded-full border border-[#22E4F2]/60 bg-[#0B0418]/75 px-3 py-1.5 text-xs font-bold text-[#22E4F2] backdrop-blur-sm">{tr("Tägliche Versuche: {0}/{1}", Math.max(0, limit - used), limit)}</span>
+            {canOffer && !busy && <button type="button" data-testid="fishing-bonus-offer-open" onClick={() => setOfferOpen(true)} aria-label={tr("Werbung ansehen – 5 Bonus-Fänge")}
+              className="fishing-offer-glow min-h-8 rounded-full border border-[#FF2E97] bg-gradient-to-r from-[#FF2E97]/30 to-[#B026FF]/30 px-3 text-xs font-black text-white backdrop-blur-sm transition-transform duration-150 active:scale-90">{tr("🎬 +5 Fänge")}</button>}
+          </div>
           {bonus > 0 && <span data-testid="fishing-bonus-attempts" className="w-fit rounded-full border border-[#22E4F2] bg-[#22E4F2]/15 px-3 py-1.5 text-xs font-bold text-[#22E4F2] shadow-[0_0_12px_rgba(34,228,242,0.35)] backdrop-blur-sm">{tr("Bonus-Angelversuche: {0}", bonus.toLocaleString(locale()))}</span>}
           <span data-testid="fishing-active-bait" className="w-fit max-w-full truncate rounded-full border bg-[#0B0418]/75 px-3 py-1.5 text-xs font-semibold backdrop-blur-sm" style={{ borderColor: selected ? RARITY_STYLE[selected.rarity].color : "rgba(255,255,255,0.25)", color: selected ? RARITY_STYLE[selected.rarity].color : "#BFAAD9" }}>
             {selected && selectedStock ? tr("{0} · {1}/3 Nutzungen übrig", selected.name, selectedStock.current) : tr("Ohne Köder")}
@@ -181,7 +206,8 @@ export function LeonidaFishingGame() {
 
       {setupMissing && !!user && <p data-testid="fishing-setup-hint" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#FFD12A]/40 bg-[#0B0418]/85 p-3 text-center text-xs text-[#FFE38A]">{tr("Leonida Fishing wird nach dem Datenbank-Update (SQL 027) aktiv.")}</p>}
       {!user && <p data-testid="fishing-login-hint" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#22E4F2]/40 bg-[#0B0418]/85 p-3 text-center text-sm text-[#BFAAD9]">{tr("Melde dich an, um zu angeln, Coins zu verdienen und deine Sammlung zu füllen.")}</p>}
-      {limitReached && !busy && phase !== "result" && <p data-testid="fishing-limit-message" role="status" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#FF2E97]/50 bg-[#0B0418]/85 p-4 text-center text-sm font-semibold text-[#FFB3D9]">{tr("Deine 15 Angelversuche für heute sind aufgebraucht. Komm morgen wieder!")}</p>}
+      {limitReached && !busy && phase !== "result" && <p data-testid="fishing-limit-message" role="status" className="absolute inset-x-4 top-[30%] rounded-2xl border border-[#FF2E97]/50 bg-[#0B0418]/85 p-4 text-center text-sm font-semibold text-[#FFB3D9]">{canOffer ? tr("Du hast deine täglichen 15 Fänge verbraucht. Möchtest du 5 weitere Angelversuche erhalten?") : tr("Alle Angelversuche für heute verbraucht. Morgen kannst du wieder angeln!")}
+        {canOffer && <button type="button" data-testid="fishing-limit-offer-button" onClick={() => setOfferOpen(true)} className="mt-3 flex min-h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#FF2E97] to-[#B026FF] text-sm font-black text-white shadow-[0_0_16px_rgba(255,46,151,0.5)] transition-transform duration-150 active:scale-95">{tr("🎬 WERBUNG ANSEHEN – +5 FÄNGE")}</button>}</p>}
 
       {phase === "result" && result && result.status === "caught" && (result.species_id === "leonida_marlin" || result.species_id === "mythic_marlin") && catchStage === "reward" &&
         <CatchReward variant={result.species_id === "mythic_marlin" ? "mythic" : "legendary"} coins={result.coins} xp={result.xp} firstBadge={result.species_id === "mythic_marlin" && firstMythic}
@@ -231,6 +257,8 @@ export function LeonidaFishingGame() {
     {!!user && Object.entries(CATCH_VIDEOS).map(([species, video]) => <CinematicVideo key={species} video={video}
       active={phase === "result" && catchStage === "video" && result?.status === "caught" && result.species_id === species}
       onDone={() => setCatchStage("reward")} />)}
+
+    {adsOn && !!user && <BonusCastsDialog open={offerOpen && !busy && !catchOverlay} onOpenChange={setOfferOpen} userId={user.id} adState={adState.data} />}
 
     <LeaderboardModal game={GAME} gameName="Leonida Fishing" open={leaderboard} onOpenChange={setLeaderboard} scoreLabel={tr("Deine Marlíne")} description={tr("Rang nach Anzahl gefangener Leonida-Marlíne.")} />
   </div>;

@@ -32,6 +32,12 @@ export function useAdRewardState(uid: string | undefined, enabled = true) {
   } });
 }
 
+/** Verbleibende „+5 Fänge“-Werbungen heute (0 = Angebot ausgeschöpft / Werbung aus). Limit prüft der Server (SQL 037). */
+export function bonusAdsLeft(s: AdRewardState | undefined) {
+  if (!s || s.mode === "off" || !s.logged_in || !s.bonus) return 0;
+  return Math.max(0, s.bonus.limit - s.bonus.used);
+}
+
 export class AdError extends Error { constructor(public code: string) { super(code); } }
 export function adErrorMessage(e: unknown): string {
   const m = e instanceof AdError ? e.code : (e as { message?: string })?.message ?? "";

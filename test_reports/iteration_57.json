@@ -1,0 +1,69 @@
+{
+  "iteration": 57,
+  "scope": "Auto bonus-casts offer dialog (fishing) after last daily cast: auto-open timing, decline/reopen, exhausted-on-load, hidden during legendary catch cinematic/reward, all-ads-used / mode-off suppression, web-browser suppression, regression",
+  "passed": 7,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "checks": [
+    {
+      "criterion": "Auto bonus window after last free cast (simulated iOS, used 14->15, bonus_casts 0, escaped reel, my_ad_reward_state test mode left 2/2)",
+      "name": "fishing-bonus-offer-auto-open-after-last-cast",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On load with used=14 fishing-bonus-offer count=0. After cast+reel (escaped), fishing-result visible and dialog still count=0 immediately (card animating). Within 4s dialog becomes visible with exactly 1 instance: title '🎣 KEINE ANGELVERSUCHE MEHR!', description text present, fishing-bonus-offer-watch text '🎬 WERBUNG ANSEHEN – +5 FÄNGE', fishing-bonus-offer-decline 'Nein danke', fishing-bonus-offer-left contains '2 von 2'."
+    },
+    {
+      "criterion": "'Nein danke' closes; re-open from counter and from limit message button",
+      "name": "fishing-bonus-offer-decline-and-reopen",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Decline click removes fishing-bonus-offer (count 0). After closing the result card, fishing-bonus-offer-open (header counter button) is visible, reopens the dialog; declining again and then clicking fishing-limit-offer-button inside fishing-limit-message also reopens it."
+    },
+    {
+      "criterion": "Not shown on plain page load when already exhausted (used=15/bonus=0 from the start)",
+      "name": "fishing-bonus-offer-not-shown-on-load-exhausted",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "fishing-limit-message visible on load, fishing-bonus-offer count=0; fishing-bonus-offer-open and fishing-limit-offer-button both visible and reopen the dialog on click."
+    },
+    {
+      "criterion": "Legendary catch: no bonus window during video or reward screen; appears after continuing",
+      "name": "fishing-bonus-offer-hidden-during-legendary-catch",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Reel returns species_id leonida_marlin. While fishing-catch-video-overlay is active, fishing-bonus-offer count=0. After skip, fishing-legendary-catch reward screen shown, dialog still count=0. After clicking fishing-legendary-continue, fishing-bonus-offer becomes visible within 3s."
+    },
+    {
+      "criterion": "All ad offers used (bonus.used=2) or mode 'off' -> no dialog, no reopen buttons, limit message shows exhausted text",
+      "name": "fishing-bonus-offer-all-ads-used-no-dialog",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With bonus.used=2/limit=2 and separately mode='off', fishing-bonus-offer/-open/fishing-limit-offer-button all count=0; fishing-limit-message text equals 'Alle Angelversuche für heute verbraucht. Morgen kannst du wieder angeln!' in both cases."
+    },
+    {
+      "criterion": "Web browser (no native shim), used=15 bonus=0: no dialog, no ad buttons, my_ad_reward_state never called",
+      "name": "fishing-bonus-offer-web-browser-exhausted-no-dialog",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "No Capacitor/webkit shim added. fishing-bonus-offer/-open/fishing-limit-offer-button all count=0; my_ad_reward_state route flag never set true; fishing-limit-message shows the 'Alle Angelversuche...' text."
+    },
+    {
+      "criterion": "Regression: existing fishing* and neoshop-bait* checks still pass (limit text updated per spec_deviations)",
+      "name": "fishing-daily-limit-reached-mocked + fishing-no-ad-rewards-in-web-browser + fishing-bonus-casts-not-locked + neoshop-baits-tab-purchase-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated fishing-daily-limit-reached-mocked.mjs expectation to the new web text 'Alle Angelversuche für heute verbraucht. Morgen kannst du wieder angeln!' (old 'Deine 15 Angelversuche...sind aufgebraucht' text is gone) and it re-ran green; the other three pre-existing named checks re-ran green unchanged."
+    }
+  ],
+  "bugs": [],
+  "action_items": [],
+  "notes": [
+    "Console error 'PushNotifications plugin is not implemented on ios' appears on every simulated-native-Capacitor check; this is an unrelated app-wide push-init side effect of the window.Capacitor shim itself, not a defect of the bonus-offer feature.",
+    "Per spec_deviations, actual AdMob playback/reward granting was not exercised; only dialog visibility/timing/content and reopen affordances were verified.",
+    "fishing-daily-limit-reached-mocked.mjs was updated (old assertion referenced stale German/English wording) per the regression row's explicit instruction; this is a corrected test expectation, not an app bug.",
+    "Matrix had 7 criteria (incl. the explicit regression row); all 7 covered with 7 browser-check artifacts (no pure-API-only criterion required a separate backend test - all are UI-surfaced via the fishing screen)."
+  ],
+  "retest_needed": false
+}
