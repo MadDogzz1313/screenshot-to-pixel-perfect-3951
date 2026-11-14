@@ -50,6 +50,15 @@ workflows:
           plutil -extract SKAdNetworkItems xml1 -o - "$PLIST" | grep -q "cstr6suwn9.skadnetwork"
           grep -q "CapacitorCommunityAdmob" ios/App/CapApp-SPM/Package.swift
           echo "✅ AdMob App-ID: $APPID (Anzeigen-Modus steuert der Admin-Bereich, Start: Testanzeigen)"
+      - name: AdMob nur nicht personalisierte Werbung
+        # Setzt publisherPrivacyPersonalizationState = .disabled im Plugin (vor MobileAds.start). Zusätzlich fordert die App
+        # jede Rewarded Ad mit npa=1 an (src/lib/ads.ts). Keine App-Tracking-Abfrage (ATT) → keine Werbe-ID (IDFA).
+        script: |
+          set -e
+          node scripts/admob-npa-patch.mjs
+          grep -rq "publisherPrivacyPersonalizationState = .disabled" node_modules/@capacitor-community/admob/ios/Sources
+          if plutil -extract NSUserTrackingUsageDescription raw -o - ios/App/App/Info.plist >/dev/null 2>&1; then echo "❌ NSUserTrackingUsageDescription gesetzt – Tracking-Abfrage ist nicht vorgesehen"; exit 1; fi
+          echo "✅ Nur nicht personalisierte Werbung, keine Tracking-Abfrage"
       - name: App-Namen unter dem Symbol festlegen
         # Name auf dem Home-Bildschirm = CFBundleDisplayName. Bundle-ID, Symbol und Funktionen bleiben unverändert.
         script: |
@@ -157,6 +166,15 @@ workflows:
           plutil -extract SKAdNetworkItems xml1 -o - "$PLIST" | grep -q "cstr6suwn9.skadnetwork"
           grep -q "CapacitorCommunityAdmob" ios/App/CapApp-SPM/Package.swift
           echo "✅ AdMob App-ID: $APPID (Anzeigen-Modus steuert der Admin-Bereich, Start: Testanzeigen)"
+      - name: AdMob nur nicht personalisierte Werbung
+        # Setzt publisherPrivacyPersonalizationState = .disabled im Plugin (vor MobileAds.start). Zusätzlich fordert die App
+        # jede Rewarded Ad mit npa=1 an (src/lib/ads.ts). Keine App-Tracking-Abfrage (ATT) → keine Werbe-ID (IDFA).
+        script: |
+          set -e
+          node scripts/admob-npa-patch.mjs
+          grep -rq "publisherPrivacyPersonalizationState = .disabled" node_modules/@capacitor-community/admob/ios/Sources
+          if plutil -extract NSUserTrackingUsageDescription raw -o - ios/App/App/Info.plist >/dev/null 2>&1; then echo "❌ NSUserTrackingUsageDescription gesetzt – Tracking-Abfrage ist nicht vorgesehen"; exit 1; fi
+          echo "✅ Nur nicht personalisierte Werbung, keine Tracking-Abfrage"
       - name: App-Namen unter dem Symbol festlegen
         # Name auf dem Home-Bildschirm = CFBundleDisplayName. Bundle-ID, Symbol und Funktionen bleiben unverändert.
         script: |

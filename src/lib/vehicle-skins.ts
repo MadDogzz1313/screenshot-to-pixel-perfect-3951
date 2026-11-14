@@ -29,11 +29,11 @@ const skin = (id: VehicleSkinId, name: string, tagline: string, basePrice: numbe
 export const DEFAULT_SKIN: VehicleSkinId = "classic";
 export const VEHICLE_SKINS: VehicleSkin[] = [
   skin("classic", "Miami Classic", tr("Der pinke Klassiker – für alle kostenlos."), 0, "#ff2e97", classicRear, classicHigh),
-  skin("circuit", "Neon Circuit", tr("Mitternachtsblau mit leuchtenden Leiterbahnen."), 1200, "#22e4f2", circuitRear, circuitHigh),
-  skin("sunset", "Sunset Wave", tr("Sonnenuntergang über dem Ocean Drive."), 1500, "#ff8a3d", sunsetRear, sunsetHigh),
-  skin("flamingo", "Chrome Flamingo", tr("Perlweißer Chrom mit Flamingo-Streifen."), 1600, "#ff9fd6", flamingoRear, flamingoHigh),
-  skin("stripe", "Cyber Stripe", tr("Mattschwarz mit pinken Rennstreifen."), 1800, "#ff2e97", stripeRear, stripeHigh),
-  skin("galaxy", "Galaxy Drift", tr("Kosmischer Nebel in Violett und Blau."), 2000, "#8b5cff", galaxyRear, galaxyHigh),
+  skin("circuit", "Neon Circuit", tr("Mitternachtsblau mit leuchtenden Leiterbahnen."), 3600, "#22e4f2", circuitRear, circuitHigh),
+  skin("sunset", "Sunset Wave", tr("Sonnenuntergang über dem Ocean Drive."), 4500, "#ff8a3d", sunsetRear, sunsetHigh),
+  skin("flamingo", "Chrome Flamingo", tr("Perlweißer Chrom mit Flamingo-Streifen."), 4800, "#ff9fd6", flamingoRear, flamingoHigh),
+  skin("stripe", "Cyber Stripe", tr("Mattschwarz mit pinken Rennstreifen."), 5400, "#ff2e97", stripeRear, stripeHigh),
+  skin("galaxy", "Galaxy Drift", tr("Kosmischer Nebel in Violett und Blau."), 6000, "#8b5cff", galaxyRear, galaxyHigh),
 ];
 export const isSkinId = (id: unknown): id is VehicleSkinId => VEHICLE_SKINS.some((s) => s.id === id);
 export const skinById = (id: string | null | undefined): VehicleSkin => VEHICLE_SKINS.find((s) => s.id === id) ?? VEHICLE_SKINS[0]!;

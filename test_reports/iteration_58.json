@@ -1,0 +1,66 @@
+{
+  "summary": "SQL 039 (coin price adjustments: crew create/spot unlock 500->750, vehicle skins/frames x3) verified via local PG15 harness, server-side RPC charges, and updated Neoshop/crew/spot UI browser checks. 8 checks: 2 new backend test files (26 assertions) + 6 browser checks (1 new regression-covered via existing checks, 4 updated for new prices, 1 pre-existing fixture bug fixed). Full backend suite 114/114 passed.",
+  "passed": 8,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "SQL 039 harness: chain + 039 twice + 040 selftest (catalog prices tripled once, fishing_baits unchanged)",
+      "name": "test_tscheck_sql039_preise_anpassung.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "run.sh applied prereq chain (013,014,016,018,019,022,023,025,027,029,031) + 039 twice; 040 selftest psql run clean (no FEHLER/FEHLT). vehicle_skins.price: Neon Circuit=1800, Sunset Wave=2250, Chrome Flamingo=2400, Cyber Stripe=2700, Galaxy Drift=3000, Miami Classic=0. profile_frames.price: 4x1500 + Golden Crown=3000. fishing_baits.price unchanged=[12,25,50,87,125,150]. price_adjustments guard row count=1 (not doubled). 14 passed."
+    },
+    {
+      "criterion": "Server-side charges (create_crew 750, unlock_spot 5-free-then-750, buy_vehicle_skin/buy_profile_frame single-charge, existing data untouched)",
+      "name": "test_tscheck_sql039_server_side_charges.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Ad-hoc begin;...rollback; selftest (sql_fixtures/tscheck_sql039_server_charges_selftest.sql) run via psql against leonida_sqltest with simulated auth.uid() via request.jwt.claims: legacy wallet/ownership rows untouched by migration (balance 4242, price_paid 600/500 preserved); first 5 foreign spots free; 6th costs 750 (balance 9250); repeat unlock of same spot=0; unlock at 749 coins raises INSUFFICIENT_COINS with no coin loss; create_crew at 749 fails with no loss, at 750 deducts exactly 750; buy_vehicle_skin('circuit') charges 1800 once, second buy charges 0 (already_owned); buy_profile_frame('neon_sunset') charges 1500 once. 12 passed."
+    },
+    {
+      "criterion": "Neoshop vehicle cards show new prices with -50% badge and tripled base price",
+      "name": "neoshop-six-designs-halved-prices",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated for SQL 039 (was asserting old 600/1200 etc.). /neoshop skins tab: circuit 1,800/3,600; sunset 2,250/4,500; flamingo 2,400/4,800; stripe 2,700/5,400; galaxy 3,000/6,000; classic free. Frontend fallback catalog (src/lib/vehicle-skins.ts) already ships the tripled values."
+    },
+    {
+      "criterion": "Neoshop profile frames show 1500 / Golden Crown 3000",
+      "name": "neoshop-frames-tab-lists-five",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated mocked my_profile_frames RPC rows to new prices (1500/1500/1500/1500/3000); cards render '1.500'/'3.000' with Golden Crown 'Exklusiv' badge."
+    },
+    {
+      "criterion": "Crew creation page /crew/neu shows 750-coin copy and INSUFFICIENT_COINS mentions 750",
+      "name": "crew-new-form-submit-navigates + insufficient-coins-crew-and-spot-toast",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "crew-new-form-submit-navigates: shows 'Erstellen: 750 Coins ... Beitreten kostenlos', submit button 'Für 750 Coins erstellen', confirm dialog mentions 750, create_crew RPC fires once on confirm/zero on cancel; edit mode shows no 750 copy and calls update_crew. insufficient-coins-crew-and-spot-toast: create_crew 400 INSUFFICIENT_COINS -> toast 'Eine neue Crew kostet 750 Coins', no navigation."
+    },
+    {
+      "criterion": "Locked spot page /fundort/<id> shows 750-coin freischaltung copy (free vs paid)",
+      "name": "locked-spot-shows-server-price-free-and-paid + spot-unlock-150-coin-rule-mocked",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "locked-spot-shows-server-price-free-and-paid: free_remaining>0 -> 'Kostenlos freischalten', cost=750 -> 'Freischaltung für 750 Coins' button + confirm dialog mention 750, never 150/500/10. spot-unlock-150-coin-rule-mocked: panel text now 'ersten fünf ... 750 Leonida Coins'; fixed a pre-existing fixture bug where the mocked spot's author_id equalled the logged-in user id (triggered the ownSpot bypass, hiding the locked panel in both the old and new price text) by using a distinct author id; SQL-013-missing compatibility fallback still works."
+    },
+    {
+      "criterion": "Regression: neoshop/crew/spot-unlock/profile-frame checks and backend sql023/sql018 suites",
+      "name": "full backend suite + neoshop-frame-insufficient-balance, neoshop-frame-purchase-success-once, profile-frame-displayed-own-and-public, settings-frame-picker-equip-flow, neoshop-purchase-deducts-coins-once-mocked, neoshop-insufficient-coins-dialog-mocked, joining-does-not-charge-coins, web-app-loads-no-regression",
+      "lane": "backend+browser",
+      "status": "passed",
+      "evidence": "cd backend && pytest -q: 114 passed (includes test_tscheck_sql023_crew_unlock_costs.py and test_tscheck_sql018_* static checks, unaffected since they assert on function text/grants, not hardcoded prices). All 8 listed browser checks re-ran green with no code changes needed; web-app-loads-no-regression covers the public preview ingress URL."
+    }
+  ],
+  "notes": [
+    "Frontend static fallback catalog (src/lib/vehicle-skins.ts) already contains the SQL-039 tripled vehicle prices - confirms the UI criterion is satisfied by existing app code, not a mock-only artifact.",
+    "6 criteria in the matrix; covered with 2 backend test files + 6 browser check names (one check name update bundled two related checks where they shared the same price-copy assertion to avoid duplicate artifacts for the same UI surface)."
+  ]
+}

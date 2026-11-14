@@ -59,3 +59,26 @@ Live kann erst gespeichert werden, wenn beide produktiven Anzeigenblöcke einget
 5. Köder-Werbung → 1 Epischer Köder (3 Würfe) im Köder-Menü, danach 0/1.
 6. App schließen/neu öffnen, ab- und anmelden → Zähler bleiben. Am nächsten Tag (nach Mitternacht) wieder 2/2 und 1/1.
 7. Erst nach AdMob-Freigabe: Admin → produktive Anzeigenblöcke eintragen → **Live** speichern.
+
+## Nur nicht personalisierte Werbung (technische Umsetzung)
+Leonida Explorer fordert **ausschließlich nicht personalisierte Werbung** an – für alle Rewarded Ads (Bonus-Angelversuche im Spiel, „+5 Fänge“-Fenster, Epischer Köder im Spiel und im Köder-Shop). Das gilt auch dann, wenn ein Nutzer im Google-Einwilligungsformular personalisierter Werbung zustimmt. (Crew-Erstellung per Werbung gibt es in der App nicht – Crews kosten nur Coins.)
+
+Verwendetes Plugin: **@capacitor-community/admob 8.3.0** (Google Mobile Ads SDK 13.11.0, UMP 3.1). Drei Ebenen, Google wendet immer das **restriktivste** Signal an:
+1. **Pro Anzeigenanfrage `npa=1`** – `src/lib/ads.ts`: `AdMob.prepareRewardVideoAd({ …, npa: NON_PERSONALIZED_ADS })` (Konstante `true`). Das Plugin hängt nativ das Request-Extra `npa = "1"` an.
+2. **Global `publisherPrivacyPersonalizationState = .disabled`** (Googles „Publisher Privacy Treatment“) – wird vor `MobileAds.start` gesetzt und gilt für jede Anfrage der App-Sitzung. Plugin 8.3.0 bietet dafür keine JavaScript-Option, deshalb baut `scripts/admob-npa-patch.mjs` die Zeile in Codemagic nach `yarn install` in das Plugin ein (idempotent, Build bricht ab, falls die Plugin-Datei nicht passt). Schritt „AdMob nur nicht personalisierte Werbung“ in beiden Codemagic-Workflows.
+3. **Keine Werbe-ID:** Es gibt keine App-Tracking-Abfrage (ATT) und kein `NSUserTrackingUsageDescription` – iOS liefert die IDFA daher nicht. Codemagic prüft, dass der Eintrag fehlt.
+
+**Google UMP bleibt aktiv:** Vor der ersten Anzeige fragt die App `requestConsentInfo` ab und zeigt bei Bedarf das Einwilligungsformular (EWR/UK/CH). Unter Leonida Fishing erscheint „Werbe-Datenschutz“, wenn Google Datenschutzoptionen verlangt (`showPrivacyOptionsForm`). Zustimmung zu „Speichern/Zugreifen auf Informationen“ (Zweck 1) braucht Google auch für nicht personalisierte Anzeigen – ohne sie liefert Google keine Werbung („Momentan ist keine Werbung verfügbar“).
+
+**„Leonida Explorer“ im Einwilligungsformular:** Den Namen und das Logo im Formular nimmt Google aus der **AdMob-Konsole**, nicht aus dem App-Code (der Name unter dem App-Symbol ist bereits „Leonida Explorer“, `CFBundleDisplayName`). Prüfen in AdMob:
+- **Apps → Leonida Explorer → App-Einstellungen:** App-Name „Leonida Explorer“.
+- **Datenschutz & Mitteilungen → DSGVO → Mitteilung bearbeiten:** in der Vorschau oben „Leonida Explorer“ (Name/Logo in den Mitteilungs-Einstellungen anpassbar), Datenschutzerklärung verlinkt, Mitteilung **veröffentlicht**.
+
+### Test (TestFlight)
+1. Codemagic-Build starten – im Log muss „✅ AdMob 8.3.0: publisherPrivacyPersonalizationState = .disabled eingebaut“ und „✅ Nur nicht personalisierte Werbung, keine Tracking-Abfrage“ stehen. (Optional zuerst Workflow „iOS Build-Check“.)
+2. App vom iPhone löschen und den neuen TestFlight-Build installieren (setzt die gespeicherte Einwilligung zurück).
+3. Leonida Fishing → Werbung starten → das Google-Formular muss „Leonida Explorer“ zeigen. Bewusst **„Einwilligen“** (alles zulassen) wählen.
+4. Testanzeige ansehen → Belohnung kommt wie gewohnt. Die Anfrage bleibt trotzdem nicht personalisiert (npa=1 + Publisher Privacy Treatment überstimmen die Zustimmung).
+5. Datenschutzoptionen erneut öffnen: Button „Werbe-Datenschutz“ unter Leonida Fishing → Auswahl ändern/ablehnen → Werbung funktioniert weiter (nicht personalisiert), solange Zweck 1 erlaubt ist.
+6. Technischer Nachweis (optional, Mac mit Xcode): Gerät anschließen, Konsole nach `npa` filtern – die Anzeigenanfrage enthält `npa=1`; im Ad Inspector (Google Mobile Ads) erscheint die Anfrage als nicht personalisiert.
+7. Automatisch geprüft (`src/lib/admob-npa.test.ts`): Plugin-Version 8.3.0, Patch genau einmal vor `MobileAds.start`, jede Rewarded-Anfrage mit `npa`, keine Tracking-Abfrage.

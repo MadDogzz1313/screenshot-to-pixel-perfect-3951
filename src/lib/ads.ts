@@ -17,6 +17,12 @@ export interface AdRewardState {
 interface AdSession { session_id: string; mode: "test" | "live"; ad_unit_id: string | null; remaining: number }
 interface AdSessionStatus { session_id: string; status: "pending" | "granted" | "expired"; reward?: Record<string, unknown> | null; already_processed?: boolean }
 
+/** Leonida Explorer fordert AUSSCHLIESSLICH nicht personalisierte Werbung an – unabhängig von der UMP-Einwilligung.
+ *  Umsetzung (Plugin @capacitor-community/admob 8.3.0): jede Anfrage mit `npa: true` (Request-Extra npa=1) +
+ *  nativ `publisherPrivacyPersonalizationState = .disabled` (scripts/admob-npa-patch.mjs, Codemagic). Keine ATT-Abfrage.
+ *  Google wendet immer das restriktivste Signal an – eine Zustimmung im UMP-Formular hebt das nicht auf. */
+export const NON_PERSONALIZED_ADS = true as const;
+
 /** Offizielle Google-Testanzeigenblöcke (iOS Rewarded). Werden im Testmodus IMMER verwendet. */
 export const GOOGLE_TEST_REWARDED_IOS = "ca-app-pub-3940256099942544/1712485313";
 const PENDING_KEY = "leonida-ad-pending";
@@ -113,7 +119,7 @@ export async function showAdPrivacyOptions() { const { AdMob } = await loadAdMob
 async function playRewarded(adId: string, testing: boolean, userId: string, sessionId: string): Promise<boolean> {
   const { AdMob, RewardAdPluginEvents } = await loadAdMob();
   try {
-    await AdMob.prepareRewardVideoAd({ adId, isTesting: testing, npa: true, ssv: { userId, customData: sessionId } });
+    await AdMob.prepareRewardVideoAd({ adId, isTesting: testing, npa: NON_PERSONALIZED_ADS, ssv: { userId, customData: sessionId } });
   } catch (e) { throw new AdError("NO_FILL", errText(e)); }
   const handles: PluginListenerHandle[] = [];
   let rewarded = false;

@@ -227,7 +227,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
         },
       );
     else {
-      if (!window.confirm(tr("Eine neue Crew kostet 500 Leonida Coins. Beim Beitreten zu einer Crew werden keine Coins abgezogen. Crew jetzt erstellen?"))) return;
+      if (!window.confirm(tr("Eine neue Crew kostet 750 Leonida Coins. Beim Beitreten zu einer Crew werden keine Coins abgezogen. Crew jetzt erstellen?"))) return;
       actions.create.mutate(input, {
         onSuccess: (id) => {
           toast.success(tr("Crew-Suche veröffentlicht"));
@@ -267,7 +267,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
           >
             {editId ? tr("Crew-Suche bearbeiten") : tr("Neue Crew-Suche")}
           </h1>
-          {!editId && <div className="ml-auto flex flex-col items-end gap-1"><CoinBalance compact /><span className="text-[11px] text-white/60">{tr("Erstellen: 500 Coins · Beitreten kostenlos")}</span></div>}
+          {!editId && <div className="ml-auto flex flex-col items-end gap-1"><CoinBalance compact /><span className="text-[11px] text-white/60">{tr("Erstellen: 750 Coins · Beitreten kostenlos")}</span></div>}
         </div>
 
         <Section
@@ -479,7 +479,7 @@ function CrewForm({ editId }: { editId?: string | undefined }) {
             ? tr("Wird gespeichert …")
             : editId
               ? tr("Änderungen speichern")
-              : tr("Für 500 Coins erstellen")}
+              : tr("Für 750 Coins erstellen")}
         </button>
       </div>
     </div>

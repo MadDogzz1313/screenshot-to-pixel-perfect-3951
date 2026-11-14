@@ -135,7 +135,7 @@ const MESSAGES: Record<string, string> = {
   CREW_SIZE_BELOW_MEMBERS: tr("Die maximale Spielerzahl ist kleiner als die aktuelle Crew."),
   CREW_INVALID_START: tr("Bitte wähle eine Startzeit innerhalb der nächsten 7 Tage."),
   CREW_INVALID_ACTIVITY: tr("Diese Aktivität ist nicht verfügbar."),
-  INSUFFICIENT_COINS: tr("Du hast nicht genug Leonida Coins. Eine neue Crew kostet 500 Coins."),
+  INSUFFICIENT_COINS: tr("Du hast nicht genug Leonida Coins. Eine neue Crew kostet 750 Coins."),
   CREW_MESSAGE_EMPTY: tr("Bitte schreibe eine Nachricht."),
   CREW_MESSAGE_TOO_LONG: tr("Eine Nachricht darf höchstens 1000 Zeichen haben."),
   REPORT_DUPLICATE: tr("Du hast das bereits gemeldet. Das Admin-Team prüft es."),

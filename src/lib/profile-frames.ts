@@ -16,11 +16,11 @@ import neonCoastStatic from "@/assets/frames/neon_coast-static.webp";
 export type FrameId = "neon_sunset" | "golden_crown" | "neon_skyline" | "cyber_lightning" | "neon_coast";
 export type ProfileFrameDef = { id: FrameId; name: string; price: number; premium: boolean; anim: string; still: string };
 export const PROFILE_FRAMES: ProfileFrameDef[] = [
-  { id: "neon_sunset", name: "Neon Sunset", price: 500, premium: false, anim: neonSunset, still: neonSunsetStatic },
-  { id: "golden_crown", name: "Golden Crown", price: 1000, premium: true, anim: goldenCrown, still: goldenCrownStatic },
-  { id: "neon_skyline", name: "Neon Skyline", price: 500, premium: false, anim: neonSkyline, still: neonSkylineStatic },
-  { id: "cyber_lightning", name: "Cyber Lightning", price: 500, premium: false, anim: cyberLightning, still: cyberLightningStatic },
-  { id: "neon_coast", name: "Neon Coast", price: 500, premium: false, anim: neonCoast, still: neonCoastStatic },
+  { id: "neon_sunset", name: "Neon Sunset", price: 1500, premium: false, anim: neonSunset, still: neonSunsetStatic },
+  { id: "golden_crown", name: "Golden Crown", price: 3000, premium: true, anim: goldenCrown, still: goldenCrownStatic },
+  { id: "neon_skyline", name: "Neon Skyline", price: 1500, premium: false, anim: neonSkyline, still: neonSkylineStatic },
+  { id: "cyber_lightning", name: "Cyber Lightning", price: 1500, premium: false, anim: cyberLightning, still: cyberLightningStatic },
+  { id: "neon_coast", name: "Neon Coast", price: 1500, premium: false, anim: neonCoast, still: neonCoastStatic },
 ];
 export const frameById = (id: string | null | undefined) => PROFILE_FRAMES.find((f) => f.id === id);
 /** Anteil des Profilbild-Durchmessers an der Rahmenbreite (innerer Ring der Vorlagen). */
