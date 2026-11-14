@@ -35,7 +35,7 @@ workflows:
           corepack enable
           corepack prepare yarn@1.22.22 --activate
           yarn --version
-          yarn install --frozen-lockfile --non-interactive --ignore-engines
+          yarn install --ignore-lockfile --non-interactive --ignore-engines
       - name: iOS-Projekt synchronisieren
         script: npx cap sync ios
       - name: AdMob (Rewarded Ads) prüfen
