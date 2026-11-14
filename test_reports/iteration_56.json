@@ -1,0 +1,61 @@
+{
+  "iteration": 56,
+  "scope": "Epic bait ad button (AdMob reward) in Neoshop bait tab - web-hidden, native-enabled, daily-limit countdown, mode off, test-mode label, regression",
+  "passed": 6,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "checks": [
+    {
+      "criterion": "Web browser (no native iOS/Capacitor): Epic bait card in Neoshop bait tab has no ad button",
+      "name": "neoshop-bait-epic-ad-button-hidden-web",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On /neoshop?tab=baits (mocked login, my_ad_reward_state mocked as 'live' with bait available), neoshop-bait-epic-ad-button count=0 and my_ad_reward_state RPC was never called (adsSupported() false without Capacitor). neoshop-bait-epic-buy-button opened neoshop-bait-dialog with price 87 as before."
+    },
+    {
+      "criterion": "Simulated iOS app with my_ad_reward_state mode 'live', bait.used=0/limit=1 -> ad button visible+enabled next to Kaufen; other rarities have no ad button",
+      "name": "neoshop-bait-epic-ad-button-native-live",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "With window.webkit.messageHandlers.bridge + window.Capacitor.PluginHeaders=[{name:'AdMob'}] simulating native iOS, neoshop-bait-epic-ad-button is visible+enabled inside neoshop-bait-epic-actions, text matches /Werbung|Ad/i, neoshop-bait-epic-buy-button still present. common/uncommon/rare/legendary/mythic have 0 matching ad-button testids."
+    },
+    {
+      "criterion": "Daily limit used (bait.used=1, limit=1): ad button disabled, 'Morgen wieder'/'Back tomorrow' + ticking HH:MM:SS countdown",
+      "name": "neoshop-bait-epic-ad-daily-limit-countdown",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "neoshop-bait-epic-ad-button disabled; neoshop-bait-epic-ad-tomorrow visible with 'Morgen wieder'; neoshop-bait-epic-ad-countdown matches ^0[45]:\\d{2}:\\d{2}$ for next_reset_at=now+5h, and the displayed text changed within 4s (ticks every second)."
+    },
+    {
+      "criterion": "mode 'off' (or state unavailable): ad button hidden, only Kaufen shown full-width",
+      "name": "neoshop-bait-epic-ad-hidden-mode-off",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "my_ad_reward_state mocked {mode:'off'}; neoshop-bait-epic-ad-button count=0 and neoshop-bait-epic-actions wrapper count=0 (component falls back to bare children), neoshop-bait-epic-buy-button still visible full width."
+    },
+    {
+      "criterion": "mode 'test': small test-ads label shown under epic buttons",
+      "name": "neoshop-bait-epic-ad-test-mode-label",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "my_ad_reward_state mocked {mode:'test', ...}; neoshop-bait-epic-ad-test-mode label visible containing 'TESTANZEIGEN'/'TEST ADS', ad button enabled."
+    },
+    {
+      "criterion": "Regression: existing bait purchase checks and fishing-no-ad-rewards-in-web-browser still pass",
+      "name": "neoshop-baits-tab-purchase-mocked + fishing-no-ad-rewards-in-web-browser",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Both pre-existing named checks re-ran green with no script changes: bait dialog/purchase flow (mythic+uncommon) unaffected; fishing screen in plain web browser still shows 0 fishing-ad-rewards blocks and never calls my_ad_reward_state."
+    }
+  ],
+  "bugs": [],
+  "action_items": [],
+  "notes": [
+    "Console error 'PushNotifications plugin is not implemented on ios' appears on every simulated-native-Capacitor check; this is an unrelated app-wide push-init side effect of the window.Capacitor shim itself (no AdMob-specific plugin registered for that unrelated feature), not a defect of the ad button feature under test.",
+    "Per spec_deviations, actual ad playback/reward granting was not exercised (native SDK only); only button presence/enabled/disabled/label/countdown states were verified.",
+    "Found and fixed a click-reliability issue in authoring the web-mode check: the Epic bait Buy button sits near the bottom nav and a click fired before the coin-balance RPC settled could land on stale layout; fixed by waiting for the balance text to render before interacting (test-authoring issue only, not an app bug)."
+  ],
+  "retest_needed": false
+}

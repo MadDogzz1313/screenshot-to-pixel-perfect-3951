@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingCart } from "lucide-react";
-import { useState } from "react";
+import { Loader2, ShoppingCart } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useWatchAdReward } from "@/components/arcade/fishing/useWatchAdReward";
+import { adRewardKey, adsSupported, useAdRewardState } from "@/lib/ads";
 import { useCoinBalance } from "@/lib/arcade";
 import { BAITS, baitStock, fishByRarity, fishingError, fishingOdds, formatPercent, newNonce, RARITY_STYLE, useBuyBait, useFishingState, type Bait } from "@/lib/fishing";
 import { locale, tr } from "@/lib/i18n";
@@ -47,7 +50,12 @@ export function BaitShop() {
           <p data-testid={`neoshop-bait-${b.rarity}-bonus`} className="text-[11px] text-[#BFAAD9]">{tr("{0}: {1} → {2}", fish.name, pct(fish.baseChance), pct(fishingOdds(b.rarity)[fish.id]))}</p>
           <p className="text-[11px] text-[#BFAAD9]">{tr("{0} Nutzungen", b.uses)}{stock.items ? ` · ${tr("Im Inventar: {0}", stock.uses)}` : ""}</p>
           <span data-testid={`neoshop-bait-${b.rarity}-price`} className="mt-2 inline-flex w-fit items-center gap-1 font-bold text-[#FFD12A]"><span aria-hidden>🪙</span>{fmt(b.price)}</span>
-          <button type="button" data-testid={`neoshop-bait-${b.rarity}-buy-button`} onClick={() => ask(b)} className="mt-2 flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF2E97] to-[#B026FF] text-sm font-bold shadow-[0_0_14px_rgba(255,46,151,0.4)] transition-transform duration-150 active:scale-95"><ShoppingCart className="h-4 w-4" />{tr("Kaufen")}</button>
+          {(() => {
+            const buyBtn = <button type="button" data-testid={`neoshop-bait-${b.rarity}-buy-button`} onClick={() => ask(b)} className="mt-2 flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF2E97] to-[#B026FF] text-sm font-bold shadow-[0_0_14px_rgba(255,46,151,0.4)] transition-transform duration-150 active:scale-95"><ShoppingCart className="h-4 w-4" />{tr("Kaufen")}</button>;
+            return b.id === "bait_epic" && user && !setupMissing && adsSupported()
+              ? <EpicBaitAdRow userId={user.id}>{buyBtn}</EpicBaitAdRow>
+              : buyBtn;
+          })()}
         </article>;
       })}
     </div>
@@ -79,6 +87,48 @@ export function BaitShop() {
       </AlertDialogContent>
     </AlertDialog>
   </section>;
+}
+
+/** „🎬 Werbung – Gratis“ neben „Kaufen“ auf der Epischen-Köder-Karte. Nur iPhone-App; 1× pro Tag (Reset Mitternacht Berlin, SQL 037).
+ *  Teilt sich Limit und Belohnung (1 Epischer Köder, 3 Würfe) mit dem Angebot „Spezialköder“ im Spiel. */
+function EpicBaitAdRow({ userId, children }: { userId: string; children: React.ReactNode }) {
+  const qc = useQueryClient();
+  const state = useAdRewardState(userId);
+  const watch = useWatchAdReward(userId);
+  const s = state.data;
+  const resetAt = s?.next_reset_at ? Date.parse(s.next_reset_at) : NaN;
+  const usedUp = !!s?.bait && s.bait.used >= s.bait.limit;
+  const left = useCountdown(usedUp ? resetAt : NaN, () => { void qc.invalidateQueries({ queryKey: adRewardKey(userId) }); });
+  if (!s || s.mode === "off" || !s.logged_in || !s.bait) return <>{children}</>;
+  const busy = watch.isPending;
+  return <div data-testid="neoshop-bait-epic-actions" className="mt-2 grid grid-cols-2 gap-1.5 [&>button:first-child]:mt-0 [&>button:first-child]:text-xs">
+    {children}
+    <button type="button" data-testid="neoshop-bait-epic-ad-button" disabled={usedUp || busy} onClick={() => watch.mutate("fishing_special_bait")}
+      aria-label={usedUp ? tr("Morgen wieder") : tr("Werbung ansehen – 1 Epischer Köder gratis")}
+      className="flex min-h-10 w-full flex-col items-center justify-center rounded-xl border border-[#22E4F2]/70 bg-[#22E4F2]/10 px-1 text-[11px] font-bold leading-tight text-[#22E4F2] shadow-[0_0_12px_rgba(34,228,242,0.3)] transition-[transform,opacity] duration-150 active:scale-95 disabled:opacity-50 disabled:shadow-none">
+      {busy ? <span className="inline-flex items-center gap-1"><Loader2 className="h-3.5 w-3.5 animate-spin" />{tr("Läuft …")}</span>
+        : usedUp ? <><span data-testid="neoshop-bait-epic-ad-tomorrow">{tr("Morgen wieder")}</span>{left && <span data-testid="neoshop-bait-epic-ad-countdown" className="font-mono text-[10px] text-white/80">{left}</span>}</>
+        : <span>🎬 {tr("Werbung – Gratis")}</span>}
+    </button>
+    {s.mode === "test" && <span data-testid="neoshop-bait-epic-ad-test-mode" className="col-span-2 text-center text-[9px] font-bold text-[#FFD12A]">{tr("TESTANZEIGEN")}</span>}
+  </div>;
+}
+
+/** Tickender Countdown „HH:MM:SS“ bis `target` (ms); ruft `onDone` einmal bei Ablauf. */
+function useCountdown(target: number, onDone: () => void) {
+  const [now, setNow] = useState(() => Date.now());
+  const active = Number.isFinite(target);
+  useEffect(() => {
+    if (!active) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [active]);
+  const ms = active ? target - now : NaN;
+  useEffect(() => { if (active && ms <= 0) onDone(); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, ms <= 0]);
+  if (!active || ms <= 0) return null;
+  const t = Math.floor(ms / 1000);
+  return [Math.floor(t / 3600), Math.floor((t % 3600) / 60), t % 60].map((n) => String(n).padStart(2, "0")).join(":");
 }
 
 function Row({ label, testId, children }: { label: string; testId?: string; children: React.ReactNode }) {

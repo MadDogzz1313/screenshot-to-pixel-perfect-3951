@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Clapperboard, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { adErrorMessage, adPrivacyOptionsRequired, adRewardKey, adsSupported, resumePendingAdReward, showAdPrivacyOptions, useAdRewardState, watchRewardedAd, type AdPlacement } from "@/lib/ads";
+import { adPrivacyOptionsRequired, adRewardKey, adsSupported, resumePendingAdReward, showAdPrivacyOptions, useAdRewardState, type AdPlacement } from "@/lib/ads";
+import { useWatchAdReward } from "./useWatchAdReward";
 import { fishById, fishingKey, fishingOdds } from "@/lib/fishing";
 import { locale, tr } from "@/lib/i18n";
 
@@ -33,14 +34,7 @@ export function AdRewards({ userId }: { userId: string }) {
     void adPrivacyOptionsRequired().then(setPrivacy).catch(() => undefined); // nur Status, kein Formular, keine Anzeige
   }, [supported, s?.mode]);
 
-  const watch = useMutation({
-    mutationFn: (p: AdPlacement) => watchRewardedAd(p, userId),
-    onSuccess: (r, p) => {
-      toast.success(p === "fishing_bonus_casts" ? tr("+5 Bonus-Angelversuche erhalten!") : tr("Epischer Köder erhalten!"), { description: r.already_processed ? tr("Bereits gutgeschrieben.") : undefined });
-      refresh();
-    },
-    onError: (e) => { const msg = adErrorMessage(e); if (msg.includes("überprüft") || msg.includes("Verifying")) toast.info(msg); else toast.error(msg); refresh(); },
-  });
+  const watch = useWatchAdReward(userId);
 
   if (!supported || !s || s.mode === "off" || !s.logged_in || !s.bonus || !s.bait) return null;
   const left = { fishing_bonus_casts: s.bonus.limit - s.bonus.used, fishing_special_bait: s.bait.limit - s.bait.used } as const;
