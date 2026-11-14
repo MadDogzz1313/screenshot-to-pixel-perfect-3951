@@ -7,14 +7,12 @@ class DonationTier(BaseModel):
     id: str
     lookup_key: str
     amount_cents: int
-    badge: str
 
 
 class TiersResponse(BaseModel):
     tiers: list[DonationTier]
     custom_min_cents: int
     custom_max_cents: int
-    test_mode: bool
 
 
 class CheckoutRequest(BaseModel):

@@ -1,6 +1,6 @@
-"""Spenden über Stripe (Claimable Sandbox). Zahlungen liegen in MongoDB (payment_transactions).
-Abzeichen vergibt weiterhin ein Admin: Bestätigen trägt die Spende mit dem Admin-Token in Supabase `donations` ein
-(RLS + Trigger sync_donation_badges vergeben die Stufe)."""
+"""Echte Stripe-Spenden. Zahlungen und Prüfstatus liegen in MongoDB (payment_transactions).
+Es werden keine Supabase-Spenden oder Spendenabzeichen mehr angelegt.
+"""
 import asyncio
 import logging
 import os
@@ -12,7 +12,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from models.payments import (AdminDonation, AdminDonationsResponse, CheckoutRequest, CheckoutResponse, DonationTier,
                              StatusResponse, TiersResponse)
-from services.supabase import AuthUser, current_user, require_admin, rest
+from services.supabase import AuthUser, current_user, require_admin
 
 log = logging.getLogger("payments")
 router = APIRouter()
@@ -20,9 +20,9 @@ stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") or "sk_test_emergent"
 TAX_MODE = "full"  # Sandbox-Land DE + digitale Leistung -> Stripe übernimmt Steuern (Fallback: nur berechnen)
 
 DONATION_PRODUCT_ID = "leonida_donation"
-TIERS = [DonationTier(id=b, lookup_key=f"donation_{c // 100}eur", amount_cents=c, badge=n) for b, c, n in [
-    ("supporter", 100, "Supporter"), ("bronze", 500, "Bronze Supporter"), ("silver", 1500, "Silver Supporter"),
-    ("gold", 3000, "Gold Supporter"), ("diamond", 5000, "Diamond Supporter"), ("founder", 10000, "Leonida Founder")]]
+TIERS = [DonationTier(id=b, lookup_key=f"donation_{c // 100}eur", amount_cents=c) for b, c in [
+    ("supporter", 100), ("bronze", 500), ("silver", 1500),
+    ("gold", 3000), ("diamond", 5000), ("founder", 10000)]]
 CUSTOM_MIN, CUSTOM_MAX = 100, 50000
 
 _db = AsyncIOMotorClient(os.environ["MONGO_URL"])[os.environ.get("DB_NAME", "leonida_explorer")]
@@ -67,8 +67,7 @@ def _create_session(line_item: dict, origin: str, user_id: str, label: str):
 
 @router.get("/payments/tiers", response_model=TiersResponse)
 async def tiers() -> TiersResponse:
-    return TiersResponse(tiers=TIERS, custom_min_cents=CUSTOM_MIN, custom_max_cents=CUSTOM_MAX,
-                         test_mode=os.environ.get("STRIPE_MODE", "test") != "live")
+    return TiersResponse(tiers=TIERS, custom_min_cents=CUSTOM_MIN, custom_max_cents=CUSTOM_MAX)
 
 
 @router.post("/payments/checkout", response_model=CheckoutResponse)
@@ -165,19 +164,12 @@ async def admin_donations(user: AuthUser = Depends(current_user)) -> AdminDonati
 @router.post("/payments/admin/donations/{session_id}/confirm", response_model=AdminDonation)
 async def admin_confirm(session_id: str, user: AuthUser = Depends(current_user)) -> AdminDonation:
     await require_admin(user)
-    # Atomar reservieren: verhindert doppelte Gutschrift bei Doppelklick oder zwei Admins.
+    # Atomar als geprüft markieren. Es werden keine Badge-/Supabase-Spendenzeilen mehr angelegt.
     r = await tx.find_one_and_update(
-        {"session_id": session_id, "payment_status": "paid", "credit_status": {"$in": ["open", None]}},
-        {"$set": {"credit_status": "crediting", "updated_at": _now()}})
+      {"session_id": session_id, "payment_status": "paid", "credit_status": {"$in": ["open", None]}},
+      {"$set": {"credit_status": "crediting", "updated_at": _now()}})
     if not r:
-        raise HTTPException(409, "Spende ist nicht bezahlt oder wurde schon bestätigt")
-    res = await rest("POST", "/rest/v1/donations", user.token, prefer="return=minimal", json={
-        "user_id": r["user_id"], "amount_cents": r["amount_cents"], "verified_by": user.id,
-        "note": f"Stripe {session_id[-12:]}"})
-    if res.status_code >= 300:
-        await tx.update_one({"session_id": session_id}, {"$set": {"credit_status": "open", "updated_at": _now()}})
-        log.warning("Spende eintragen fehlgeschlagen: %s %s", res.status_code, res.text[:200])
-        raise HTTPException(502, "Spende konnte nicht in der Datenbank eingetragen werden")
+        raise HTTPException(409, "Spende ist nicht bezahlt oder wurde schon geprüft")
     now = _now()
     await tx.update_one({"session_id": session_id},
                         {"$set": {"credit_status": "credited", "credited_by": user.id, "credited_at": now, "updated_at": now}})

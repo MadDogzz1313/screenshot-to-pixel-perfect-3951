@@ -1,0 +1,86 @@
+{
+  "iteration": 60,
+  "mode": "generate",
+  "summary": "Donation/badge removal feature verified: backend suite (113 pytest incl. tiers/admin-confirm/checkout/status/webhook), yarn typecheck, vitest (73 tests) all green. 7 browser checks covering profile badge catalog, donation page copy, success page, admin review UI, and migration review.",
+  "passed": 9,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "bugs": [],
+  "action_items": [
+    "Migration 041 is a Supabase SQL draft under docs/migrations/ — it must be run by the user in Lovable's SQL editor; it was not and cannot be executed by the agent (external managed DB).",
+    "Stripe account is in STRIPE_MODE=test per backend/.env; live money cannot be verified/claimed by source code alone — this is an environment/business limitation, not a code defect."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Stripe tier API has no badge/test-mode fields",
+      "name": "test_tscheck_payments_tiers.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET /api/payments/tiers -> 200, body keys == {tiers, custom_min_cents, custom_max_cents}; 6 tiers supporter..founder with exact amount_cents (100..10000) and no badge field; re-verified with direct curl."
+    },
+    {
+      "criterion": "Admin Stripe review no longer writes Supabase donations",
+      "name": "test_tscheck_payments_admin.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/payments/admin/donations/<sid>/confirm on a fixture Mongo doc (payment_status=paid, credit_status=open) -> 200, credit_status=credited; second call -> 409 (idempotent); list endpoint returns the created doc. No Supabase /rest/v1/donations call exists in routers/payments.py (code-reviewed, 3 pytest files: admin/checkout/status/webhook, 113 total pass)."
+    },
+    {
+      "criterion": "Donation badge catalog removed from app",
+      "name": "profile-badges-only-community-section",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked logged-in /profil: section text matches COMMUNITY-ABZEICHEN only, no UNTERSTÜTZER text; badge-{supporter,bronze,silver,gold,diamond,founder} all count 0; badge-donate-link count 0; badge-first_find (community) still visible."
+    },
+    {
+      "criterion": "Donation page no longer contains badge or test-donation messaging",
+      "name": "spenden-page-no-badge-messaging",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "/spenden body text contains 'Stripe' + support wording, has 0 donate-test-mode-hint elements, no match for Testmodus/test mode/4242/Abzeichen/badge; 0 <img> inside donate-tier-* buttons (amount-only cards)."
+    },
+    {
+      "criterion": "Donation page no longer contains badge or test-donation messaging (regression vs prior hint)",
+      "name": "donate-page-guest-hints",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Updated stale pre-change check (previously asserted the test-mode hint WAS visible); now asserts donate-test-mode-hint has count 0 and guest login link / cancelled hint still render correctly."
+    },
+    {
+      "criterion": "Donation success page no badge message",
+      "name": "donate-thanks-success-no-badge-message",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked /api/payments/status/* -> payment_status=paid; donate-thanks-success visible; full page text has no match for /admin/i or /Abzeichen|badge/i."
+    },
+    {
+      "criterion": "Admin Stripe review no longer writes Supabase donations (UI)",
+      "name": "admin-stripe-donations-no-badge-text",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mocked admin session + /api/payments/admin/donations (open) and confirm endpoint: section text has no /Abzeichen|badge/i, button reads 'Als geprüft markieren', clicking it calls the confirm endpoint exactly once and list re-renders as credited."
+    },
+    {
+      "criterion": "Real donation flow messaging (public ingress)",
+      "name": "spenden-public-preview-no-badge",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Via public preview URL https://leonida-karte--6tt5kohx.preview.emergentagent.com/spenden: donate-page visible, donate-test-mode-hint count 0, no Testmodus/badge text in body."
+    },
+    {
+      "criterion": "Regression (typecheck/vitest/backend tests green)",
+      "name": "yarn typecheck + vitest + pytest suite",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "`yarn typecheck` -> tsc clean; `yarn vitest run` -> 9 files / 73 tests passed; `cd backend && python -m pytest -q` -> 113 passed (includes payments tiers/checkout/status/webhook/admin and unrelated sql/push/community suites), no BadgeKind donation regressions."
+    }
+  ],
+  "notes": [
+    "Migration file docs/migrations/041_spenden_und_spendenabzeichen_entfernen.sql reviewed by reading content: drops trigger donations_badges + function sync_donation_badges, cleans featured_badges array of donation badge ids, deletes user_badges rows referencing kind='donation' badges, deletes all public.donations rows, deletes badges where kind='donation'. It does not touch Mongo payment_transactions and does not drop any collections/tables — matches the acceptance criterion. Not executed (external Supabase/Lovable DB per briefing; executing it is explicitly the user's responsibility and out of scope for this agent).",
+    "src/lib/badges.ts BadgeKind type is now 'community' only (no donation entries) confirming the catalog removal at the source level; vitest/typecheck green confirms no leftover references broke the build.",
+    "No test_credentials exist for Supabase auth (confirmed via /app/memory/test_credentials.md and SQL comments) — all authenticated browser checks used the established repo pattern of localStorage-seeded Supabase JWT sessions + mocked Supabase/FastAPI routes, consistent with every other check already in this suite."
+  ]
+}

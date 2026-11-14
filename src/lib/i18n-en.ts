@@ -491,7 +491,7 @@ export const EN: Record<string, string> = {
   "Dein Profil, Level, Abzeichen und eingereichte Fundorte.": "Your profile, level, badges and submitted spots.",
   "Danke · Leonida Explorer": "Thank you · Leonida Explorer",
   "Unterstützen · Leonida Explorer": "Support · Leonida Explorer",
-  "Unterstütze Leonida Explorer mit einer Spende und erhalte ein Unterstützer-Abzeichen.": "Support Leonida Explorer with a donation and get a supporter badge.",
+  "Unterstütze Leonida Explorer mit einer echten Spende über Stripe.": "Support Leonida Explorer with a real donation through Stripe.",
   "Öffentliches Profil von {0}.": "Public profile of {0}.",
   // Beitrag
   "Titel zu kurz": "Title too short",
@@ -792,7 +792,7 @@ export const EN: Record<string, string> = {
   // Spenden
   "Unterstützen": "Support",
   "Danke für deine Spende!": "Thank you for your donation!",
-  "Die Zahlung ist eingegangen. Ein Admin bestätigt sie in Kürze – dann erscheint dein Unterstützer-Abzeichen im Profil.": "Your payment was received. An admin will confirm it shortly – then your supporter badge will appear on your profile.",
+  "Die Zahlung ist eingegangen. Vielen Dank für deine echte Unterstützung von Leonida Explorer.": "Your payment was received. Thank you for your real support of Leonida Explorer.",
   "Zahlung wird noch geprüft": "Payment is still being verified",
   "Zahlung nicht abgeschlossen": "Payment not completed",
   "Stripe hat noch keine Bestätigung gesendet. Schau später im Profil nach deinem Abzeichen.": "Stripe hasn't sent a confirmation yet. Check your profile for your badge later.",
@@ -802,7 +802,7 @@ export const EN: Record<string, string> = {
   "Erneut versuchen": "Try again",
   "Spenden in der App nicht verfügbar": "Donations not available in the app",
   "Spenden sind nur über die Website von Leonida Explorer möglich.": "Donations are only possible via the Leonida Explorer website.",
-  "Mit deiner Spende hilfst du, Server und neue Funktionen zu finanzieren. Als Dank gibt es ein Unterstützer-Abzeichen – die Stufe richtet sich nach der Summe aller deiner bestätigten Spenden.": "Your donation helps fund servers and new features. As a thank-you you get a supporter badge – its tier depends on the total of all your verified donations.",
+  "Mit deiner Spende hilfst du, Server und neue Funktionen zu finanzieren. Die Zahlung wird sicher über Stripe abgewickelt.": "Your donation helps fund servers and new features. Payment is securely processed by Stripe.",
   "Testmodus: Es wird kein echtes Geld abgebucht. Testkarte 4242 4242 4242 4242, beliebiges Datum in der Zukunft, beliebige Prüfziffer.": "Test mode: no real money is charged. Test card 4242 4242 4242 4242, any future date, any CVC.",
   "Zahlung abgebrochen – es wurde nichts abgebucht.": "Payment cancelled – nothing was charged.",
   "Melde dich an, damit wir deine Spende deinem Profil zuordnen können.": "Sign in so we can link your donation to your profile.",
@@ -811,7 +811,7 @@ export const EN: Record<string, string> = {
   "Eigener Betrag": "Custom amount",
   "Bitte einen Betrag zwischen {0} und {1} eingeben.": "Please enter an amount between {0} and {1}.",
   "Betrag wählen": "Choose amount",
-  "Sichere Zahlung über Stripe. Nach der Zahlung prüft ein Admin deine Spende und schaltet dein Abzeichen frei. Spenden bringen keine XP und keine Vorteile im Spiel.": "Secure payment via Stripe. After payment an admin verifies your donation and unlocks your badge. Donations give no XP and no in-game advantages.",
+  "Sichere echte Zahlung über Stripe. Deine Spende bringt keine XP und keine Vorteile im Spiel.": "Secure real payment through Stripe. Your donation gives no XP or in-game advantages.",
   "Profil nicht gefunden.": "Profile not found.",
   // Spracheinstellung
   "Sprache / Language": "Language / Sprache",

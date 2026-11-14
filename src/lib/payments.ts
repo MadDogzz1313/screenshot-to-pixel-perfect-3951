@@ -1,10 +1,10 @@
-// Stripe-Spenden über das Emergent-Backend (/api/payments/*). Abzeichen vergibt danach ein Admin (Supabase `donations`).
+// Stripe-Spenden über das Emergent-Backend (/api/payments/*). Spenden werden nicht mehr mit Abzeichen verknüpft.
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 import { tr, locale } from "@/lib/i18n";
-export interface DonationTier { id: string; lookup_key: string; amount_cents: number; badge: string }
-export interface TiersResponse { tiers: DonationTier[]; custom_min_cents: number; custom_max_cents: number; test_mode: boolean }
+export interface DonationTier { id: string; lookup_key: string; amount_cents: number }
+export interface TiersResponse { tiers: DonationTier[]; custom_min_cents: number; custom_max_cents: number }
 export interface CheckoutResponse { checkout_url: string; session_id: string }
 export interface StatusResponse { session_id: string; status: string; payment_status: string }
 export interface AdminDonation { session_id: string; user_id: string; amount_cents: number; currency: string; payment_status: string; credit_status: "open" | "crediting" | "credited"; created_at: string; credited_at: string | null }

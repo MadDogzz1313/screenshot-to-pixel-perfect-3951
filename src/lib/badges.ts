@@ -1,6 +1,6 @@
 import { tr } from "@/lib/i18n";
 // Abzeichen-Katalog (gleich wie Tabelle public.badges in SQL 004). Bilder: public/badges/<id>.webp
-export type BadgeKind = "community" | "donation";
+export type BadgeKind = "community";
 export type Metric = "spots" | "vehicles" | "collects" | "photos" | "likes" | "streak" | "accurate" | "corrections" | "months" | "best_rank";
 export interface BadgeDef { id: string; kind: BadgeKind; name: string; requirement: string; metric?: Metric; target: number }
 export const BADGES: BadgeDef[] = [
@@ -17,12 +17,6 @@ export const BADGES: BadgeDef[] = [
   { id: "veteran", kind: "community", name: "Veteran", requirement: tr("6 Monate seit Registrierung"), metric: "months", target: 6 },
   { id: "top_explorer", kind: "community", name: tr("Top-Entdecker"), requirement: tr("Platz 1–10 einer abgeschlossenen Monatswertung"), metric: "best_rank", target: 10 },
   { id: "mythic_catch", kind: "community", name: tr("Mythischer Fang"), requirement: tr("Fange den Mythischen Leonida-Marlín in Leonida Fishing"), target: 1 },
-  { id: "supporter", kind: "donation", name: "Supporter", requirement: tr("Bestätigte Spenden ab 1 €"), target: 100 },
-  { id: "bronze", kind: "donation", name: "Bronze Supporter", requirement: tr("Bestätigte Spenden ab 5 €"), target: 500 },
-  { id: "silver", kind: "donation", name: "Silver Supporter", requirement: tr("Bestätigte Spenden ab 15 €"), target: 1500 },
-  { id: "gold", kind: "donation", name: "Gold Supporter", requirement: tr("Bestätigte Spenden ab 30 €"), target: 3000 },
-  { id: "diamond", kind: "donation", name: "Diamond Supporter", requirement: tr("Bestätigte Spenden ab 50 €"), target: 5000 },
-  { id: "founder", kind: "donation", name: "Leonida Founder", requirement: tr("Bestätigte Spenden ab 100 €"), target: 10000 },
 ];
 export const badgeById = (id: string) => BADGES.find((b) => b.id === id);
 export const badgeImg = (id: string) => `/badges/${id}.webp`;

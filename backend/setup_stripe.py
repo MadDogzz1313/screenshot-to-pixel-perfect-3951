@@ -12,7 +12,7 @@ from routers.payments import DONATION_PRODUCT_ID, TIERS  # noqa: E402
 CATALOG = [{
     "emergent_product_id": DONATION_PRODUCT_ID,
     "name": "Leonida Explorer Unterstützung",
-    "tax_code": "txcd_10000000",  # allgemeine digitale Leistung (Unterstützer-Abzeichen)
+    "tax_code": "txcd_10000000",  # allgemeine digitale Leistung (echte Leonida-Explorer-Spende)
     "prices": [{"lookup_key": t.lookup_key, "amount": t.amount_cents, "currency": "eur"} for t in TIERS],
 }]
 

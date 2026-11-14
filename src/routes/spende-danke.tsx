@@ -25,7 +25,7 @@ function Thanks() {
         {paid ? <>
           <CheckCircle2 className="mx-auto h-12 w-12 text-neon" />
           <p data-testid="donate-thanks-success" className="font-display text-lg">{tr("Danke für deine Spende!")}</p>
-          <p className="text-sm text-muted-foreground">{tr("Die Zahlung ist eingegangen. Ein Admin bestätigt sie in Kürze – dann erscheint dein Unterstützer-Abzeichen im Profil.")}</p>
+          <p className="text-sm text-muted-foreground">{tr("Die Zahlung ist eingegangen. Vielen Dank für deine echte Unterstützung von Leonida Explorer.")}</p>
         </> : failed || timedOut ? <>
           <XCircle className="mx-auto h-12 w-12 text-destructive" />
           <p data-testid="donate-thanks-failed" className="font-display text-lg">{timedOut ? tr("Zahlung wird noch geprüft") : tr("Zahlung nicht abgeschlossen")}</p>

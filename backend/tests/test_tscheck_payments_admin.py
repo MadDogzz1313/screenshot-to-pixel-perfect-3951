@@ -58,18 +58,9 @@ def admin_client(api_client, monkeypatch):
     return api_client, admin_user
 
 
-def test_admin_confirm_paid_open_succeeds_then_rejects_double_and_mocks_rest(admin_client, mongo_tx):
+def test_admin_confirm_paid_open_succeeds_then_rejects_double(admin_client, mongo_tx):
     client, admin_user = admin_client
     doc = _make_doc(mongo_tx, "credit", "paid", "open")
-
-    calls = []
-
-    async def fake_rest(method, path, token, json=None, prefer=None):
-        calls.append({"method": method, "path": path, "json": json})
-        return FakeRestResponse(200, "")
-
-    import routers.payments as rp
-    rp.rest = fake_rest  # module attribute used directly by admin_confirm
 
     r = client.post(f"/api/payments/admin/donations/{doc['session_id']}/confirm")
     assert r.status_code == 200, r.text
@@ -77,14 +68,11 @@ def test_admin_confirm_paid_open_succeeds_then_rejects_double_and_mocks_rest(adm
     assert body["credit_status"] == "credited"
     assert body["amount_cents"] == 3000
 
-    assert len(calls) == 1
-    assert calls[0]["method"] == "POST"
-    assert calls[0]["path"] == "/rest/v1/donations"
-    assert calls[0]["json"]["user_id"] == doc["user_id"]
-    assert calls[0]["json"]["amount_cents"] == 3000
-    assert calls[0]["json"]["verified_by"] == admin_user.id
+    # Keine Supabase-donations-Zeile und kein Badge; nur Mongo-Status wurde geändert.
+    stored = mongo_tx.find_one({"session_id": doc["session_id"]})
+    assert stored["credit_status"] == "credited"
 
-    # Second confirm on the now-credited doc -> 409 (prevents double credit).
+    # Zweite Prüfung -> 409 (idempotenter Schutz).
     r2 = client.post(f"/api/payments/admin/donations/{doc['session_id']}/confirm")
     assert r2.status_code == 409
 
@@ -101,34 +89,9 @@ def test_admin_confirm_pending_doc_is_409(admin_client, mongo_tx):
     mongo_tx.delete_one({"session_id": doc["session_id"]})
 
 
-def test_admin_confirm_rest_failure_returns_502_and_reverts_credit_status(admin_client, mongo_tx):
-    client, _ = admin_client
-    doc = _make_doc(mongo_tx, "revert", "paid", "open")
-
-    async def failing_rest(method, path, token, json=None, prefer=None):
-        return FakeRestResponse(400, "bad request")
-
-    import routers.payments as rp
-    rp.rest = failing_rest
-
-    r = client.post(f"/api/payments/admin/donations/{doc['session_id']}/confirm")
-    assert r.status_code == 502
-
-    fresh = mongo_tx.find_one({"session_id": doc["session_id"]})
-    assert fresh["credit_status"] == "open"
-
-    mongo_tx.delete_one({"session_id": doc["session_id"]})
-
-
 def test_admin_donations_list_contains_created_paid_doc(admin_client, mongo_tx):
     client, _ = admin_client
     doc = _make_doc(mongo_tx, "list", "paid", "open")
-
-    async def ok_rest(method, path, token, json=None, prefer=None):
-        return FakeRestResponse(200, "")
-
-    import routers.payments as rp
-    rp.rest = ok_rest
 
     r = client.get("/api/payments/admin/donations")
     assert r.status_code == 200, r.text

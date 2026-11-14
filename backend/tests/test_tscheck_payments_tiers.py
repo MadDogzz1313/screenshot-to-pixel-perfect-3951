@@ -11,7 +11,7 @@ def test_tiers_endpoint_returns_six_tiers_and_limits():
 
     assert body["custom_min_cents"] == 100
     assert body["custom_max_cents"] == 50000
-    assert body["test_mode"] is True
+    assert set(body) == {"tiers", "custom_min_cents", "custom_max_cents"}
 
     tiers = {t["id"]: t for t in body["tiers"]}
     assert len(body["tiers"]) == 6

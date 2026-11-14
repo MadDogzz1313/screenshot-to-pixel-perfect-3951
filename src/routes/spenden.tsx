@@ -6,14 +6,13 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/lib/store";
-import { badgeImg } from "@/lib/badges";
 import { isNativeApp } from "@/lib/native";
 import { euro, startCheckout, useDonationTiers } from "@/lib/payments";
 
 import { tr } from "@/lib/i18n";
 export const Route = createFileRoute("/spenden")({
   validateSearch: (s: Record<string, unknown>): { abgebrochen?: 1 } => (s["abgebrochen"] ? { abgebrochen: 1 } : {}),
-  head: () => ({ meta: [{ title: tr("Unterstützen · Leonida Explorer") }, { name: "description", content: tr("Unterstütze Leonida Explorer mit einer Spende und erhalte ein Unterstützer-Abzeichen.") }] }),
+  head: () => ({ meta: [{ title: tr("Unterstützen · Leonida Explorer") }, { name: "description", content: tr("Unterstütze Leonida Explorer mit einer echten Spende über Stripe.") }] }),
   component: Donate,
 });
 
@@ -46,8 +45,7 @@ function Donate() {
       <div data-testid="donate-page" className="space-y-3 px-3 pb-4">
         <section className="neon-card space-y-2 p-4">
           <p className="flex items-center gap-2 font-display text-lg"><Heart className="h-5 w-5 text-accent" />{tr("Leonida Explorer unterstützen")}</p>
-          <p className="text-sm text-muted-foreground">{tr("Mit deiner Spende hilfst du, Server und neue Funktionen zu finanzieren. Als Dank gibt es ein Unterstützer-Abzeichen – die Stufe richtet sich nach der Summe aller deiner bestätigten Spenden.")}</p>
-          {cfg?.test_mode && <p data-testid="donate-test-mode-hint" className="rounded-xl border border-[#FFD12A]/50 bg-[#FFD12A]/10 p-2 text-xs text-[#FFD12A]">{tr("Testmodus: Es wird kein echtes Geld abgebucht. Testkarte 4242 4242 4242 4242, beliebiges Datum in der Zukunft, beliebige Prüfziffer.")}</p>}
+          <p className="text-sm text-muted-foreground">{tr("Mit deiner Spende hilfst du, Server und neue Funktionen zu finanzieren. Die Zahlung wird sicher über Stripe abgewickelt.")}</p>
           {abgebrochen && <p data-testid="donate-cancelled-hint" className="rounded-xl border border-border bg-background/40 p-2 text-xs">{tr("Zahlung abgebrochen – es wurde nichts abgebucht.")}</p>}
         </section>
 
@@ -67,9 +65,7 @@ function Donate() {
                 return (
                   <button key={t.id} type="button" data-testid={`donate-tier-${t.id}`} aria-pressed={on} onClick={() => { setSelected(t.id); setCustom(""); }}
                     className={`flex flex-col items-center gap-1 rounded-2xl border p-2 transition-[transform,border-color,box-shadow] duration-150 active:scale-95 ${on ? "border-neon shadow-[0_0_16px_oklch(0.8_0.2_200/0.35)]" : "border-border bg-background/30"}`}>
-                    <img src={badgeImg(t.id)} alt="" loading="lazy" className={`h-14 w-full object-contain ${on ? "" : "opacity-70"}`} />
                     <span className="font-display text-base">{euro(t.amount_cents)}</span>
-                    <span className="text-[10px] leading-tight text-muted-foreground">{t.badge}</span>
                   </button>);
               })}
             </div>
@@ -82,7 +78,7 @@ function Donate() {
             <Button data-testid="donate-pay-button" className="w-full" disabled={busy || !amount} onClick={() => void pay()}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}{amount ? `${euro(amount)} spenden` : tr("Betrag wählen")}
             </Button>
-            <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neon" />{tr("Sichere Zahlung über Stripe. Nach der Zahlung prüft ein Admin deine Spende und schaltet dein Abzeichen frei. Spenden bringen keine XP und keine Vorteile im Spiel.")}</p>
+            <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neon" />{tr("Sichere echte Zahlung über Stripe. Deine Spende bringt keine XP und keine Vorteile im Spiel.")}</p>
           </section>
         )}
       </div>

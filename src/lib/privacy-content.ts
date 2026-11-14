@@ -119,7 +119,7 @@ const de: PrivacyDoc = {
       id: "spenden",
       title: "12. Spenden",
       blocks: [
-        { p: "Auf der Website kannst du freiwillig über den Zahlungsdienst Stripe spenden; in der iPhone-App gibt es keine Spendenfunktion. Deine Zahlungsdaten gibst du direkt bei Stripe ein, wir erhalten sie nicht. Wir speichern zur Spende eine Zahlungsreferenz, dein Konto, Betrag, Währung, Zahlungsstatus und Zeitpunkt. Nach Bestätigung durch einen Admin kann die Spende ein Unterstützer-Abzeichen freischalten." },
+        { p: "Auf der Website kannst du freiwillig über den Zahlungsdienst Stripe spenden; in der iPhone-App gibt es keine Spendenfunktion. Deine Zahlungsdaten gibst du direkt bei Stripe ein, wir erhalten sie nicht. Wir speichern zur Abwicklung eine Zahlungsreferenz, dein Konto, Betrag, Währung, Zahlungsstatus und Zeitpunkt. Die Spende bringt keine XP, Abzeichen oder Vorteile im Spiel." },
       ],
     },
     {
@@ -363,7 +363,7 @@ const en: PrivacyDoc = {
       id: "spenden",
       title: "12. Donations",
       blocks: [
-        { p: "On the website, you can make a voluntary donation through the payment service Stripe; the iPhone app has no donation feature. You enter your payment details directly with Stripe; we do not receive them. For each donation, we store a payment reference, your account, amount, currency, payment status and time. After confirmation by an admin, the donation can unlock a supporter badge." },
+        { p: "On the website, you can make a voluntary donation through the payment service Stripe; the iPhone app has no donation feature. You enter your payment details directly with Stripe; we do not receive them. For processing, we store a payment reference, your account, amount, currency, payment status and time. Donations provide no XP, badges, or in-game benefits." },
       ],
     },
     {
